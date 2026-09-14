@@ -1,0 +1,33 @@
+[
+    {
+        "id": "DEMO-001",
+        "latitude": 21.1458,
+        "longitude": 79.0882,
+        "date": "2026-09-14T08:30:00Z",
+        "brightness": 345.1,
+        "frp": 12.4,
+        "confidence": 85,
+        "satellite": "Aqua"
+    },
+    {
+        "id": "DEMO-002",
+        "latitude": 28.6139,
+        "longitude": 77.2090,
+        "date": "2026-09-14T09:15:00Z",
+        "brightness": 310.5,
+        "frp": 5.2,
+        "confidence": 60,
+        "satellite": "Terra"
+    },
+    {
+        "id": "DEMO-003",
+        "latitude": 19.0760,
+        "longitude": 72.8777,
+        "date": "2026-09-14T10:45:00Z",
+        "brightness": 380.9,
+        "frp": 45.8,
+        "confidence": 100,
+        "satellite": "Suomi NPP"
+    }
+]
+

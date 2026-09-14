@@ -3,6 +3,9 @@
  * Frontend Foundation & UI Interactions
  */
 
+// Import the fetch function from our newly created api.js module.
+import { fetchFirmsData } from './api.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log("ThermalX application initialized.");
     initUI();
@@ -222,3 +225,61 @@ window.ThermalXUI = {
     hideLoading,
     showError
 };
+
+// ============================================================================
+// DAY 1 ROLE 3 TEST INTEGRATION
+// ============================================================================
+
+// Find the test button element from the HTML document using its ID.
+const btnTestFetch = document.getElementById('btn-test-fetch');
+
+// Find the status message element from the HTML document using its ID.
+const testStatusMessage = document.getElementById('test-status-message');
+
+// Check if the button actually exists on the page before adding an event listener.
+if (btnTestFetch) {
+    
+    // Add a click event listener to the button. When clicked, it runs this asynchronous function.
+    btnTestFetch.addEventListener('click', async () => {
+        
+        // Update the status text to tell the user we are loading data.
+        testStatusMessage.textContent = "Loading demo data...";
+        
+        // Change the text color to yellow/orange to indicate a pending state.
+        testStatusMessage.style.color = "#fbbf24";
+        
+        // Start a try block to handle any errors that might occur during data fetching.
+        try {
+            
+            // Call the imported fetchFirmsData function and wait for it to finish.
+            const hotspots = await fetchFirmsData();
+            
+            // Update the status text to tell the user the data loaded successfully, including the count.
+            testStatusMessage.textContent = `Success! Loaded ${hotspots.length} demo records. Check the console.`;
+            
+            // Change the text color to green to indicate success.
+            testStatusMessage.style.color = "#34d399";
+            
+            // Log the final standardized data to the browser console so the developer can inspect it.
+            console.log("Data successfully loaded into app.js:", hotspots);
+            
+        // Catch any errors that were thrown by the fetch process.
+        } catch (error) {
+            
+            // Update the status text to tell the user something went wrong.
+            testStatusMessage.textContent = "Error loading data. Check console.";
+            
+            // Change the text color to red to indicate an error.
+            testStatusMessage.style.color = "#f87171";
+            
+            // Log the error detail to the console.
+            console.error("Test integration failed:", error);
+            
+        // Close the catch block.
+        }
+        
+    // Close the async function and event listener.
+    });
+    
+// Close the if statement.
+}
