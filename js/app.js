@@ -1,1 +1,1 @@
-console.log("ThermalX application initialized.");
+console.log("ThermalX application initializedkjhfkjlk.");
