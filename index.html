@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThermalX | Thermal Hotspot Intelligence Platform</title>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    
+    <!-- HEADER -->
+    <header class="tx-header">
+        <div class="tx-header-left">
+            <h1 class="tx-logo">THERMAL<span>X</span></h1>
+            <span class="tx-subtitle">Thermal Hotspot Intelligence Platform</span>
+        </div>
+        <div class="tx-header-right">
+            <div class="tx-live-status">
+                <span class="pulse-indicator"></span>
+                LIVE DATA
+            </div>
+            <button class="tx-mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Menu">
+                ☰
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="tx-nav" id="main-nav">
+        <ul>
+            <li><a href="#dashboard" class="active">Dashboard</a></li>
+            <li><a href="#hotspots">Hotspots</a></li>
+            <li><a href="#intelligence">Intelligence</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="tx-dashboard">
+        
+        <!-- STATISTICS CARDS -->
+        <section class="tx-statistics">
+            <div class="tx-stat-card">
+                <h3>TOTAL EVENTS</h3>
+                <div class="tx-stat-value" id="total-events">128</div>
+            </div>
+            <div class="tx-stat-card">
+                <h3>PERSISTENT SOURCES</h3>
+                <div class="tx-stat-value" id="persistent-sources">24</div>
+            </div>
+            <div class="tx-stat-card">
+                <h3>INDUSTRIAL SOURCES</h3>
+                <div class="tx-stat-value" id="industrial-sources">17</div>
+            </div>
+            <div class="tx-stat-card tx-stat-card-highlight">
+                <h3>HIGH PRIORITY</h3>
+                <div class="tx-stat-value tx-text-accent" id="high-priority">8</div>
+            </div>
+        </section>
+
+        <!-- MAIN WORKSPACE -->
+        <section class="tx-workspace">
+            
+            <!-- MAP CONTAINER -->
+            <div class="tx-map-container">
+                <div id="map">
+                    <!-- Leaflet map will be injected here by Role 2 -->
+                    <div class="tx-map-placeholder">
+                        <p>Map Module initializing...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EVENT DETAILS PANEL -->
+            <aside class="tx-event-panel" id="event-panel">
+                <div class="tx-panel-header">
+                    <h2>EVENT DETAILS</h2>
+                </div>
+
+                <!-- STATE: No Selection -->
+                <div id="event-state-empty" class="tx-panel-state active">
+                    <p class="tx-empty-text">No hotspot selected</p>
+                    <p class="tx-empty-subtext">Select a thermal hotspot on the map to view detailed information.</p>
+                </div>
+
+                <!-- STATE: Loading -->
+                <div id="event-state-loading" class="tx-panel-state">
+                    <div class="tx-spinner"></div>
+                    <p>Loading thermal data...</p>
+                </div>
+
+                <!-- STATE: Error -->
+                <div id="event-state-error" class="tx-panel-state">
+                    <p class="tx-error-text">Unable to load data. Please try again.</p>
+                </div>
+
+                <!-- STATE: Data Populated -->
+                <div id="event-state-data" class="tx-panel-state">
+                    
+                    <div class="tx-data-row tx-highlight-row">
+                        <span class="tx-label">Event ID</span>
+                        <span class="tx-value" id="event-id">—</span>
+                    </div>
+
+                    <div class="tx-data-group">
+                        <div class="tx-data-row">
+                            <span class="tx-label">Priority</span>
+                            <span class="tx-badge" id="event-priority">—</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">Classification</span>
+                            <span class="tx-badge" id="event-classification">—</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">Confidence</span>
+                            <span class="tx-value" id="event-confidence">—</span>
+                        </div>
+                    </div>
+
+                    <div class="tx-data-group">
+                        <div class="tx-data-row">
+                            <span class="tx-label">Persistence</span>
+                            <span class="tx-value" id="event-persistence">—</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">Detection Count</span>
+                            <span class="tx-value" id="event-detection-count">—</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">First Detection</span>
+                            <span class="tx-value" id="event-first-detection">—</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">Last Detection</span>
+                            <span class="tx-value" id="event-last-detection">—</span>
+                        </div>
+                    </div>
+
+                    <div class="tx-data-group">
+                        <div class="tx-data-row">
+                            <span class="tx-label">Average FRP</span>
+                            <span class="tx-value" id="event-average-frp">—</span>
+                        </div>
+                    </div>
+
+                    <div class="tx-data-group">
+                        <div class="tx-data-row">
+                            <span class="tx-label">Nearest Facility</span>
+                            <span class="tx-value" id="event-facility">—</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">Distance</span>
+                            <span class="tx-value" id="event-distance">—</span>
+                        </div>
+                    </div>
+
+                    <div class="tx-data-group">
+                        <div class="tx-data-row tx-column">
+                            <span class="tx-label">Evidence</span>
+                            <span class="tx-value" id="event-evidence">—</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <!-- FILTERS -->
+        <section class="tx-filters">
+            <div class="tx-filters-header">
+                <h2>FILTER HOTSPOTS</h2>
+            </div>
+            <div class="tx-filters-grid">
+                
+                <div class="tx-filter-control">
+                    <label for="filter-search">Search</label>
+                    <input type="text" id="filter-search" placeholder="Search hotspot ID or facility...">
+                </div>
+
+                <div class="tx-filter-control tx-filter-date-group">
+                    <label>Date Range</label>
+                    <div class="tx-date-inputs">
+                        <input type="date" id="filter-date-from" aria-label="From Date">
+                        <span>to</span>
+                        <input type="date" id="filter-date-to" aria-label="To Date">
+                    </div>
+                </div>
+
+                <div class="tx-filter-control">
+                    <label for="filter-classification">Classification</label>
+                    <select id="filter-classification">
+                        <option value="all">All Classifications</option>
+                        <option value="industrial">Industrial</option>
+                        <option value="wildfire">Wildfire</option>
+                        <option value="agriculture">Agriculture</option>
+                        <option value="other">Other</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                </div>
+
+                <div class="tx-filter-control">
+                    <label for="filter-persistence">Persistence</label>
+                    <select id="filter-persistence">
+                        <option value="all">All Levels</option>
+                        <option value="high">High (>5 days)</option>
+                        <option value="medium">Medium (2-5 days)</option>
+                        <option value="low">Low (1 day)</option>
+                    </select>
+                </div>
+
+                <div class="tx-filter-control">
+                    <label for="filter-confidence">Confidence</label>
+                    <select id="filter-confidence">
+                        <option value="all">All Levels</option>
+                        <option value="high">High (>80%)</option>
+                        <option value="medium">Medium (50-80%)</option>
+                        <option value="low">Low (<50%)</option>
+                    </select>
+                </div>
+
+                <div class="tx-filter-actions">
+                    <button type="button" class="tx-btn-reset" id="btn-reset-filters">Reset Filters</button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Core App Logic -->
+    <script src="js/app.js"></script>
+    <!-- Future roles will include their scripts below -->
+    <!-- <script src="js/map.js"></script> -->
+    <!-- <script src="js/api.js"></script> -->
+    <!-- <script src="js/processing.js"></script> -->
+    <!-- <script src="js/classification.js"></script> -->
+</body>
+</html>
+

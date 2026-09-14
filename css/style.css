@@ -1,0 +1,194 @@
+/* ==========================================================================
+   ThermalX Design System - Base Styles
+   Role 1: Frontend Foundation
+   ========================================================================== */
+
+:root {
+    /* Colors */
+    --tx-bg-base: #0f1115;
+    --tx-bg-surface: #1a1d24;
+    --tx-bg-surface-hover: #232730;
+    --tx-bg-surface-elevated: #282c35;
+    
+    --tx-accent: #e53935;
+    --tx-accent-hover: #ff5252;
+    --tx-accent-dim: rgba(229, 57, 53, 0.15);
+    
+    --tx-text-primary: #e2e8f0;
+    --tx-text-secondary: #94a3b8;
+    --tx-text-muted: #64748b;
+    
+    --tx-border: #334155;
+    --tx-border-light: #475569;
+    
+    /* Typography */
+    --tx-font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --tx-font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    
+    /* Spacing */
+    --tx-space-xs: 0.25rem;
+    --tx-space-sm: 0.5rem;
+    --tx-space-md: 1rem;
+    --tx-space-lg: 1.5rem;
+    --tx-space-xl: 2rem;
+    
+    /* Transitions */
+    --tx-transition-fast: 0.15s ease;
+    --tx-transition-normal: 0.3s ease;
+}
+
+/* ==========================================================================
+   Reset & Global
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--tx-bg-base);
+    color: var(--tx-text-primary);
+    font-family: var(--tx-font-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: var(--tx-text-primary);
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+/* ==========================================================================
+   Typography & Utilities
+   ========================================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.025em;
+}
+
+.tx-text-accent {
+    color: var(--tx-accent) !important;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.tx-header {
+    background-color: var(--tx-bg-surface);
+    border-bottom: 1px solid var(--tx-border);
+    padding: var(--tx-space-md) var(--tx-space-xl);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tx-header-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.tx-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.tx-logo span {
+    color: var(--tx-accent);
+}
+
+.tx-subtitle {
+    font-size: 0.75rem;
+    color: var(--tx-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tx-header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--tx-space-lg);
+}
+
+.tx-live-status {
+    display: flex;
+    align-items: center;
+    gap: var(--tx-space-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tx-accent);
+    background-color: var(--tx-accent-dim);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    letter-spacing: 0.05em;
+}
+
+.pulse-indicator {
+    width: 6px;
+    height: 6px;
+    background-color: var(--tx-accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(229, 57, 53, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+}
+
+.tx-mobile-menu-btn {
+    display: none;
+    color: var(--tx-text-primary);
+    font-size: 1.5rem;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.tx-nav {
+    background-color: var(--tx-bg-surface);
+    border-bottom: 1px solid var(--tx-border);
+    padding: 0 var(--tx-space-xl);
+}
+
+.tx-nav ul {
+    list-style: none;
+    display: flex;
+    gap: var(--tx-space-xl);
+}
+
+.tx-nav a {
+    display: block;
+    padding: var(--tx-space-md) 0;
+    color: var(--tx-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid transparent;
+    transition: all var(--tx-transition-fast);
+}
+
+.tx-nav a:hover {
+    color: var(--tx-text-primary);
+}
+
+.tx-nav a.active {
+    color: var(--tx-accent);
+    border-bottom-color: var(--tx-accent);
+}
+

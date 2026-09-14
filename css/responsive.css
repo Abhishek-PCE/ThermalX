@@ -1,0 +1,97 @@
+/* ==========================================================================
+   ThermalX Responsive Adjustments
+   ========================================================================== */
+
+/* Tablet (Max Width: 1024px) */
+@media (max-width: 1024px) {
+    .tx-statistics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tx-workspace {
+        grid-template-columns: 1fr 300px;
+    }
+}
+
+/* Mobile (Max Width: 768px) */
+@media (max-width: 768px) {
+    
+    /* Header & Nav */
+    .tx-header {
+        padding: var(--tx-space-md);
+    }
+    
+    .tx-subtitle {
+        display: none; /* Hide subtitle on mobile for space */
+    }
+
+    .tx-live-status {
+        display: none; /* Hide live status on very small screens, or keep it small */
+    }
+
+    .tx-mobile-menu-btn {
+        display: block;
+    }
+
+    .tx-nav {
+        display: none; /* Hidden by default on mobile, handled by JS if needed */
+        padding: 0;
+    }
+
+    .tx-nav.active {
+        display: block;
+    }
+
+    .tx-nav ul {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .tx-nav a {
+        padding: var(--tx-space-md);
+        border-bottom: 1px solid var(--tx-border);
+    }
+
+    /* Dashboard Layout */
+    .tx-dashboard {
+        padding: var(--tx-space-md);
+    }
+
+    /* Statistics */
+    .tx-statistics {
+        grid-template-columns: 1fr;
+    }
+
+    /* Workspace */
+    .tx-workspace {
+        grid-template-columns: 1fr;
+        height: auto; /* Allow it to grow natively */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tx-map-container {
+        height: 400px; /* Fixed height for map on mobile */
+    }
+
+    .tx-event-panel {
+        height: auto;
+        min-height: 300px;
+    }
+
+    /* Filters */
+    .tx-filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tx-date-inputs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tx-date-inputs span {
+        text-align: center;
+        margin: 4px 0;
+    }
+}
+
