@@ -1,0 +1,344 @@
+You are working on the ThermalX SIH26162 project.
+
+DAY: 2
+ROLE: 3 — DATA INTEGRATION DEVELOPER
+
+IMPORTANT:
+Follow the uploaded ThermalX RoadMap exactly.
+Do NOT change the project architecture unnecessarily.
+Do NOT introduce React, Node.js, Python, FastAPI, PostgreSQL, PostGIS, TensorFlow, PyTorch, Docker, Kubernetes, or any other upgrade technology.
+The current MVP is HTML + CSS + JavaScript and runs client-side.
+
+DAY 2 OBJECTIVE:
+Connect NASA FIRMS thermal hotspot data to the ThermalX application.
+
+DAY 2 ROLE 3 RESPONSIBILITY FROM THE ROADMAP:
+- Connect NASA FIRMS API.
+- Use JavaScript fetch().
+- Convert API response JSON/CSV into JavaScript objects.
+- Handle API/network errors.
+- Handle empty results.
+- Handle invalid responses.
+- Handle loading state.
+- Make the data available in a shared format so Role 2 can display it on the Leaflet map and Role 1 can display hotspot information.
+
+PROJECT STRUCTURE:
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+PRIMARY FILE FOR THIS TASK:
+js/api.js
+
+INTEGRATION REQUIREMENT:
+The API module must expose clean JavaScript functions that other modules can call.
+
+Create or update:
+1. fetchFIRMSData()
+2. parseFIRMSResponse()
+3. validateFIRMSData()
+4. normalizeHotspotData()
+5. handle API errors
+6. handle empty results
+7. handle invalid responses
+8. loading-state support
+
+EXPECTED NORMALIZED HOTSPOT FORMAT:
+
+{
+    id: "...",
+    latitude: 0,
+    longitude: 0,
+    brightness: 0,
+    frp: 0,
+    confidence: "...",
+    date: "...",
+    satellite: "..."
+}
+
+IMPORTANT:
+Do not silently invent FIRMS fields.
+First inspect the existing project files and determine how the current API response is expected to be structured.
+If the API returns CSV, correctly parse CSV.
+If the API returns JSON, correctly parse JSON.
+Keep the normalized output consistent regardless of the original response format.
+
+API CONFIGURATION:
+Do NOT hard-code secrets directly into source code.
+
+Create a clear configuration section for:
+- FIRMS API endpoint
+- map/data parameters if required
+- API key/token placeholder if required
+
+If an API key is required, use a clearly marked placeholder/configuration variable and explain where it must be supplied.
+Do not expose a real secret.
+
+FETCH FLOW MUST BE:
+
+NASA FIRMS API
+      ↓
+fetch()
+      ↓
+HTTP response check
+      ↓
+Read response
+      ↓
+JSON/CSV parsing
+      ↓
+Validate records
+      ↓
+Normalize records
+      ↓
+Return JavaScript hotspot array
+      ↓
+Role 2 / Role 1 consume the data
+
+ERROR HANDLING:
+
+Implement separate handling for:
+
+1. Network error
+   Example:
+   "Unable to connect to NASA FIRMS."
+
+2. HTTP error
+   Example:
+   "NASA FIRMS returned HTTP status: 404/401/500."
+
+3. Empty response
+   Example:
+   "No thermal hotspots were returned."
+
+4. Invalid response format
+   Example:
+   "FIRMS response format is invalid."
+
+5. Invalid hotspot record
+   Ignore or safely reject records missing essential information such as:
+   - latitude
+   - longitude
+
+6. Parsing failure
+   Show a useful error instead of crashing the application.
+
+7. Timeout or unavailable service
+   Return a controlled error.
+
+LOADING STATE:
+
+While FIRMS data is being requested:
+- expose loading state
+- do not create duplicate requests unnecessarily
+- allow app.js/UI to know that data is currently loading
+
+Example conceptual flow:
+
+setLoading(true)
+
+try {
+    const response = await fetch(...)
+
+    check response
+
+    parse response
+
+    validate records
+
+    normalize records
+
+    return hotspots
+}
+catch(error) {
+    handle error
+}
+finally {
+    setLoading(false)
+}
+
+IMPORTANT CODE QUALITY REQUIREMENT:
+
+COMMENT EVERY LINE OF CODE.
+
+I want EVERY executable line to have a simple comment explaining what that line does.
+
+Do NOT write complicated comments.
+
+Use comments like:
+
+const API_URL = "...";
+// Stores the NASA FIRMS API URL.
+
+async function fetchFIRMSData() {
+// Defines an asynchronous function that fetches FIRMS data.
+
+const response = await fetch(API_URL);
+// Sends a request to NASA FIRMS and waits for the server response.
+
+if (!response.ok) {
+// Checks whether the HTTP response was unsuccessful.
+
+throw new Error(`HTTP error: ${response.status}`);
+// Stops execution and creates an understandable error message.
+}
+
+The comments must explain:
+- what the line does
+- why it is needed when useful
+- what data is being created or returned
+
+COMMENTING RULE:
+Do not skip comments on short lines.
+Do not leave important logic unexplained.
+A beginner should be able to read api.js line-by-line and understand what is happening.
+
+ALSO:
+Use meaningful variable and function names.
+
+Prefer:
+response
+rawData
+hotspots
+normalizedHotspots
+latitude
+longitude
+brightness
+frp
+confidence
+satellite
+
+Avoid meaningless names such as:
+x
+y
+a
+b
+temp1
+
+DATA VALIDATION:
+
+For every hotspot:
+- latitude must be numeric
+- longitude must be numeric
+- latitude must be within -90 to 90
+- longitude must be within -180 to 180
+- required values should be checked before accepting the record
+
+Do not allow malformed records to break the complete application.
+
+DUPLICATES:
+Do not perform advanced clustering or persistence detection today.
+That belongs to later roadmap days.
+Only perform basic validation/normalization required for Day 2.
+
+DO NOT IMPLEMENT:
+- historical persistence calculation
+- spatial clustering
+- Turf.js processing
+- OSM/Overpass API
+- classification engine
+- ML
+- industrial proximity
+- advanced analytics
+
+Those belong to later days.
+
+ROLE 2 COMPATIBILITY:
+
+Make sure api.js returns an array that Role 2 can directly use to create Leaflet markers.
+
+Example:
+
+const hotspots = await fetchFIRMSData();
+
+hotspots.forEach(hotspot => {
+    // Role 2 can use hotspot.latitude and hotspot.longitude.
+});
+
+ROLE 1 COMPATIBILITY:
+
+Return enough normalized information for the UI to display:
+
+- latitude
+- longitude
+- brightness
+- FRP
+- confidence
+- date
+- satellite
+
+APP.JS INTEGRATION:
+
+If necessary, minimally update app.js so that:
+1. the application starts the FIRMS request
+2. loading status can be displayed
+3. successful hotspot data is available to the application
+4. errors are displayed safely
+
+Do not duplicate API logic inside app.js.
+All FIRMS communication must remain inside api.js.
+
+DEBUGGING:
+
+Add useful console messages where appropriate, for example:
+- FIRMS request started
+- FIRMS response received
+- number of records received
+- number of valid records
+- number of invalid records
+- FIRMS request failed
+
+Do not expose API secrets in console logs.
+
+TESTING:
+
+After implementation, test:
+1. successful API response
+2. empty response
+3. invalid response
+4. HTTP error
+5. network error
+6. malformed hotspot record
+7. invalid latitude/longitude
+8. valid normalized hotspot output
+
+If the real FIRMS API cannot be called because of API key, CORS, network, or service restrictions:
+- do NOT fake a successful live API response
+- create a clearly separated DEMO/FALLBACK mechanism only if necessary
+- clearly label demo data as DEMO DATA
+- keep the live FIRMS integration ready for the real API
+
+IMPORTANT:
+Do not overwrite working code unnecessarily.
+First inspect the complete existing project.
+Reuse existing functions where possible.
+Only modify files required for Day 2 Role 3.
+
+FINAL OUTPUT REQUIRED FROM YOU:
+
+After making the changes, provide:
+
+1. Files changed
+2. Complete code for each changed file
+3. Explanation of the data flow:
+   NASA FIRMS → fetch() → response → parsing → validation → normalization → JavaScript objects
+4. How Role 2 can consume the hotspot array
+5. How Role 1 can display loading/error/success states
+6. How to configure the FIRMS API key/endpoint
+7. How to test the integration
+8. Any limitations encountered
+
+MOST IMPORTANT:
+The code must be beginner-friendly.
+COMMENT EVERY LINE OF CODE.
+Do not give unexplained code.
+Keep the implementation strictly within DAY 2 — ROLE 3 scope of the ThermalX roadmap.
