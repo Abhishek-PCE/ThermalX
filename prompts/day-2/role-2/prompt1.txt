@@ -1,0 +1,125 @@
+# THERMALX — DAY 2 — ROLE 2
+
+## GIS & MAP DEVELOPER — COMPLETE IMPLEMENTATION PROMPT
+
+You are working on the **ThermalX SIH 2026 project**.
+
+Project title:
+
+**AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM & Satellite Data**
+
+Project name:
+
+**ThermalX**
+
+---
+
+# 1. YOUR ROLE
+
+You are implementing **Role 2 — GIS & Map Developer**.
+
+According to the project plan, Role 2 is responsible for:
+
+* Leaflet.js integration
+* OpenStreetMap base map
+* Hotspot markers
+* Map controls
+* GeoJSON support
+* Thermal hotspot layers
+* Industrial-zone layers
+* Spatial visualization
+* Displaying hotspot information on the map
+
+For **Day 2**, your main objective is:
+
+> **Real NASA FIRMS thermal hotspots must appear on the ThermalX Leaflet map.**
+
+The FIRMS data will be provided by the data-fetching module / Role 3.
+
+Your job is to take the available hotspot data and visualize it correctly on the map.
+
+---
+
+# 2. IMPORTANT PROJECT CONSTRAINT
+
+This is the **10-day MVP**.
+
+Keep the implementation simple and understandable.
+
+Use:
+
+* HTML
+* CSS
+* Vanilla JavaScript
+* Leaflet.js
+* OpenStreetMap
+
+Do NOT introduce:
+
+* React
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* unnecessary frameworks
+
+The current MVP is client-side JavaScript.
+
+---
+
+# 3. EXISTING PROJECT STRUCTURE
+
+Use this structure:
+
+ThermalX/
+│
+├── index.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+│
+├── data/
+│
+├── assets/
+│
+└── README.md
+
+Do not unnecessarily change the existing architecture.
+
+If a file already exists, inspect it first and modify it instead of creating duplicate files.
+
+---
+
+# 4. DAY 2 TARGET
+
+Implement the following complete flow:
+
+NASA FIRMS DATA
+↓
+JavaScript hotspot objects
+↓
+map.js
+↓
+Leaflet markers
+↓
+Interactive hotspot popup
+↓
+User clicks hotspot
+↓
+Show:
+
+* Latitude
+* Longitude
+* FRP
+* Brightness
+* Confidence
