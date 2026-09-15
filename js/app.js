@@ -78,6 +78,7 @@ function clearEventDetails() {
     // Reset specific fields just in case
     const elements = [
         'event-id', 'event-priority', 'event-classification', 'event-confidence',
+        'event-id', 'event-location', 'event-brightness', 'event-priority', 'event-classification', 'event-confidence',
         'event-persistence', 'event-detection-count', 'event-first-detection',
         'event-last-detection', 'event-average-frp', 'event-facility',
         'event-distance', 'event-evidence'
@@ -135,6 +136,10 @@ function displayEvent(event) {
 
     // Basic Info
     document.getElementById('event-id').textContent = event.id || '—';
+    const elLoc = document.getElementById('event-location');
+    if (elLoc) elLoc.textContent = (event.latitude !== undefined && event.longitude !== undefined) ? `${event.latitude}, ${event.longitude}` : '—';
+    const elBri = document.getElementById('event-brightness');
+    if (elBri) elBri.textContent = event.brightness !== undefined ? event.brightness : '—';
     document.getElementById('event-average-frp').textContent = event.frp !== undefined ? event.frp : '—';
     
     // Persistence
