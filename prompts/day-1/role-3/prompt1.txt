@@ -1,0 +1,321 @@
+You are working as the Data Integration Developer (Role 3) for the ThermalX SIH project.
+
+PROJECT:
+ThermalX — NASA FIRMS Thermal Hotspot Detection and Classification Dashboard.
+
+IMPORTANT:
+Follow the attached ThermalX roadmap exactly for Day 1 Role 3. Do NOT jump ahead to Day 2, 3, 4, or later features.
+
+DAY 1 ROLE 3 RESPONSIBILITY:
+
+* Learn and test JavaScript fetch()
+* Learn and test async/await
+* Learn and test try/catch
+* Understand JSON data handling
+* Understand the structure of the NASA FIRMS API
+* Prepare the data-integration foundation that will later be connected to the actual FIRMS data
+
+PROJECT ARCHITECTURE:
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+YOUR TASK:
+Build ONLY the Day 1 Role 3 data-integration foundation.
+
+1. Create/modify js/api.js
+2. Create a small working fetch/JSON demonstration
+3. Create a clean function structure that can later be connected to NASA FIRMS
+4. Do not introduce React, Node.js, Python, FastAPI, PostgreSQL, PostGIS, TensorFlow, PyTorch, or any other unnecessary technology.
+5. Keep the project JavaScript-first and client-side.
+6. Do not create a backend server.
+7. Do not implement classification yet.
+8. Do not implement persistence/clustering yet.
+9. Do not implement OSM/Overpass yet.
+10. Do not implement advanced map functionality yet.
+
+CODE COMMENT REQUIREMENT — VERY IMPORTANT:
+EVERY SINGLE LINE OF CODE THAT YOU GENERATE MUST HAVE AN EXPLANATORY COMMENT.
+
+The comments must explain what the line does in simple language so that a beginner can understand the code.
+
+For example:
+
+// Create an asynchronous function that will be used to fetch data.
+async function fetchData() {
+
+// Store the API URL inside a constant variable.
+const API_URL = "example-url";
+
+// Send an HTTP request to the specified URL.
+const response = await fetch(API_URL);
+
+// Convert the server response from JSON text into a JavaScript object.
+const data = await response.json();
+
+// Print the received data in the browser console for testing.
+console.log(data);
+
+// Close the asynchronous function.
+}
+
+DO NOT write uncommented code.
+
+If a line is difficult to comment individually, explain its purpose directly above the line AND also add an inline comment where practical.
+
+DAY 1 IMPLEMENTATION:
+
+A. api.js
+
+Create a clean API utility module.
+
+It should contain:
+
+1. A configurable FIRMS API URL placeholder.
+2. A function named fetchFirmsData().
+3. Use async/await.
+4. Use try/catch.
+5. Use fetch().
+6. Check response.ok.
+7. Convert the response to JSON when the response is JSON.
+8. Return the processed data.
+9. Handle network errors.
+10. Handle HTTP errors.
+11. Log useful debugging information.
+12. Never silently ignore an error.
+
+Use a placeholder configuration rather than exposing a real secret API key.
+
+For example, structure the configuration so that a real API key can be inserted later without rewriting the whole application.
+
+B. NASA FIRMS API UNDERSTANDING
+
+Add clear comments/documentation explaining:
+
+* What NASA FIRMS provides.
+* That FIRMS provides thermal hotspot/fire detections.
+* That ThermalX will eventually consume these detections.
+* What fields ThermalX is interested in.
+* latitude
+* longitude
+* brightness
+* FRP
+* confidence
+* date
+* satellite
+
+Do NOT invent undocumented API fields.
+
+If the exact API response format is uncertain, clearly mark the section as "TODO — verify against the current NASA FIRMS API response" instead of pretending that an unverified structure is correct.
+
+C. JSON TEST DATA
+
+Create a small demo JSON file inside:
+
+data/demo-firms.json
+
+Use a few fictional/demo hotspot records only for testing the JavaScript data flow.
+
+Clearly mark the records as DEMO DATA.
+
+Do not represent fictional coordinates as real NASA detections.
+
+The demo data should contain only fields needed for the ThermalX MVP data model, such as:
+
+* id
+* latitude
+* longitude
+* date
+* brightness
+* frp
+* confidence
+* satellite
+
+D. TEST FETCH FUNCTION
+
+Create a simple function that loads the demo JSON using fetch().
+
+Demonstrate this exact flow:
+
+JSON file
+→ fetch()
+→ response check
+→ response.json()
+→ JavaScript object
+→ console.log()
+
+Use async/await and try/catch.
+
+E. index.html
+
+If necessary, add a very small Day 1 testing section to index.html.
+
+Show:
+
+"ThermalX — Data Integration Test"
+
+Add a button:
+
+"Load Demo FIRMS Data"
+
+When the button is clicked:
+
+1. Call the demo data fetch function.
+2. Display a loading message.
+3. Display success when the data is loaded.
+4. Display the number of records loaded.
+5. Display an error message if loading fails.
+6. Also print the complete data in the browser console.
+
+Do NOT build the complete dashboard yet.
+
+F. app.js
+
+Connect the button in index.html with the API/data function.
+
+Keep app.js simple.
+
+Use event listeners instead of inline HTML JavaScript.
+
+Every line must be commented.
+
+G. ERROR HANDLING
+
+Demonstrate these cases:
+
+1. Successful fetch.
+2. HTTP error.
+3. Network/fetch failure.
+4. Invalid JSON.
+5. Empty dataset.
+
+Use readable error messages.
+
+Do not expose sensitive information in the UI.
+
+H. DATA STANDARDIZATION
+
+Create a small function that converts raw demo records into a common ThermalX hotspot structure.
+
+The standardized object should use:
+
+{
+id,
+latitude,
+longitude,
+date,
+brightness,
+frp,
+confidence,
+satellite
+}
+
+Every property and transformation must be clearly commented.
+
+Do not perform classification or scoring.
+
+I. README
+
+Add a Day 1 Role 3 section to README.md explaining:
+
+* Role 3 responsibility
+* fetch()
+* async/await
+* try/catch
+* JSON
+* NASA FIRMS
+* demo JSON
+* data standardization
+* how to run the Day 1 test
+* what will be implemented on Day 2
+
+Clearly state:
+
+"Day 1 uses demo data for testing. Real NASA FIRMS integration is planned for Day 2."
+
+J. FILE CONNECTIONS
+
+Make sure the files are correctly connected:
+
+index.html
+↓
+app.js
+↓
+api.js
+↓
+data/demo-firms.json
+
+Use ES modules if appropriate.
+
+If ES modules are used, ensure index.html correctly loads app.js with:
+
+type="module"
+
+Do not create unnecessary files.
+
+K. BROWSER TESTING
+
+After implementation:
+
+1. Run the application.
+2. Open the browser.
+3. Click "Load Demo FIRMS Data".
+4. Verify that demo records are loaded.
+5. Verify the console output.
+6. Verify the UI success message.
+7. Test an error condition if possible.
+8. Fix any JavaScript/import/path errors.
+
+L. CODE QUALITY
+
+Follow these rules:
+
+* Plain HTML/CSS/JavaScript only.
+* Modular code.
+* Meaningful variable names.
+* No unnecessary libraries.
+* No unnecessary frameworks.
+* No hard-coded secrets.
+* No fake NASA data presented as live data.
+* No backend.
+* No ML.
+* No classification.
+* No clustering.
+* No OSM integration.
+* No advanced dashboard.
+
+M. FINAL RESPONSE FROM ANTIGRAVITY
+
+After completing the implementation, provide:
+
+1. Files created/modified.
+2. What each file does.
+3. How fetch() works in this project.
+4. How async/await works.
+5. How try/catch works.
+6. How JSON is converted into JavaScript objects.
+7. How the data flows through ThermalX.
+8. How to run the project.
+9. How to test the Day 1 Role 3 functionality.
+10. What should be done on Day 2.
+
+MOST IMPORTANT:
+Do not merely generate code. Make the code educational.
+
+Every line of code must contain or have an immediately preceding comment explaining its purpose in simple beginner-friendly language.
+
+Do not remove comments to make the code shorter.
+
+Do not move to later-day features.
+
+The final implementation must remain compatible with the ThermalX architecture and should be easy for Role 3 members to understand, debug, and extend on Day 2.

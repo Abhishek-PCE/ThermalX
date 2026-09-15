@@ -1,0 +1,49 @@
+You are acting as **Role 2: GIS & Map Developer** for the **ThermalX** project (SIH26162 - Satellite-based Thermal Hotspot Classifier). 
+
+### Project Objective:
+ThermalX is a web-based dashboard designed to plot NASA FIRMS satellite thermal hotspot detections, perform spatial calculations using OpenStreetMap (OSM) data, calculate hotspot persistence, and classify sources (Industrial, Wildfire, Agricultural, Other).
+
+### Your Responsibility for Day 1:
+Set up the core map visualization engine using **Leaflet.js**, OpenStreetMap (OSM) tile layers, standard controls, and modular structure so other components (Role 1 UI, Role 3 APIs) can easily interface with it.
+
+### Tech Stack Constraints (Day 1):
+- **Languages/Libraries**: Vanilla JavaScript (ES6+), Leaflet.js (CDN), HTML5, CSS3.
+- **Rules**: NO heavy frameworks (No React, Node.js, Python, or PostGIS). Everything must run client-side in the browser.
+
+---
+
+### Key Requirements to Implement for Day 1:
+
+1. **Map Container Setup (`js/map.js`)**:
+   - Initialize a Leaflet map object tied to an HTML element with id `#map`.
+   - Set a default global or regional view (e.g., center: `[20.5937, 78.9629]`, zoom level: `5`).
+   - Add default OSM base tile layer (`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`) with appropriate attribution.
+
+2. **Base Map Layer Controls**:
+   - Set up standard Leaflet layer control to allow switching between:
+     - Standard OpenStreetMap
+     - OpenTopoMap or Satellite style (using free tile URLs like Esri World Imagery).
+
+3. **Modular API Functions**:
+   Write clean, exportable/accessible JavaScript functions inside `js/map.js` for the rest of the team to call:
+   - `initMap(containerId)`: Initializes and returns the Leaflet map instance.
+   - `addTestMarker(lat, lng, title, popupContent)`: Places a sample test marker on the map to confirm rendering works.
+   - `clearMapMarkers()`: A utility function to clear dynamic markers.
+   - `centerMapOn(lat, lng, zoom)`: Function to programmatically fly or pan to specific coordinates.
+
+4. **Integration Hooks**:
+   - Expose the map instance globally (or via a window module) so `js/app.js` (Role 1) and `js/api.js` (Role 3) can interact with map functions.
+
+5. **Test Implementation**:
+   - Add a test hotspot marker on map load (e.g., Lat: `21.1458`, Lng: `79.0882` [Nagpur, India]) with a custom popup showing dummy data:
+     - **Source**: Test Hotspot
+     - **Lat/Lng**: 21.1458, 79.0882
+     - **Status**: Ready for FIRMS integration.
+
+---
+
+### Expected Output Deliverables:
+1. Complete JavaScript code for `js/map.js`.
+2. HTML snippets (CDNs for Leaflet CSS & JS) to be included in `<head>` and `<body>` of `index.html`.
+3. Minimal CSS snippets for `#map` container sizing (e.g., `height: 100%` or `height: 500px`).
+4. Step-by-step instructions on how to test that the map renders correctly on Day 1.
