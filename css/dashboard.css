@@ -92,16 +92,24 @@
     font-size: 0.875rem;
 }
 
-/* Event Panel */
+/* ============================================================
+   HOTSPOT DETAILS PANEL
+   This section controls the appearance of the selected
+   hotspot information panel.
+   ============================================================ */
+
+/* The main sidebar container for hotspot details */
 .tx-event-panel {
     background-color: var(--tx-bg-surface);
     border: 1px solid var(--tx-border);
-    border-radius: 4px;
+    border-radius: 6px;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+/* Panel Header: sticky top bar with title and close button */
 .tx-panel-header {
     padding: var(--tx-space-md) var(--tx-space-lg);
     border-bottom: 1px solid var(--tx-border);
@@ -109,6 +117,20 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Title container with icon and text */
+.tx-panel-header-title {
+    display: flex;
+    align-items: center;
+    gap: var(--tx-space-sm);
+}
+
+.tx-panel-icon {
+    font-size: 1.1rem;
 }
 
 .tx-panel-header h2 {
@@ -116,12 +138,32 @@
     color: var(--tx-text-primary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    margin: 0;
 }
 
-/* Panel States */
+/* Close/Deselect button on the panel header */
+.tx-panel-close-btn {
+    background: transparent;
+    color: var(--tx-text-secondary);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all var(--tx-transition-fast);
+}
+
+.tx-panel-close-btn:hover {
+    color: var(--tx-text-primary);
+    background-color: var(--tx-bg-surface-hover);
+    border-color: var(--tx-border);
+}
+
+/* Panel States container */
 .tx-panel-state {
     display: none;
-    padding: var(--tx-space-lg);
+    padding: var(--tx-space-md);
     flex-grow: 1;
 }
 
@@ -130,89 +172,215 @@
     flex-direction: column;
 }
 
-/* Empty State */
-#event-state-empty, #event-state-loading, #event-state-error {
+/* Empty, Loading, and Error States Centering */
+#event-state-empty, 
+#event-state-loading, 
+#event-state-error {
     justify-content: center;
     align-items: center;
     text-align: center;
     gap: var(--tx-space-sm);
+    min-height: 280px;
+}
+
+.tx-empty-icon, 
+.tx-error-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    margin-bottom: var(--tx-space-xs);
 }
 
 .tx-empty-text {
-    color: var(--tx-text-secondary);
-    font-weight: 500;
+    color: var(--tx-text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
 .tx-empty-subtext {
-    font-size: 0.875rem;
+    font-size: 0.825rem;
     color: var(--tx-text-muted);
+    max-width: 240px;
+    line-height: 1.4;
 }
 
-/* Loading State */
+/* Loading Spinner */
 .tx-spinner {
-    width: 24px;
-    height: 24px;
-    border: 2px solid var(--tx-border-light);
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--tx-border-light);
     border-top-color: var(--tx-accent);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: var(--tx-space-md);
+    animation: spin 0.9s linear infinite;
+    margin-bottom: var(--tx-space-xs);
+}
+
+.tx-loading-text {
+    font-size: 0.85rem;
+    color: var(--tx-text-secondary);
 }
 
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
 
-/* Error State */
+/* Error State text */
 .tx-error-text {
-    color: var(--tx-accent);
+    color: #f87171;
+    font-size: 0.875rem;
     font-weight: 500;
+    max-width: 240px;
 }
 
-/* Data State */
+/* Data State Container */
 #event-state-data {
-    gap: var(--tx-space-md);
-}
-
-.tx-data-group {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: var(--tx-space-sm);
-    padding-bottom: var(--tx-space-md);
-    border-bottom: 1px solid var(--tx-border);
+    padding: var(--tx-space-md);
 }
 
-.tx-data-group:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+#event-state-data.active {
+    display: flex;
 }
 
-.tx-data-row {
+/* ------------------------------------------------------------
+   HOTSPOT DETAIL CARDS
+   Each category of information is housed in a clean card.
+   ------------------------------------------------------------ */
+.tx-detail-card {
+    background-color: var(--tx-bg-surface-elevated);
+    border: 1px solid var(--tx-border);
+    border-radius: 6px;
+    padding: var(--tx-space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--tx-space-xs);
+    transition: border-color var(--tx-transition-fast);
+}
+
+.tx-detail-card:hover {
+    border-color: var(--tx-border-light);
+}
+
+/* Summary Card Highlight */
+.tx-summary-card {
+    border-left: 3px solid var(--tx-accent);
+    background-color: rgba(26, 29, 36, 0.85);
+}
+
+.tx-summary-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+}
+
+.tx-card-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    color: var(--tx-text-secondary);
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.tx-hotspot-id {
+    font-size: 1.15rem;
+    font-family: var(--tx-font-mono);
+    color: var(--tx-text-primary);
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.tx-summary-sub {
+    display: flex;
+    align-items: center;
+    gap: var(--tx-space-sm);
+    margin-top: var(--tx-space-xs);
+    padding-top: var(--tx-space-xs);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Card Titles */
+.tx-card-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--tx-border);
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+}
+
+.tx-card-icon {
+    font-size: 0.85rem;
+}
+
+.tx-card-title h4 {
+    font-size: 0.72rem;
+    color: var(--tx-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Grid Layout for compact 2-column metrics */
+.tx-data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--tx-space-sm);
+}
+
+.tx-data-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tx-data-item .tx-label {
+    font-size: 0.72rem;
+    color: var(--tx-text-secondary);
+}
+
+.tx-data-item .tx-value {
+    font-family: var(--tx-font-mono);
     font-size: 0.875rem;
+    color: var(--tx-text-primary);
+    font-weight: 600;
+}
+
+/* Key metric highlights (Brightness & FRP) */
+.tx-value-highlight {
+    color: #fbbf24 !important;
+    font-weight: 700 !important;
+}
+
+/* Generic key-value rows */
+.tx-data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.825rem;
+    padding: 2px 0;
 }
 
 .tx-data-row.tx-column {
     flex-direction: column;
+    align-items: stretch;
     gap: var(--tx-space-xs);
 }
 
-.tx-highlight-row {
-    background-color: var(--tx-bg-surface-elevated);
-    padding: var(--tx-space-sm) var(--tx-space-md);
-    margin: calc(var(--tx-space-sm) * -1) calc(var(--tx-space-lg) * -1) var(--tx-space-sm);
-    border-bottom: 1px solid var(--tx-border);
+.tx-mt-xs {
+    margin-top: 4px;
 }
 
 .tx-label {
     color: var(--tx-text-secondary);
+    font-size: 0.78rem;
 }
 
 .tx-value {
     color: var(--tx-text-primary);
     font-family: var(--tx-font-mono);
+    font-size: 0.825rem;
     text-align: right;
 }
 
@@ -220,14 +388,123 @@
     text-align: left;
 }
 
+/* Evidence / Heuristics text container */
+.tx-evidence-text {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--tx-text-secondary);
+    background-color: var(--tx-bg-base);
+    padding: var(--tx-space-sm);
+    border-radius: 4px;
+    border: 1px solid var(--tx-border);
+    word-break: break-word;
+}
+
+/* ------------------------------------------------------------
+   BADGES & STATUS INDICATORS
+   ------------------------------------------------------------ */
+.tx-badge-container {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
 .tx-badge {
     background-color: var(--tx-border);
     color: var(--tx-text-primary);
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Status: Detected */
+.tx-badge-status {
+    background-color: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+/* Classification: Pending */
+.tx-badge-pending {
+    background-color: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+/* Classification: Industrial */
+.tx-badge-industrial {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Classification: Wildfire */
+.tx-badge-wildfire {
+    background-color: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.4);
+}
+
+/* Classification: Agricultural */
+.tx-badge-agriculture {
+    background-color: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+/* Priority variations */
+.tx-priority-high {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.tx-priority-medium,
+.tx-priority-normal {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.tx-priority-low {
+    background-color: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+/* ============================================================
+   LEAFLET MAP POPUP STYLES (DARK THEME)
+   Overrides Leaflet's default white popups to match the dark UI.
+   ============================================================ */
+.leaflet-popup-content-wrapper {
+    background-color: #1a1d24 !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+    padding: 0 !important;
+}
+
+.leaflet-popup-content {
+    margin: 12px 14px !important;
+    line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+    background-color: #1a1d24 !important;
+    border: 1px solid #334155 !important;
+}
+
+.leaflet-popup-close-button {
+    color: #94a3b8 !important;
+    padding: 6px !important;
+}
+
+.leaflet-popup-close-button:hover {
+    color: var(--tx-accent) !important;
 }
 
 /* ==========================================================================

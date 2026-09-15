@@ -83,103 +83,176 @@
                 </div>
             </div>
 
-            <!-- EVENT DETAILS PANEL -->
-            <aside class="tx-event-panel" id="event-panel">
+            <!-- ==================== HOTSPOT DETAILS PANEL ==================== -->
+            <!-- 
+                What this section does:
+                This sidebar panel displays detailed information about a selected thermal hotspot.
+                It manages multiple UI states: Empty (no selection), Loading (fetching data),
+                Error (something went wrong), and Data Populated (showing hotspot details).
+
+                Why it is needed:
+                When users or SIH judges click a hotspot marker on the Leaflet map, this panel
+                shows all the vital satellite, thermal, geographic, and classification details in
+                one readable dashboard view.
+
+                How it connects to the rest of the application:
+                JavaScript functions in js/app.js (like showHotspotDetails and clearHotspotDetails)
+                update the text inside these HTML span elements when markers are clicked on the Leaflet map.
+            -->
+            <aside class="tx-event-panel" id="event-panel" aria-label="Hotspot Details Panel">
+                
+                <!-- Panel Header: Displays the title and a close button to deselect the hotspot -->
                 <div class="tx-panel-header">
-                    <h2>EVENT DETAILS</h2>
+                    <div class="tx-panel-header-title">
+                        <span class="tx-panel-icon">🔥</span>
+                        <h2>HOTSPOT DETAILS</h2>
+                    </div>
+                    <!-- Close button allows the user to dismiss the selection and return to empty state -->
+                    <button class="tx-panel-close-btn" id="btn-close-details" title="Deselect hotspot" aria-label="Close hotspot details">✕</button>
                 </div>
 
-                <!-- STATE: No Selection -->
+                <!-- STATE 1: Empty State (Shown when no hotspot is currently clicked or selected) -->
                 <div id="event-state-empty" class="tx-panel-state active">
+                    <div class="tx-empty-icon">🛰️</div>
                     <p class="tx-empty-text">No hotspot selected</p>
-                    <p class="tx-empty-subtext">Select a thermal hotspot on the map to view detailed information.</p>
+                    <p class="tx-empty-subtext">Select a thermal hotspot on the map to view detailed satellite and thermal intelligence.</p>
                 </div>
 
-                <!-- STATE: Loading -->
+                <!-- STATE 2: Loading State (Shown while waiting for hotspot data to load) -->
                 <div id="event-state-loading" class="tx-panel-state">
                     <div class="tx-spinner"></div>
-                    <p>Loading thermal data...</p>
+                    <p class="tx-loading-text">Loading thermal data...</p>
                 </div>
 
-                <!-- STATE: Error -->
+                <!-- STATE 3: Error State (Shown if hotspot data fails to display or is corrupted) -->
                 <div id="event-state-error" class="tx-panel-state">
-                    <p class="tx-error-text">Unable to load data. Please try again.</p>
+                    <div class="tx-error-icon">⚠️</div>
+                    <p class="tx-error-text" id="event-error-message">Unable to load hotspot details. Please try again.</p>
                 </div>
 
-                <!-- STATE: Data Populated -->
+                <!-- STATE 4: Data Populated State (Shown when a valid hotspot is selected) -->
                 <div id="event-state-data" class="tx-panel-state">
                     
-                    <div class="tx-data-row tx-highlight-row">
-                        <span class="tx-label">Event ID</span>
-                        <span class="tx-value" id="event-id">—</span>
-                    </div>
-
-                    <div class="tx-data-group">
-                        <div class="tx-data-row">
-                            <span class="tx-label">Priority</span>
-                            <span class="tx-badge" id="event-priority">—</span>
+                    <!-- Card 1: Header Summary (Hotspot ID, status badge, priority, and classification) -->
+                    <div class="tx-detail-card tx-summary-card">
+                        <div class="tx-summary-header">
+                            <div>
+                                <span class="tx-card-label">HOTSPOT ID</span>
+                                <h3 class="tx-hotspot-id" id="event-id">—</h3>
+                            </div>
+                            <div class="tx-badge-container">
+                                <span class="tx-badge tx-badge-status" id="event-status">Detected</span>
+                                <span class="tx-badge" id="event-priority">Normal</span>
+                            </div>
                         </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Classification</span>
-                            <span class="tx-badge" id="event-classification">—</span>
-                        </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Confidence</span>
-                            <span class="tx-value" id="event-confidence">—</span>
+                        <div class="tx-summary-sub">
+                            <span class="tx-label">Classification:</span>
+                            <span class="tx-badge tx-badge-pending" id="event-classification">Pending</span>
                         </div>
                     </div>
 
-                    <div class="tx-data-group">
+                    <!-- Card 2: Thermal Intelligence (Brightness, FRP power, and satellite confidence) -->
+                    <div class="tx-detail-card">
+                        <div class="tx-card-title">
+                            <span class="tx-card-icon">⚡</span>
+                            <h4>THERMAL DATA</h4>
+                        </div>
+                        <div class="tx-data-grid">
+                            <div class="tx-data-item">
+                                <span class="tx-label">Brightness</span>
+                                <span class="tx-value tx-value-highlight" id="event-brightness">—</span>
+                            </div>
+                            <div class="tx-data-item">
+                                <span class="tx-label">FRP (Power)</span>
+                                <span class="tx-value tx-value-highlight" id="event-frp">—</span>
+                                <!-- Hidden mirror for backwards compatibility with Day 1 ID -->
+                                <span id="event-average-frp" style="display: none;">—</span>
+                            </div>
+                            <div class="tx-data-item">
+                                <span class="tx-label">Confidence</span>
+                                <span class="tx-value" id="event-confidence">—</span>
+                            </div>
+                            <div class="tx-data-item">
+                                <span class="tx-label">Status</span>
+                                <span class="tx-value" id="event-quality">Active</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Location Information (Latitude, Longitude, and proximity) -->
+                    <div class="tx-detail-card">
+                        <div class="tx-card-title">
+                            <span class="tx-card-icon">📍</span>
+                            <h4>LOCATION</h4>
+                        </div>
+                        <div class="tx-data-grid">
+                            <div class="tx-data-item">
+                                <span class="tx-label">Latitude</span>
+                                <span class="tx-value" id="event-lat">—</span>
+                            </div>
+                            <div class="tx-data-item">
+                                <span class="tx-label">Longitude</span>
+                                <span class="tx-value" id="event-lng">—</span>
+                            </div>
+                        </div>
+                        <div class="tx-data-row tx-mt-xs">
+                            <span class="tx-label">Coordinates</span>
+                            <span class="tx-value" id="event-location">—</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">Industrial Proximity</span>
+                            <span class="tx-value" id="event-facility">Not available</span>
+                        </div>
+                        <div class="tx-data-row">
+                            <span class="tx-label">Nearest Distance</span>
+                            <span class="tx-value" id="event-distance">Not available</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Detection Information (Date, Time, Satellite platform) -->
+                    <div class="tx-detail-card">
+                        <div class="tx-card-title">
+                            <span class="tx-card-icon">🛰️</span>
+                            <h4>DETECTION</h4>
+                        </div>
+                        <div class="tx-data-grid">
+                            <div class="tx-data-item">
+                                <span class="tx-label">Date</span>
+                                <span class="tx-value" id="event-date">—</span>
+                            </div>
+                            <div class="tx-data-item">
+                                <span class="tx-label">Time</span>
+                                <span class="tx-value" id="event-time">—</span>
+                            </div>
+                        </div>
+                        <div class="tx-data-row tx-mt-xs">
+                            <span class="tx-label">Satellite</span>
+                            <span class="tx-value" id="event-satellite">—</span>
+                        </div>
                         <div class="tx-data-row">
                             <span class="tx-label">Persistence</span>
                             <span class="tx-value" id="event-persistence">—</span>
                         </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Detection Count</span>
-                            <span class="tx-value" id="event-detection-count">—</span>
-                        </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">First Detection</span>
-                            <span class="tx-value" id="event-first-detection">—</span>
-                        </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Last Detection</span>
-                            <span class="tx-value" id="event-last-detection">—</span>
+                        <div class="tx-data-row" style="display: none;">
+                            <!-- Hidden backwards compatibility elements -->
+                            <span id="event-detection-count">—</span>
+                            <span id="event-first-detection">—</span>
+                            <span id="event-last-detection">—</span>
                         </div>
                     </div>
 
-                    <div class="tx-data-group">
-                        <div class="tx-data-row">
-                            <span class="tx-label">Location</span>
-                            <span class="tx-value" id="event-location">—</span>
+                    <!-- Card 5: Classification Details & Evidence (Rule-based heuristics from Role 5) -->
+                    <div class="tx-detail-card">
+                        <div class="tx-card-title">
+                            <span class="tx-card-icon">🔍</span>
+                            <h4>CLASSIFICATION INFO</h4>
                         </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Brightness</span>
-                            <span class="tx-value" id="event-brightness">—</span>
-                        </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Average FRP</span>
-                            <span class="tx-value" id="event-average-frp">—</span>
-                        </div>
-                    </div>
-
-                    <div class="tx-data-group">
-                        <div class="tx-data-row">
-                            <span class="tx-label">Nearest Facility</span>
-                            <span class="tx-value" id="event-facility">—</span>
-                        </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Distance</span>
-                            <span class="tx-value" id="event-distance">—</span>
-                        </div>
-                    </div>
-
-                    <div class="tx-data-group">
                         <div class="tx-data-row tx-column">
-                            <span class="tx-label">Evidence</span>
-                            <span class="tx-value" id="event-evidence">—</span>
+                            <span class="tx-label">Evidence / Heuristic Notes</span>
+                            <span class="tx-value tx-evidence-text" id="event-evidence">Classification pending Role 5 analysis.</span>
                         </div>
                     </div>
+
                 </div>
             </aside>
         </section>

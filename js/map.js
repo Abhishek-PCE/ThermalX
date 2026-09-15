@@ -119,26 +119,41 @@ window.MapModule = (function() {
             // Create a basic marker at the hotspot's coordinates
             const marker = L.marker([hotspot.latitude, hotspot.longitude]);
             
-            // Construct the popup HTML content
-            const popupHTML = `
-                <div style="font-family: monospace; font-size: 14px; min-width: 200px;">
-                    <strong style="color: #e53935;">🔥 Thermal Hotspot</strong><br>
-                    <hr style="border: 0; border-top: 1px solid #ccc; margin: 5px 0;">
-                    <strong>Lat/Lng:</strong> ${hotspot.latitude.toFixed(4)}, ${hotspot.longitude.toFixed(4)}<br>
-                    <strong>FRP:</strong> ${hotspot.frp} MW<br>
-                    <strong>Brightness:</strong> ${hotspot.brightness} K<br>
-                    <strong>Confidence:</strong> ${hotspot.confidence}%<br>
-                    <strong>Date:</strong> ${hotspot.date}<br>
-                    <strong>Satellite:</strong> ${hotspot.satellite}
-                </div>
-            `;
+            // ============================================================
+            // LEAFLET POPUP & SELECTION INTEGRATION (Role 1 & Role 2)
+            // What this does:
+            // 1. Formats the popup HTML using Role 1's UI generator.
+            // 2. Binds a click event so selecting a marker updates the sidebar panel.
+            // ============================================================
+            let popupHTML = "";
+            if (window.ThermalXUI && typeof window.ThermalXUI.createHotspotPopupHTML === 'function') {
+                popupHTML = window.ThermalXUI.createHotspotPopupHTML(hotspot);
+            } else {
+                // Fallback popup if UI module is still loading
+                popupHTML = `
+                    <div style="font-family: monospace; font-size: 14px; min-width: 200px;">
+                        <strong style="color: #e53935;">🔥 Thermal Hotspot</strong><br>
+                        <hr style="border: 0; border-top: 1px solid #ccc; margin: 5px 0;">
+                        <strong>Lat/Lng:</strong> ${hotspot.latitude.toFixed(4)}, ${hotspot.longitude.toFixed(4)}<br>
+                        <strong>FRP:</strong> ${hotspot.frp} MW<br>
+                        <strong>Brightness:</strong> ${hotspot.brightness} K<br>
+                        <strong>Confidence:</strong> ${hotspot.confidence}%<br>
+                        <strong>Date:</strong> ${hotspot.date}<br>
+                        <strong>Satellite:</strong> ${hotspot.satellite}
+                    </div>
+                `;
+            }
             
             // Bind the popup to the marker
             marker.bindPopup(popupHTML);
             
-            // Add click event to update the right panel UI via app.js exposed API if available
+            // When user clicks the marker, display full details in the sidebar panel
             marker.on('click', () => {
-                if (window.ThermalXUI && typeof window.ThermalXUI.displayEvent === 'function') {
+                if (typeof window.showHotspotDetails === 'function') {
+                    window.showHotspotDetails(hotspot);
+                } else if (window.ThermalXUI && typeof window.ThermalXUI.showHotspotDetails === 'function') {
+                    window.ThermalXUI.showHotspotDetails(hotspot);
+                } else if (window.ThermalXUI && typeof window.ThermalXUI.displayEvent === 'function') {
                     window.ThermalXUI.displayEvent(hotspot);
                 }
             });
