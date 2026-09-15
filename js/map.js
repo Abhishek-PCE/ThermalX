@@ -104,12 +104,62 @@ window.MapModule = (function() {
         }
     }
 
+    /**
+     * Renders an array of hotspot objects as markers on the map.
+     * @param {Array} hotspots - Array of normalized hotspot objects.
+     */
+    function renderHotspots(hotspots) {
+        if (!map || !markersLayer) return;
+
+        // Clear existing markers before rendering new ones
+        clearMapMarkers();
+
+        // Loop through each hotspot and create a marker
+        hotspots.forEach(hotspot => {
+            // Create a basic marker at the hotspot's coordinates
+            const marker = L.marker([hotspot.latitude, hotspot.longitude]);
+            
+            // Construct the popup HTML content
+            const popupHTML = `
+                <div style="font-family: monospace; font-size: 14px; min-width: 200px;">
+                    <strong style="color: #e53935;">🔥 Thermal Hotspot</strong><br>
+                    <hr style="border: 0; border-top: 1px solid #ccc; margin: 5px 0;">
+                    <strong>Lat/Lng:</strong> ${hotspot.latitude.toFixed(4)}, ${hotspot.longitude.toFixed(4)}<br>
+                    <strong>FRP:</strong> ${hotspot.frp} MW<br>
+                    <strong>Brightness:</strong> ${hotspot.brightness} K<br>
+                    <strong>Confidence:</strong> ${hotspot.confidence}%<br>
+                    <strong>Date:</strong> ${hotspot.date}<br>
+                    <strong>Satellite:</strong> ${hotspot.satellite}
+                </div>
+            `;
+            
+            // Bind the popup to the marker
+            marker.bindPopup(popupHTML);
+            
+            // Add click event to update the right panel UI via app.js exposed API if available
+            marker.on('click', () => {
+                if (window.ThermalXUI && typeof window.ThermalXUI.displayEvent === 'function') {
+                    window.ThermalXUI.displayEvent(hotspot);
+                }
+            });
+            
+            // Add the marker to the layer group
+            marker.addTo(markersLayer);
+        });
+
+        // Optionally adjust the map view to fit all markers if there are any
+        if (hotspots.length > 0) {
+            map.fitBounds(markersLayer.getBounds(), { padding: [50, 50], maxZoom: 12 });
+        }
+    }
+
     // Expose public API
     return {
         initMap,
         addTestMarker,
         clearMapMarkers,
         centerMapOn,
+        renderHotspots,
         getMapInstance: () => map
     };
 })();
@@ -118,23 +168,8 @@ window.MapModule = (function() {
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize Map
     window.MapModule.initMap('map');
-
-    // 2. Add Test Hotspot Marker (Nagpur, India)
-    const testLat = 21.1458;
-    const testLng = 79.0882;
-    const popupHTML = `
-        <div style="font-family: monospace; font-size: 14px;">
-            <strong>Source:</strong> Test Hotspot<br>
-            <strong>Lat/Lng:</strong> ${testLat}, ${testLng}<br>
-            <strong>Status:</strong> Ready for FIRMS integration.<br>
-        </div>
-    `;
     
-    window.MapModule.addTestMarker(testLat, testLng, "Test Hotspot (Nagpur)", popupHTML);
-    
-    // Optional: center map on test marker after short delay for visual effect
-    setTimeout(() => {
-        window.MapModule.centerMapOn(testLat, testLng, 6);
-    }, 1000);
+    // Note: Day 2 Role 2 removed the static test marker on load.
+    // Real FIRMS data markers will be injected via renderHotspots() called by app.js
 });
 

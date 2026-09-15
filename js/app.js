@@ -4,7 +4,7 @@
  */
 
 // Import the fetch function from our newly created api.js module.
-import { fetchFirmsData } from './api.js';
+import { fetchFIRMSData } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("ThermalX application initialized.");
@@ -248,35 +248,54 @@ if (btnTestFetch) {
     btnTestFetch.addEventListener('click', async () => {
         
         // Update the status text to tell the user we are loading data.
-        testStatusMessage.textContent = "Loading demo data...";
+        testStatusMessage.textContent = "Loading NASA FIRMS data...";
         
         // Change the text color to yellow/orange to indicate a pending state.
         testStatusMessage.style.color = "#fbbf24";
+
+        // Show the central loading spinner in the UI by calling the exposed Role 1 function.
+        if (window.ThermalXUI) window.ThermalXUI.showLoading();
         
         // Start a try block to handle any errors that might occur during data fetching.
         try {
             
-            // Call the imported fetchFirmsData function and wait for it to finish.
-            const hotspots = await fetchFirmsData();
+            // Call the imported fetchFIRMSData function and wait for it to finish.
+            const hotspots = await fetchFIRMSData(true); // Using true for demo/fallback mode
             
             // Update the status text to tell the user the data loaded successfully, including the count.
-            testStatusMessage.textContent = `Success! Loaded ${hotspots.length} demo records. Check the console.`;
+            testStatusMessage.textContent = `Success! Loaded ${hotspots.length} records. Check the console.`;
             
             // Change the text color to green to indicate success.
             testStatusMessage.style.color = "#34d399";
             
+            // Hide the loading spinner now that we have data.
+            if (window.ThermalXUI) window.ThermalXUI.hideLoading();
+
             // Log the final standardized data to the browser console so the developer can inspect it.
             console.log("Data successfully loaded into app.js:", hotspots);
             
+            // Render the fetched hotspots on the map via Role 2 MapModule
+            if (window.MapModule && typeof window.MapModule.renderHotspots === 'function') {
+                window.MapModule.renderHotspots(hotspots);
+            }
+
+            // Update the statistics cards in the UI if possible.
+            if (window.ThermalXUI) {
+                window.ThermalXUI.updateStatistics({ total: hotspots.length });
+            }
+
         // Catch any errors that were thrown by the fetch process.
         } catch (error) {
             
             // Update the status text to tell the user something went wrong.
-            testStatusMessage.textContent = "Error loading data. Check console.";
+            testStatusMessage.textContent = error.message || "Error loading data. Check console.";
             
             // Change the text color to red to indicate an error.
             testStatusMessage.style.color = "#f87171";
             
+            // Show the error state in the main UI panel.
+            if (window.ThermalXUI) window.ThermalXUI.showError();
+
             // Log the error detail to the console.
             console.error("Test integration failed:", error);
             

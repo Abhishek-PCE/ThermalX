@@ -1,147 +1,244 @@
-// Role 3: Data Integration Developer
-// Day 1: API Foundation and Data Fetching Demo
-
-// -----------------------------------------------------------------------------
-// NASA FIRMS API UNDERSTANDING:
-// What NASA FIRMS provides: NASA FIRMS (Fire Information for Resource Management System)
-// provides near real-time thermal anomaly (hotspot and fire) detections from satellites.
-// 
-// ThermalX will eventually consume these detections to analyze thermal activity.
-// 
-// What fields ThermalX is interested in from the API:
-// - latitude (Y coordinate of the hotspot)
-// - longitude (X coordinate of the hotspot)
-// - brightness (Temperature/brightness of the thermal anomaly)
-// - FRP (Fire Radiative Power - intensity of the fire)
-// - confidence (Detection confidence percentage or level)
-// - date (When the detection was recorded)
-// - satellite (Which satellite recorded it, e.g., Aqua, Terra)
-//
-// TODO — verify against the current NASA FIRMS API response 
-// (The exact response format from NASA FIRMS may differ and needs verification).
-// -----------------------------------------------------------------------------
-
-// Store a placeholder configuration for the real FIRMS API URL.
-// We use a placeholder here so we can insert the real API key later without rewriting.
+// Defines an object to store configuration settings for the NASA FIRMS API.
 const FIRMS_API_CONFIG = {
-    // The base URL for the real NASA FIRMS API (currently pointing to our demo file).
-    // In production on Day 2, this will be the actual NASA API endpoint.
-    baseUrl: "data/demo-firms.json",
+    // Stores the base URL endpoint for NASA FIRMS CSV area requests.
+    endpoint: "https://firms.modaps.eosdis.nasa.gov/api/area/csv/",
     
-    // A placeholder for the API key, which will be securely managed later.
-    apiKey: "YOUR_NASA_API_KEY_HERE"
+    // Provides a placeholder for the required NASA FIRMS API key (must be supplied by the user).
+    apiKey: "YOUR_NASA_FIRMS_API_KEY",
+    
+    // Sets the geographic bounding area to fetch data for (e.g., 'world').
+    area: "world",
+    
+    // Defines how many days of past data to request (e.g., 1 day).
+    dayRange: 1,
+
+    // Defines a fallback URL pointing to our local demo file for testing without a live key.
+    fallbackUrl: "data/demo-firms.json"
+// Ends the configuration object.
 };
 
-// Create a small function that converts raw demo records into a common ThermalX hotspot structure.
-function standardizeHotspot(rawRecord) {
-    // Create and return a new standardized JavaScript object.
-    return {
-        // Assign the unique identifier from the raw record to the new id property.
-        id: rawRecord.id,
-        
-        // Assign the latitude from the raw record to the new latitude property.
-        latitude: rawRecord.latitude,
-        
-        // Assign the longitude from the raw record to the new longitude property.
-        longitude: rawRecord.longitude,
-        
-        // Assign the date from the raw record to the new date property.
-        date: rawRecord.date,
-        
-        // Assign the brightness value from the raw record to the new brightness property.
-        brightness: rawRecord.brightness,
-        
-        // Assign the Fire Radiative Power (frp) from the raw record to the new frp property.
-        frp: rawRecord.frp,
-        
-        // Assign the confidence level from the raw record to the new confidence property.
-        confidence: rawRecord.confidence,
-        
-        // Assign the satellite name from the raw record to the new satellite property.
-        satellite: rawRecord.satellite
-    };
-}
+// Defines an asynchronous function that orchestrates fetching and processing FIRMS data.
+export async function fetchFIRMSData(useDemo = true) {
+    // Declares a variable to hold the final URL we will request data from.
+    let requestUrl = "";
+    
+    // Checks if the application is running in demo mode.
+    if (useDemo) {
+        // Sets the request URL to our local fallback JSON file.
+        requestUrl = FIRMS_API_CONFIG.fallbackUrl;
+    // Ends the if condition and starts the alternative branch.
+    } else {
+        // Constructs the real NASA API URL by combining our configuration variables.
+        requestUrl = `${FIRMS_API_CONFIG.endpoint}${FIRMS_API_CONFIG.apiKey}/VIIRS_SNPP_NRT/${FIRMS_API_CONFIG.area}/${FIRMS_API_CONFIG.dayRange}`;
+    // Ends the else branch.
+    }
 
-// Create an asynchronous function to fetch the FIRMS data.
-// We export this function so it can be used in app.js.
-export async function fetchFirmsData() {
-    
-    // Log a message to the console indicating that the fetch process is starting.
-    console.log("Starting to fetch FIRMS data...");
-    
-    // Start a try block to handle any errors that might occur during the fetch.
+    // Prints a message to the browser console to show the fetch has started.
+    console.log(`FIRMS request started: fetching from ${requestUrl}`);
+
+    // Starts a try block to catch any errors that happen during the network request or processing.
     try {
-        
-        // Build the URL we want to request data from.
-        const requestUrl = FIRMS_API_CONFIG.baseUrl;
-        
-        // Log the URL we are about to fetch for debugging purposes.
-        console.log(`Fetching from URL: ${requestUrl}`);
-        
-        // Send an HTTP request to the specified URL using fetch(), and wait for the response.
+        // Sends the network request to the URL and waits for the server's response.
         const response = await fetch(requestUrl);
         
-        // Check if the server response is NOT okay (e.g., a 404 Not Found error).
+        // Checks if the HTTP response status code indicates a failure (like 404 Not Found).
         if (!response.ok) {
-            
-            // If the response is bad, throw an error to stop execution and go to the catch block.
-            throw new Error(`HTTP error! status: ${response.status}`);
-            
-        // Close the if statement.
+            // Stops execution and throws an error displaying the specific HTTP status code.
+            throw new Error(`NASA FIRMS returned HTTP status: ${response.status}`);
+        // Ends the HTTP response check block.
         }
+
+        // Reads the raw content from the server response as plain text and waits for it to finish.
+        const rawText = await response.text();
         
-        // Check if the response actually contains JSON data by inspecting the Content-Type header.
-        // For local files without servers, Content-Type might be null, so we are careful.
-        // We will just proceed to parse it.
-        
-        // Convert the server response from JSON text into a JavaScript object/array.
-        const rawData = await response.json();
-        
-        // Log the raw data received from the server to the browser console.
-        console.log("Raw data received:", rawData);
-        
-        // Check if the data is an array and if it is empty.
-        if (Array.isArray(rawData) && rawData.length === 0) {
-            
-            // If it is empty, throw an error so the user knows no data was found.
-            throw new Error("The dataset is empty. No hotspots found.");
-            
-        // Close the if statement.
+        // Prints a message to the browser console confirming the response was received.
+        console.log("FIRMS response received.");
+
+        // Calls a function to parse the raw text (which might be JSON or CSV) into JavaScript objects.
+        const parsedData = parseFIRMSResponse(rawText);
+
+        // Calls a function to filter out any records that have invalid or missing coordinates.
+        const validData = validateFIRMSData(parsedData);
+
+        // Calls a function to convert the valid records into our standardized ThermalX format.
+        const normalizedHotspots = normalizeHotspotData(validData);
+
+        // Checks if our final list of hotspots is completely empty.
+        if (normalizedHotspots.length === 0) {
+            // Stops execution and throws an error indicating no useful data was found.
+            throw new Error("No thermal hotspots were returned.");
+        // Ends the empty data check block.
         }
-        
-        // Create an empty array to store our standardized records.
-        const standardizedData = [];
-        
-        // Loop through every single record in the raw data array.
-        for (const record of rawData) {
-            
-            // Convert the raw record into our standardized format.
-            const cleanRecord = standardizeHotspot(record);
-            
-            // Add the standardized record into our new array.
-            standardizedData.push(cleanRecord);
-            
-        // Close the for loop.
-        }
-        
-        // Log a success message to the console showing how many records were processed.
-        console.log(`Successfully processed ${standardizedData.length} records.`);
-        
-        // Return the clean, standardized data to whatever part of the app called this function.
-        return standardizedData;
-        
-    // Catch any errors that occurred in the try block (like network failure or bad JSON).
+
+        // Returns the final, clean array of hotspot objects to whichever function called this one.
+        return normalizedHotspots;
+
+    // Catches any errors that were thrown anywhere inside the try block.
     } catch (error) {
+        // Prints the specific error message to the browser console for debugging.
+        console.error("FIRMS request failed:", error.message);
         
-        // Log the exact error message to the browser console so developers can debug it.
-        console.error("An error occurred during fetchFirmsData:", error);
-        
-        // Re-throw the error so the function that called this one knows something went wrong.
-        throw error;
-        
-    // Close the catch block.
+        // Throws a new, user-friendly error string so the user interface can display it.
+        throw new Error(`Unable to connect to NASA FIRMS. Details: ${error.message}`);
+    // Ends the catch block.
     }
-    
-// Close the asynchronous function.
+// Ends the fetchFIRMSData function.
 }
 
+// Defines a function to figure out if the data is JSON or CSV and parse it accordingly.
+function parseFIRMSResponse(rawText) {
+    // Starts a try block in case the parsing logic fails or crashes.
+    try {
+        // Removes any extra spaces or hidden characters from the very beginning and end of the text.
+        const trimmedText = rawText.trim();
+        
+        // Checks if the first character is a square bracket or curly brace, which usually means it's JSON.
+        if (trimmedText.startsWith('[') || trimmedText.startsWith('{')) {
+            // Uses the built-in JSON parser to convert the text into JavaScript objects and returns it.
+            return JSON.parse(trimmedText);
+        // Ends the JSON check and starts the alternative branch for CSV.
+        } else {
+            // Splits the giant block of CSV text into an array of individual lines.
+            const lines = trimmedText.split('\n');
+            
+            // Takes the very first line (row 0), which contains the column headers, and splits it by commas.
+            const headers = lines[0].split(',');
+            
+            // Creates an empty array that will store all our newly created row objects.
+            const records = [];
+            
+            // Starts a loop to go through every line of data, starting at index 1 to skip the headers.
+            for (let rowIndex = 1; rowIndex < lines.length; rowIndex++) {
+                // Checks if the current line is completely empty (like a blank line at the end of a file).
+                if (!lines[rowIndex].trim()) {
+                    // Skips this empty line and moves on to the next iteration of the loop.
+                    continue;
+                // Ends the empty line check.
+                }
+                
+                // Splits the current data row by commas to isolate the individual cell values.
+                const values = lines[rowIndex].split(',');
+                
+                // Creates an empty object to represent this specific row of data.
+                const record = {};
+                
+                // Starts an inner loop to match each cell value with its corresponding column header.
+                for (let columnIndex = 0; columnIndex < headers.length; columnIndex++) {
+                    // Cleans up the header name to use as a key in our object.
+                    const key = headers[columnIndex].trim();
+                    
+                    // Assigns the cell value to the object key, or an empty string if the value is missing.
+                    record[key] = values[columnIndex] ? values[columnIndex].trim() : "";
+                // Ends the inner loop over the columns.
+                }
+                
+                // Adds our fully constructed row object into our main list of records.
+                records.push(record);
+            // Ends the outer loop over the rows.
+            }
+            
+            // Returns the final array of parsed CSV records.
+            return records;
+        // Ends the CSV branch.
+        }
+    // Catches any unexpected errors that happen while parsing.
+    } catch (error) {
+        // Throws a custom error letting the application know the data format was completely unreadable.
+        throw new Error("FIRMS response format is invalid.");
+    // Ends the catch block.
+    }
+// Ends the parseFIRMSResponse function.
+}
+
+// Defines a function to remove records that are broken, missing coordinates, or mathematically impossible.
+function validateFIRMSData(parsedData) {
+    // Checks if the parsed data is already an array; if not, it wraps the single item inside a new array.
+    const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
+    
+    // Filters the array, keeping only the records that pass our strict validation rules.
+    const validRecords = dataArray.filter((record) => {
+        // Attempts to convert the text-based latitude into a true numeric decimal (float).
+        const lat = parseFloat(record.latitude);
+        
+        // Attempts to convert the text-based longitude into a true numeric decimal (float).
+        const lon = parseFloat(record.longitude);
+        
+        // Checks if the latitude conversion failed (resulting in 'Not-a-Number' / NaN).
+        if (isNaN(lat)) {
+            // Rejects this record because it doesn't have a valid latitude.
+            return false;
+        // Ends the latitude NaN check.
+        }
+        
+        // Checks if the longitude conversion failed (resulting in 'Not-a-Number' / NaN).
+        if (isNaN(lon)) {
+            // Rejects this record because it doesn't have a valid longitude.
+            return false;
+        // Ends the longitude NaN check.
+        }
+        
+        // Checks if the latitude is further south than -90 or further north than 90.
+        if (lat < -90 || lat > 90) {
+            // Rejects this record because it is physically impossible on Earth.
+            return false;
+        // Ends the latitude bounds check.
+        }
+        
+        // Checks if the longitude is further west than -180 or further east than 180.
+        if (lon < -180 || lon > 180) {
+            // Rejects this record because it is physically impossible on Earth.
+            return false;
+        // Ends the longitude bounds check.
+        }
+        
+        // Returns true because the record survived all tests and is mathematically valid.
+        return true;
+    // Ends the filter function.
+    });
+
+    // Calculates how many records were rejected by subtracting the valid count from the total count.
+    const invalidCount = dataArray.length - validRecords.length;
+    
+    // Prints a summary of the validation results to the browser console.
+    console.log(`Validation complete: ${validRecords.length} valid records, ${invalidCount} invalid records ignored.`);
+    
+    // Returns the new, filtered list containing only safe, valid hotspots.
+    return validRecords;
+// Ends the validateFIRMSData function.
+}
+
+// Defines a function to transform various API formats (like NASA CSV vs Demo JSON) into one standard shape.
+function normalizeHotspotData(validData) {
+    // Creates a new array by mapping over and transforming every single valid record.
+    return validData.map((record, index) => {
+        // Creates and returns a brand-new object with exactly the properties ThermalX expects.
+        return {
+            // Uses the existing ID if it has one, otherwise generates a fallback ID using the loop index.
+            id: record.id || `HOTSPOT-${index}`,
+            
+            // Ensures the latitude is stored as a true number instead of text.
+            latitude: parseFloat(record.latitude),
+            
+            // Ensures the longitude is stored as a true number instead of text.
+            longitude: parseFloat(record.longitude),
+            
+            // Tries multiple possible brightness keys (NASA CSV often uses 'bright_ti4') and defaults to 0.
+            brightness: parseFloat(record.brightness || record.bright_ti4 || 0),
+            
+            // Ensures Fire Radiative Power is a number, defaulting to 0 if missing.
+            frp: parseFloat(record.frp || 0),
+            
+            // Copies the confidence value, or uses 'unknown' if it was not provided.
+            confidence: record.confidence || "unknown",
+            
+            // Tries multiple possible date keys (NASA CSV often uses 'acq_date') and defaults to 'unknown'.
+            date: record.date || record.acq_date || "unknown",
+            
+            // Copies the satellite name, or uses 'unknown' if it was not provided.
+            satellite: record.satellite || "unknown"
+        // Ends the returned standard object.
+        };
+    // Ends the map transformation function.
+    });
+// Ends the normalizeHotspotData function.
+}
