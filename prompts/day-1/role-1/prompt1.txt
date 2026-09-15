@@ -1,0 +1,830 @@
+You are the Frontend & UI Developer for our Smart India Hackathon project.
+
+PROJECT:
+ThermalX — SIH26162
+
+CURRENT TASK:
+Day 1 — Role 1: Frontend & UI Foundation
+
+IMPORTANT:
+You are responsible ONLY for Role 1 frontend/UI work for Day 1.
+Do NOT implement the responsibilities of Roles 2, 3, 4, 5, or 6.
+
+PROJECT CONTEXT:
+ThermalX is a thermal hotspot intelligence dashboard.
+
+The overall intended flow is:
+
+NASA FIRMS
+    ↓
+Data Fetching
+    ↓
+Raw Hotspot Data
+    ↓
+Data Processing
+    ↓
+Persistence + Industrial Proximity
+    ↓
+Classification
+    ↓
+Industrial / Wildfire / Agriculture / Other
+    ↓
+Leaflet Map
+    ↓
+ThermalX Dashboard UI
+    ↓
+Integration
+
+The final product should allow a user/judge to select a thermal hotspot and understand:
+- WHERE it is
+- WHEN it appeared
+- WHETHER it appeared there before
+- WHETHER it is near an industrial area
+- HOW it was classified
+- WHY it received that classification
+- WHICH hotspots deserve priority
+
+For Day 1, however, we are ONLY creating the frontend foundation.
+
+==================================================
+DAY 1 ROLE 1 RESPONSIBILITY
+==================================================
+
+Build the initial ThermalX website UI using:
+
+- HTML
+- CSS
+- Vanilla JavaScript
+
+Do NOT introduce:
+- React
+- Vue
+- Angular
+- Node.js backend
+- Python
+- FastAPI
+- PostgreSQL
+- PostGIS
+- TensorFlow
+- PyTorch
+- Machine Learning
+- unnecessary frameworks
+
+The project must remain simple and beginner-friendly.
+
+==================================================
+EXPECTED PROJECT STRUCTURE
+==================================================
+
+Use this structure:
+
+ThermalX/
+│
+├── index.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   └── app.js
+│
+├── js/
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+│
+├── data/
+│
+├── assets/
+│
+└── README.md
+
+If the repository already contains files, inspect them first.
+
+DO NOT unnecessarily delete, rewrite, or take ownership of files belonging to other roles.
+
+For this task, primarily modify:
+- index.html
+- css/style.css
+- js/app.js
+
+If folders are missing, create them.
+
+==================================================
+DAY 1 UI GOAL
+==================================================
+
+Create a professional dashboard skeleton that already looks like a real satellite/geospatial intelligence product, even though the real data will be connected later.
+
+The page should contain:
+
+1. Header
+2. Navigation
+3. Dashboard statistics
+4. Main workspace
+5. Map container
+6. Event information panel
+7. Filters
+8. Empty/loading states
+9. Responsive mobile layout
+
+The interface must be designed so that other team members can plug their functionality into it later.
+
+==================================================
+1. HEADER
+==================================================
+
+Create a strong ThermalX header.
+
+Include:
+
+- ThermalX branding
+- Short subtitle such as:
+  "Thermal Hotspot Intelligence Platform"
+- LIVE / DEMO status placeholder
+- Navigation area
+- Mobile menu button if appropriate
+
+Example conceptual layout:
+
+--------------------------------------------------
+THERMALX
+Thermal Hotspot Intelligence Platform
+
+                           ● LIVE DATA
+--------------------------------------------------
+
+Do not make it look like a generic college project.
+
+The design should communicate:
+
+- Satellite intelligence
+- Geospatial monitoring
+- Thermal analysis
+- Environmental/industrial monitoring
+- Professional government/technical dashboard
+
+==================================================
+2. NAVIGATION
+==================================================
+
+Create a simple navigation structure.
+
+Possible items:
+
+- Dashboard
+- Hotspots
+- Intelligence
+- About
+
+Do not create separate pages yet.
+
+Navigation can simply scroll to sections or visually indicate the current dashboard.
+
+Keep the navigation easy to modify later.
+
+==================================================
+3. STATISTICS CARDS
+==================================================
+
+Create four dashboard statistics cards.
+
+Required cards:
+
+1. TOTAL EVENTS
+2. PERSISTENT SOURCES
+3. INDUSTRIAL SOURCES
+4. HIGH PRIORITY
+
+Use temporary placeholder values for Day 1.
+
+For example:
+
+TOTAL EVENTS
+128
+
+PERSISTENT SOURCES
+24
+
+INDUSTRIAL SOURCES
+17
+
+HIGH PRIORITY
+8
+
+IMPORTANT:
+These are demo UI values only.
+
+Structure the HTML/JS so these values can later be replaced dynamically by actual processed data.
+
+Create IDs such as:
+
+- total-events
+- persistent-sources
+- industrial-sources
+- high-priority
+
+==================================================
+4. MAIN WORKSPACE
+==================================================
+
+Create a large two-column dashboard workspace.
+
+Desktop:
+
+----------------------------------------------------------
+|                                                        |
+|                       MAP                              |
+|                                                        |
+|                                                        |
+|                                      EVENT DETAILS     |
+|                                      ----------------  |
+|                                      Event ID         |
+|                                      Classification   |
+|                                      Confidence       |
+|                                      Persistence      |
+|                                      FRP              |
+|                                      Facility         |
+|                                                        |
+----------------------------------------------------------
+
+The map should occupy the majority of the workspace.
+
+The event panel should occupy the side.
+
+IMPORTANT:
+Do NOT implement Leaflet.
+
+Role 2 will implement the Leaflet map.
+
+Only create the map container.
+
+Use:
+
+<div id="map"></div>
+
+Make sure the container has a proper height and works correctly when Role 2 initializes Leaflet later.
+
+==================================================
+5. EVENT INFORMATION PANEL
+==================================================
+
+Create a professional event details panel.
+
+It should contain placeholders for:
+
+EVENT DETAILS
+
+Event ID
+TX-001
+
+Classification
+—
+
+Confidence
+—
+
+Persistence
+—
+
+Detection Count
+—
+
+Average FRP
+—
+
+First Detection
+—
+
+Last Detection
+—
+
+Nearest Facility
+—
+
+Distance
+—
+
+Evidence
+—
+
+The panel should initially show an empty state such as:
+
+"No hotspot selected"
+
+"Select a thermal hotspot on the map to view detailed information."
+
+Make the structure easy to update from JavaScript.
+
+Use semantic IDs/classes for every important value.
+
+For example:
+
+event-id
+event-classification
+event-confidence
+event-persistence
+event-detection-count
+event-average-frp
+event-first-detection
+event-last-detection
+event-facility
+event-distance
+event-evidence
+
+==================================================
+6. FILTERS
+==================================================
+
+Create the visual filter UI.
+
+Required filter concepts:
+
+- Search hotspot
+- Date range
+- Classification
+- Persistence
+- Confidence
+
+Example:
+
+----------------------------------------------------------
+FILTER HOTSPOTS
+
+[ Search hotspot... ]
+
+Date:
+[ From ] [ To ]
+
+Classification:
+[ All ]
+
+Persistence:
+[ All ]
+
+Confidence:
+[ All ]
+
+[ Reset Filters ]
+----------------------------------------------------------
+
+For Day 1, filters do NOT need real filtering logic.
+
+However, give them proper IDs and structure so actual filtering can be implemented later.
+
+==================================================
+7. CLASSIFICATION UI PLACEHOLDERS
+==================================================
+
+ThermalX will eventually classify hotspots as:
+
+- Industrial
+- Wildfire
+- Agriculture
+- Other
+- Unknown
+
+Create a visually clear classification badge/component that can later display these categories.
+
+Example:
+
+CLASSIFICATION
+[ Industrial ]
+
+or
+
+CLASSIFICATION
+[ — ]
+
+Do not implement classification logic.
+
+Role 5 owns classification.
+
+==================================================
+8. PRIORITY UI PLACEHOLDER
+==================================================
+
+ThermalX will eventually use priority levels:
+
+- Low
+- Medium
+- High
+- Critical
+
+Prepare the event panel to support a future priority badge.
+
+For Day 1, it can show:
+
+Priority
+—
+
+Do not implement priority calculations.
+
+==================================================
+9. JAVASCRIPT ARCHITECTURE
+==================================================
+
+Create a clean js/app.js.
+
+It should contain UI-level functions only.
+
+Create functions such as:
+
+- displayEvent(event)
+- clearEventDetails()
+- updateStatistics(stats)
+- updateClassification(category, confidence)
+- updatePriority(priority)
+- applyFilters()
+- resetFilters()
+- showLoading()
+- hideLoading()
+
+Do not implement:
+- NASA FIRMS API
+- OSM API
+- Leaflet
+- clustering
+- persistence calculations
+- distance calculations
+- classification algorithms
+
+Those belong to other roles.
+
+==================================================
+10. PREPARE FOR FUTURE DATA
+==================================================
+
+The frontend must be designed around a shared event object.
+
+A future event may look approximately like:
+
+{
+    id: "TX-001",
+
+    latitude: 23.8103,
+    longitude: 90.4125,
+
+    brightness: 325,
+    frp: 42.5,
+    confidence: 87,
+
+    date: "2026-09-14",
+
+    persistence: {
+        detectionCount: 8,
+        uniqueDays: 5,
+        score: 80
+    },
+
+    industrialContext: {
+        nearestFacility: "Factory",
+        distance: 1.2
+    },
+
+    classification: {
+        category: "Industrial",
+        confidence: 82
+    },
+
+    priority: "High"
+}
+
+DO NOT implement the data-processing logic.
+
+Only ensure the UI can later consume this kind of object.
+
+For example:
+
+function displayEvent(event) {
+    // Update DOM using event fields
+}
+
+==================================================
+11. DESIGN SYSTEM
+==================================================
+
+Create a sophisticated but practical dashboard.
+
+Recommended visual direction:
+
+- Dark technical dashboard
+- Black/charcoal base
+- Red as the ThermalX accent
+- White/light text
+- Subtle borders
+- Clear cards
+- Strong typography
+- Minimal gradients
+- Professional spacing
+- High readability
+
+The design should feel like:
+
+Satellite Operations
++
+GIS Dashboard
++
+Thermal Monitoring
++
+Intelligence Platform
+
+NOT:
+
+- gaming website
+- flashy neon dashboard
+- generic admin template
+- excessive glassmorphism
+- excessive animations
+
+Use red primarily for:
+- ThermalX identity
+- important status
+- high-priority indicators
+- active controls
+- thermal emphasis
+
+Do not make every element red.
+
+==================================================
+12. RESPONSIVE DESIGN
+==================================================
+
+The website MUST work on:
+
+- Desktop
+- Laptop
+- Tablet
+- Mobile
+
+Desktop layout:
+
+Statistics:
+4 columns
+
+Main workspace:
+Map + Event panel
+
+Mobile:
+
+Statistics:
+2 columns or 1 column depending on width
+
+Main workspace:
+Map
+then
+Event panel
+
+Filters:
+Stack vertically
+
+Make sure:
+
+- no horizontal overflow
+- map remains usable
+- event panel remains readable
+- buttons remain touch-friendly
+- text does not overlap
+
+Use CSS media queries.
+
+==================================================
+13. UX STATES
+==================================================
+
+Create basic UI states:
+
+A. No hotspot selected
+
+"No hotspot selected"
+
+"Select a hotspot on the map to inspect its details."
+
+B. Loading
+
+"Loading thermal data..."
+
+C. No results
+
+"No thermal events found."
+
+D. Error placeholder
+
+"Unable to load data. Please try again."
+
+These are UI states only.
+
+Do not implement API error handling.
+
+==================================================
+14. ACCESSIBILITY
+==================================================
+
+Use:
+
+- semantic HTML
+- proper button elements
+- labels for inputs
+- aria-label where appropriate
+- sufficient text contrast
+- keyboard-friendly controls
+- meaningful headings
+
+Do not rely solely on color to communicate information.
+
+==================================================
+15. ANIMATIONS
+==================================================
+
+Use subtle animations only.
+
+Examples:
+
+- card hover
+- button hover
+- panel transition
+- loading indicator
+
+Do NOT add excessive animations.
+
+The application should feel fast and professional.
+
+==================================================
+16. CODE QUALITY
+==================================================
+
+Follow these rules:
+
+- Clean HTML
+- Well-organized CSS
+- Modular JavaScript
+- Meaningful class names
+- Meaningful IDs
+- No unnecessary duplicated CSS
+- No inline styles unless genuinely necessary
+- No inline JavaScript
+- Add comments where future roles need to integrate
+- Keep code readable for beginner/intermediate developers
+
+Use CSS variables for the design system.
+
+Example:
+
+:root {
+    --bg-primary: ...;
+    --bg-secondary: ...;
+    --accent: ...;
+    --text-primary: ...;
+    --text-secondary: ...;
+    --border: ...;
+}
+
+==================================================
+17. INTEGRATION CONTRACT
+==================================================
+
+Make it obvious where other team members will integrate.
+
+Role 2:
+Will initialize Leaflet inside:
+
+#map
+
+Role 3:
+Will provide fetched FIRMS/OSM data.
+
+Role 4:
+Will provide processed hotspot/event data.
+
+Role 5:
+Will provide classification and confidence.
+
+Role 6:
+Will integrate, test, debug and deploy.
+
+Do not create fake implementations of those modules.
+
+==================================================
+18. DO NOT OVERBUILD
+==================================================
+
+This is Day 1.
+
+Do NOT attempt to build the entire final ThermalX application.
+
+Do NOT implement:
+
+- real FIRMS API
+- OSM Overpass
+- Leaflet map
+- historical data
+- persistence algorithm
+- clustering
+- industrial distance calculations
+- classification scoring
+- ML
+- database
+- backend
+- authentication
+- deployment
+
+Only build the frontend foundation.
+
+==================================================
+19. FINAL DAY-1 VISUAL TARGET
+==================================================
+
+When I open index.html, I should see something conceptually like:
+
+┌──────────────────────────────────────────────────────────┐
+│ THERMALX                     ● LIVE DATA                  │
+│ Thermal Hotspot Intelligence Platform                   │
+├──────────────────────────────────────────────────────────┤
+│ Dashboard   Hotspots   Intelligence   About              │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│ TOTAL       PERSISTENT    INDUSTRIAL     HIGH PRIORITY   │
+│ EVENTS      SOURCES      SOURCES                         │
+│ 128         24           17             8                │
+│                                                          │
+├───────────────────────────────────────┬──────────────────┤
+│                                       │                  │
+│                                       │ EVENT DETAILS    │
+│                                       │                  │
+│                                       │ No hotspot       │
+│               MAP                     │ selected         │
+│                                       │                  │
+│                                       │                  │
+│                                       │                  │
+├───────────────────────────────────────┴──────────────────┤
+│ FILTER HOTSPOTS                                           │
+│ [Search] [Date] [Classification] [Persistence]           │
+│ [Confidence] [Reset]                                     │
+└──────────────────────────────────────────────────────────┘
+
+The exact visual design is up to you, but it must remain professional,
+clean, responsive and suitable for an SIH technical demonstration.
+
+==================================================
+20. VALIDATION
+==================================================
+
+After implementation:
+
+1. Inspect all existing project files first.
+2. Create/update the required Role 1 files.
+3. Make sure index.html loads without errors.
+4. Make sure style.css is correctly connected.
+5. Make sure app.js is correctly connected.
+6. Check browser console for JavaScript errors.
+7. Check desktop layout.
+8. Check mobile layout.
+9. Check that the map container exists as #map.
+10. Check that event detail IDs exist.
+11. Check that statistics IDs exist.
+12. Check that filter controls exist.
+13. Check that the UI does not depend on unavailable APIs.
+14. Do not break other role files.
+
+If a local development server is available, run the project and visually inspect it.
+
+==================================================
+21. FINAL REPORT
+==================================================
+
+When finished, report:
+
+A. Files created/modified
+B. UI components implemented
+C. Responsive behavior
+D. JavaScript functions created
+E. Integration points prepared for Roles 2–6
+F. Any issues or assumptions
+G. How to run the project
+
+Do not claim that real hotspot/map/API functionality is implemented if it is not.
+
+SUCCESS CRITERIA:
+
+Day 1 Role 1 is COMPLETE when:
+
+✓ ThermalX frontend loads successfully
+✓ Header exists
+✓ Navigation exists
+✓ Statistics cards exist
+✓ Large #map container exists
+✓ Event details panel exists
+✓ Filter UI exists
+✓ Classification/priority placeholders exist
+✓ Empty/loading/error states exist
+✓ Responsive layout works
+✓ app.js provides clean UI functions
+✓ Other roles can integrate without restructuring the UI
+✓ No unnecessary frameworks/backend are introduced
+✓ No responsibilities from Roles 2–6 are implemented
+
+Most importantly:
+
+Build a strong frontend FOUNDATION, not the entire application.
+Keep the architecture simple and integration-friendly.
