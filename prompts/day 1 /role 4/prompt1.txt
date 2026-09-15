@@ -1,0 +1,335 @@
+You are working on our Smart India Hackathon 2026 project:
+
+PROJECT: SIH26162 — ThermalX
+
+ROLE: Role 4 — Data Processing & Data Quality
+DAY: Day 1
+
+==================================================
+1. YOUR MISSION
+==================================================
+
+Your task is to implement ONLY the Day 1 responsibilities of Role 4.
+
+Role 4 is responsible for creating the data-processing layer that converts raw NASA FIRMS hotspot data into clean, validated, structured data that can be consumed by the rest of the ThermalX frontend.
+
+The basic data flow is:
+
+NASA FIRMS / Raw Hotspot Data
+        ↓
+Role 4 Data Processing
+        ↓
+Clean & Validated Hotspot Objects
+        ↓
+Map / Dashboard / Analysis / Classification
+
+The goal for Day 1 is NOT to build the complete ThermalX system.
+
+Build a clean foundation that other team members can use later.
+
+==================================================
+2. TECHNOLOGY CONSTRAINTS
+==================================================
+
+Use ONLY technologies that are appropriate for our current team skill level:
+
+- HTML
+- CSS
+- Vanilla JavaScript
+- JSON
+- Browser localStorage where necessary
+
+DO NOT introduce:
+
+- Python
+- FastAPI
+- Node.js backend
+- MongoDB
+- PostgreSQL
+- Machine Learning
+- TensorFlow
+- PyTorch
+- Docker
+- Authentication systems
+- Complex backend architecture
+- Cloud infrastructure
+- Advanced GIS processing
+
+Do not over-engineer the solution.
+
+The project must remain beginner-friendly and understandable by a team that currently knows HTML, CSS and JavaScript.
+
+==================================================
+3. DAY 1 ROLE 4 RESPONSIBILITIES
+==================================================
+
+Implement the following:
+
+A. Create a standardized hotspot data structure.
+
+Each processed hotspot should follow this structure:
+
+{
+    id,
+    latitude,
+    longitude,
+    brightness,
+    frp,
+    confidence,
+    date,
+    satellite
+}
+
+You may add a small number of useful fields ONLY if they are necessary for processing, but do not unnecessarily expand the schema.
+
+--------------------------------------------------
+
+B. Create a dedicated processing file.
+
+Prefer:
+
+js/processing.js
+
+This file should contain the main Role 4 data-processing logic.
+
+If the existing project has a different folder structure, inspect the repository first and follow the existing architecture rather than unnecessarily restructuring the entire project.
+
+--------------------------------------------------
+
+C. Create a processing function.
+
+Create a clear reusable function such as:
+
+processHotspots(rawHotspots)
+
+It should:
+
+1. Accept raw hotspot records.
+2. Normalize the data.
+3. Convert numeric values into actual JavaScript numbers where appropriate.
+4. Validate required fields.
+5. Remove invalid records.
+6. Remove obvious prototype duplicates.
+7. Return a clean array of hotspot objects.
+
+Example conceptual flow:
+
+raw data
+   ↓
+check record
+   ↓
+normalize values
+   ↓
+validate values
+   ↓
+remove invalid records
+   ↓
+remove duplicates
+   ↓
+clean hotspot array
+
+--------------------------------------------------
+
+D. VALIDATION
+
+Validate important fields.
+
+Latitude:
+
+- Must exist.
+- Must be numeric.
+- Must be between -90 and 90.
+
+Longitude:
+
+- Must exist.
+- Must be numeric.
+- Must be between -180 and 180.
+
+Brightness:
+
+- Should be numeric when present.
+
+FRP:
+
+- Should be numeric when present.
+
+Confidence:
+
+- Preserve the original FIRMS confidence representation if possible.
+- Do not invent confidence values.
+
+Date:
+
+- Preserve a usable date representation.
+- Do not silently create fake dates.
+
+Satellite:
+
+- Preserve the satellite/platform information when available.
+
+Do NOT destroy otherwise useful records simply because an optional field is missing.
+
+Required fields should be clearly distinguished from optional fields.
+
+==================================================
+4. DUPLICATE HANDLING
+==================================================
+
+Implement a simple Day 1 duplicate-detection strategy.
+
+For the prototype, use a key based on:
+
+rounded latitude + rounded longitude + date
+
+For example:
+
+latitude + longitude + date
+
+can be normalized into something similar to:
+
+"23.4567_87.1234_2026-09-15"
+
+Use an appropriate rounding precision.
+
+The objective is only to prevent obvious duplicate records.
+
+Do NOT attempt advanced spatial clustering on Day 1.
+
+Do NOT use Turf.js yet unless the existing project already requires it.
+
+==================================================
+5. SAMPLE / TEST DATA
+==================================================
+
+If real NASA FIRMS API integration is not yet available in the repository, create a small mock dataset for testing.
+
+Example structure:
+
+const sampleHotspots = [
+    {
+        latitude: 23.4567,
+        longitude: 87.1234,
+        brightness: 320.5,
+        frp: 45.2,
+        confidence: "nominal",
+        date: "2026-09-15",
+        satellite: "VIIRS"
+    }
+];
+
+Use realistic-looking values.
+
+Clearly mark mock/test data as TEST DATA.
+
+Do not pretend that mock data is real NASA data.
+
+==================================================
+6. LOCAL STORAGE PREPARATION
+==================================================
+
+Prepare the processing layer so cleaned hotspot data can later be stored using browser localStorage.
+
+For example:
+
+localStorage.setItem(
+    "thermalx_hotspots",
+    JSON.stringify(processedHotspots)
+);
+
+And provide a corresponding way to retrieve it.
+
+However:
+
+Do not build a complicated database abstraction.
+
+Do not create unnecessary storage classes.
+
+Keep it simple and readable.
+
+==================================================
+7. API INTEGRATION
+==================================================
+
+If the repository already contains a NASA FIRMS API integration:
+
+- Inspect it.
+- Understand its existing data format.
+- Make processing.js compatible with it.
+- Do not rewrite unrelated API code.
+
+If the API integration does NOT exist yet:
+
+- Do NOT build the complete API system.
+- Build the processing layer so it can accept FIRMS-style raw data later.
+
+The processing layer must remain independent from the API.
+
+==================================================
+8. CODE ARCHITECTURE
+==================================================
+
+Prefer a simple architecture such as:
+
+project/
+│
+├── index.html
+├── css/
+│   └── ...
+│
+└── js/
+    ├── processing.js
+    └── ...
+
+Do not reorganize unrelated files unless absolutely necessary.
+
+Role 4's code should ideally expose reusable functions that other roles can call.
+
+For example:
+
+processHotspots(rawHotspots)
+
+validateHotspot(hotspot)
+
+removeDuplicates(hotspots)
+
+saveHotspots(hotspots)
+
+loadHotspots()
+
+Use clear function names.
+
+==================================================
+9. VERY IMPORTANT — COMMENTS IN CODE
+==================================================
+
+COMMENT THE CODE EXTENSIVELY BUT INTELLIGENTLY.
+
+Our team is learning and multiple members will work on this repository.
+
+Every important function should contain a comment explaining:
+
+1. What the function does.
+2. Why it exists.
+3. What input it expects.
+4. What output it returns.
+5. Any important validation or processing rule.
+
+For example:
+
+// This function converts raw FIRMS hotspot records
+// into the standardized ThermalX hotspot structure.
+// Keeping one common structure makes it easier for
+// the map, dashboard and analysis modules to use
+// hotspot data consistently.
+function normalizeHotspot(rawHotspot) {
+    ...
+}
+
+For important blocks of logic, add short comments explaining WHY the code is doing something.
+
+Example:
+
+// Round the coordinates so that tiny floating-point
+// differences do not cause the same hotspot to be
+// treated as multiple different records.
