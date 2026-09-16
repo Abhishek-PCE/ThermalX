@@ -1,0 +1,894 @@
+# THERMALX — DAY 3 — ROLE 1
+
+## Frontend & UI Developer — Historical Hotspot Event History
+
+You are working on **ThermalX**, an SIH 2026 project for:
+
+**PS:** 26162
+**Project:** AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources
+**Frontend approach:** HTML5 + CSS3 + Vanilla JavaScript
+**Map:** Leaflet.js
+**Data sources:** NASA FIRMS + OpenStreetMap
+**Architecture:** Client-side JavaScript MVP
+
+---
+
+# 1. YOUR ROLE
+
+You are **Role 1 — Frontend & UI Developer**.
+
+For **Day 3**, your main responsibility is:
+
+> Build the frontend interface that allows a user to select a thermal hotspot/event and understand its historical detection history and persistence.
+
+The Day 3 objective is:
+
+> **Click a hotspot → see its historical persistence.**
+
+According to the project roadmap, the Role 1 tasks are:
+
+* Build the event history panel.
+* Display Event ID.
+* Display first detection date.
+* Display last detection date.
+* Display persistence.
+* Display a timeline/history of detections.
+* Keep the UI compatible with historical/event markers.
+* Make the interface responsive and easy to understand.
+
+Do NOT take over the responsibilities of Role 2, Role 3, Role 4, Role 5, or Role 6.
+
+---
+
+# 2. IMPORTANT PROJECT RULES
+
+Follow these rules strictly:
+
+1. Use **HTML5, CSS3 and Vanilla JavaScript**.
+2. Do NOT introduce React.
+3. Do NOT introduce Node.js.
+4. Do NOT introduce Python.
+5. Do NOT introduce a backend.
+6. Do NOT introduce a database.
+7. Do NOT replace the existing project architecture.
+8. Reuse the existing project files and structure.
+9. Do not unnecessarily rewrite working code.
+10. Keep the implementation simple enough for a student team to understand and maintain.
+11. Do not add unnecessary libraries.
+12. Use existing Leaflet integration where required.
+13. The UI must work with both live data and demo/mock data.
+14. Do not break the work already completed on Days 1 and 2.
+
+---
+
+# 3. EXPECTED PROJECT STRUCTURE
+
+Maintain this project structure unless the existing project already has a compatible structure:
+
+ThermalX/
+│
+├── index.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+│
+├── data/
+│
+├── assets/
+│
+└── README.md
+
+Do not create unnecessary files.
+
+If a required file already exists, modify it instead of creating a duplicate.
+
+---
+
+# 4. FIRST INSPECT THE EXISTING PROJECT
+
+Before changing anything:
+
+1. Inspect the complete project structure.
+2. Read the existing HTML.
+3. Read the existing CSS.
+4. Read the existing JavaScript.
+5. Understand how hotspot data is currently represented.
+6. Understand how Leaflet markers are currently created.
+7. Understand how marker click events currently work.
+8. Identify where the selected hotspot is stored.
+9. Identify whether historical data already exists.
+10. Reuse existing functions wherever possible.
+
+Do not blindly overwrite existing files.
+
+Before making changes, explain briefly:
+
+* What files you will modify.
+* What existing functionality you found.
+* How your changes will connect with the existing application.
+
+---
+
+# 5. DAY 3 DATA STRUCTURE
+
+The historical hotspot/event data should support fields such as:
+
+```javascript
+{
+    id: "TX-001",
+    latitude: 25.5941,
+    longitude: 85.1376,
+    detections: [
+        {
+            date: "2026-09-10",
+            frp: 45.2,
+            brightness: 320,
+            confidence: "high",
+            satellite: "VIIRS"
+        },
+        {
+            date: "2026-09-11",
+            frp: 48.7,
+            brightness: 325,
+            confidence: "high",
+            satellite: "VIIRS"
+        }
+    ],
+    firstDetection: "2026-09-10",
+    lastDetection: "2026-09-11",
+    persistence: 50
+}
+```
+
+If the existing application uses a different data structure, adapt to the existing structure instead of unnecessarily replacing it.
+
+---
+
+# 6. EVENT HISTORY PANEL
+
+Create or improve an **Event History / Hotspot History panel**.
+
+When a user clicks a hotspot/event, the panel should show:
+
+### Event Information
+
+* Event ID
+* Latitude
+* Longitude
+* First Detection
+* Last Detection
+* Number of Detections
+* Unique Detection Days
+* Persistence Percentage
+* Average FRP
+* Confidence
+* Satellite, if available
+
+Example:
+
+Event ID:
+TX-001
+
+First Detection:
+10 Sep 2026
+
+Last Detection:
+14 Sep 2026
+
+Detections:
+5
+
+Persistence:
+100%
+
+Average FRP:
+48.6 MW
+
+Confidence:
+High
+
+---
+
+# 7. TIMELINE UI
+
+Create a visual historical timeline.
+
+Example:
+
+10 Sep
+● Detected
+│
+11 Sep
+● Detected
+│
+12 Sep
+● Detected
+│
+13 Sep
+● Detected
+│
+14 Sep
+● Detected
+
+The timeline should clearly communicate:
+
+* When the hotspot appeared.
+* How often it appeared.
+* Whether detections occurred on consecutive days.
+* The first and last detection.
+* The total number of detections.
+
+Use clean visual hierarchy.
+
+Do not make the timeline unnecessarily complicated.
+
+---
+
+# 8. PERSISTENCE DISPLAY
+
+Show persistence clearly.
+
+The roadmap defines the prototype calculation as:
+
+Persistence =
+days detected / days analysed
+
+Prototype interpretation:
+
+0–20% = Low
+
+21–50% = Moderate
+
+51–80% = High
+
+81–100% = Very High
+
+IMPORTANT:
+
+These are **prototype rules**, not scientific ground truth.
+
+The UI should therefore avoid presenting these thresholds as scientifically proven.
+
+Use wording such as:
+
+"Prototype Persistence"
+
+or
+
+"Persistence Score"
+
+where appropriate.
+
+---
+
+# 9. PERSISTENCE CARD
+
+Create a visually clear persistence section.
+
+Example:
+
+┌─────────────────────────┐
+│     PERSISTENCE         │
+│                         │
+│          80%            │
+│                         │
+│         HIGH            │
+│                         │
+│  4 detected days / 5    │
+└─────────────────────────┘
+
+The percentage should be generated dynamically from the event data.
+
+Do not hard-code the displayed percentage.
+
+---
+
+# 10. DETECTION HISTORY
+
+Display individual detection records.
+
+Example:
+
+| Date   | FRP  | Brightness | Confidence | Satellite |
+| ------ | ---- | ---------- | ---------- | --------- |
+| 10 Sep | 45.2 | 320        | High       | VIIRS     |
+| 11 Sep | 48.7 | 325        | High       | VIIRS     |
+| 12 Sep | 52.1 | 329        | High       | VIIRS     |
+
+If some fields are unavailable, display:
+
+"N/A"
+
+instead of breaking the UI.
+
+---
+
+# 11. SELECTED HOTSPOT STATE
+
+When the user clicks a hotspot:
+
+1. Identify the selected hotspot.
+2. Find its historical event data.
+3. Update the event history panel.
+4. Update the timeline.
+5. Update persistence.
+6. Update detection count.
+7. Update first/last detection.
+8. Update supporting information.
+9. Keep the map visible.
+
+The selected event should remain visually identifiable on the map if the existing map implementation supports this.
+
+---
+
+# 12. EMPTY STATE
+
+If the user has not selected a hotspot yet, show a useful empty state.
+
+Example:
+
+"Select a thermal hotspot on the map to view its historical detection history."
+
+Do not leave the panel blank.
+
+---
+
+# 13. INVALID OR MISSING DATA
+
+The UI must gracefully handle:
+
+* Missing event ID.
+* Missing dates.
+* Missing FRP.
+* Missing brightness.
+* Missing confidence.
+* Empty detection history.
+* Invalid detection records.
+* No historical data.
+
+Never allow JavaScript errors caused by missing optional data to crash the dashboard.
+
+Use safe fallback values such as:
+
+"N/A"
+
+or:
+
+"No historical detections available."
+
+---
+
+# 14. RESPONSIVE DESIGN
+
+The event history panel must work on:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+On smaller screens:
+
+* Stack information cards.
+* Make the timeline readable.
+* Prevent horizontal overflow.
+* Keep buttons usable.
+* Keep text readable.
+* Do not allow the map and panel to overlap incorrectly.
+
+---
+
+# 15. UI DESIGN
+
+Use a professional **geospatial intelligence / satellite monitoring dashboard** style.
+
+The design should feel:
+
+* Modern
+* Technical
+* Clean
+* Professional
+* Data-focused
+* Suitable for SIH presentation
+
+Use:
+
+* Clear cards
+* Small icons where useful
+* Consistent spacing
+* Strong headings
+* Data badges
+* Timeline indicators
+* Responsive layout
+
+Avoid:
+
+* Excessive animations
+* Unnecessary gradients
+* Huge text
+* Excessive decorative elements
+* Too many colors
+* Clutter
+
+The user should understand the event history within a few seconds.
+
+---
+
+# 16. IMPORTANT: CODE COMMENTS
+
+THIS IS A STRICT REQUIREMENT.
+
+**Add comments in every important section of the code.**
+
+The comments must help a beginner understand the code later.
+
+Do NOT add meaningless comments such as:
+
+```javascript
+// This is a function
+```
+
+Instead, write meaningful comments such as:
+
+```javascript
+// This function receives the selected hotspot event
+// and updates all sections of the Event History panel.
+function showEventHistory(event) {
+    ...
+}
+```
+
+For HTML:
+
+```html
+<!--
+    Event History Panel:
+    Displays the selected thermal event's
+    first detection, last detection,
+    detection count and persistence.
+-->
+<section id="event-history">
+    ...
+</section>
+```
+
+For CSS:
+
+```css
+/*
+ * Event History Card
+ * ------------------
+ * This section controls the layout and
+ * appearance of the selected event information.
+ */
+.event-history-card {
+    ...
+}
+```
+
+For JavaScript:
+
+```javascript
+// Calculate the persistence percentage using
+// detected days divided by analysed days.
+function calculatePersistence(detectedDays, analysedDays) {
+    ...
+}
+```
+
+Add comments for:
+
+* Major HTML sections.
+* Major CSS sections.
+* Important JavaScript functions.
+* Data transformation logic.
+* Event listeners.
+* Timeline generation.
+* Persistence calculation.
+* DOM updates.
+* Error handling.
+* Integration points.
+
+The comments should explain **why the code exists and what it does**, not merely repeat the code.
+
+---
+
+# 17. DO NOT OVER-COMMENT
+
+Comments should be useful, not excessive.
+
+Do not put a comment on every single line.
+
+Instead, comment:
+
+* Sections
+* Functions
+* Important calculations
+* Non-obvious logic
+* Integration points
+* Important UI behavior
+
+The final code should remain clean and professional.
+
+---
+
+# 18. JAVASCRIPT FUNCTIONALITY
+
+Create reusable functions where appropriate.
+
+For example:
+
+```javascript
+// Updates the event history panel with information
+// from the currently selected thermal event.
+function renderEventHistory(event) {
+    ...
+}
+
+// Creates the visual detection timeline
+// from the event's historical detections.
+function renderDetectionTimeline(detections) {
+    ...
+}
+
+// Calculates the percentage of analysed days
+// during which the event was detected.
+function calculatePersistence(detectedDays, analysedDays) {
+    ...
+}
+
+// Updates the persistence card and its label.
+function renderPersistence(persistence) {
+    ...
+}
+```
+
+Use the existing project naming conventions if they already exist.
+
+---
+
+# 19. DO NOT DUPLICATE LOGIC
+
+If the project already has:
+
+* persistence calculation,
+* event selection,
+* hotspot data processing,
+* map marker click handling,
+
+reuse those functions.
+
+Do not create duplicate versions of the same logic unless there is a strong reason.
+
+Keep responsibilities separated:
+
+Role 1:
+UI rendering and user interaction.
+
+Role 2:
+Map visualization.
+
+Role 3:
+API/data fetching.
+
+Role 4:
+Data processing.
+
+Role 5:
+Classification.
+
+Role 6:
+Integration/testing.
+
+---
+
+# 20. MAP INTEGRATION
+
+Do not rebuild the entire map.
+
+The existing Leaflet map should continue working.
+
+When a hotspot is selected, the frontend should receive the selected event and display its historical information.
+
+If historical markers are already provided by Role 2, make the UI compatible with them.
+
+Do not take ownership of Role 2's map implementation.
+
+---
+
+# 21. DEMO DATA
+
+If real historical FIRMS data is not available during development, create a small mock/demo dataset only if necessary.
+
+The demo data should represent:
+
+* One persistent hotspot.
+* One short-duration hotspot.
+* Multiple detection dates.
+* Different FRP values.
+* Confidence values.
+
+Clearly label demo data as:
+
+"Demo Data"
+
+Do not present demo data as real NASA observations.
+
+---
+
+# 22. USER EXPERIENCE FLOW
+
+The expected Day 3 user flow is:
+
+1. User opens ThermalX.
+2. User sees thermal hotspots on the map.
+3. User clicks a hotspot.
+4. Event History panel opens/updates.
+5. Event ID appears.
+6. First detection appears.
+7. Last detection appears.
+8. Detection count appears.
+9. Persistence appears.
+10. Historical timeline appears.
+11. Individual detection details appear.
+12. User can understand whether the hotspot is recurring.
+
+The UI should make this flow obvious.
+
+---
+
+# 23. ACCESSIBILITY
+
+Use:
+
+* Semantic HTML.
+* Proper headings.
+* Accessible buttons.
+* Meaningful labels.
+* Good contrast.
+* Keyboard-friendly interactive elements where practical.
+* `aria-label` where appropriate.
+
+Do not rely only on color to communicate information.
+
+---
+
+# 24. PERFORMANCE
+
+Keep the frontend lightweight.
+
+Avoid:
+
+* Large unnecessary libraries.
+* Repeated DOM operations inside large loops.
+* Unnecessary animations.
+* Duplicate event listeners.
+
+Use efficient DOM updates.
+
+---
+
+# 25. ERROR HANDLING
+
+If historical information cannot be loaded or is unavailable, show a user-friendly message.
+
+Example:
+
+"Historical data is currently unavailable."
+
+Do not show raw JavaScript errors to the user.
+
+Console errors can still be useful for developers.
+
+---
+
+# 26. TEST CASES
+
+After implementation, test at least:
+
+### Test 1
+
+Select a hotspot with complete history.
+
+Expected:
+Event information + timeline + persistence displayed.
+
+### Test 2
+
+Select a hotspot with only one detection.
+
+Expected:
+Timeline displays one event correctly.
+
+### Test 3
+
+Select a hotspot with multiple consecutive detections.
+
+Expected:
+Persistence and timeline are correct.
+
+### Test 4
+
+Select an event with missing FRP.
+
+Expected:
+FRP shows "N/A".
+
+### Test 5
+
+Select an event with no historical records.
+
+Expected:
+"No historical detections available."
+
+### Test 6
+
+Open the application on mobile width.
+
+Expected:
+No horizontal overflow and readable event panel.
+
+### Test 7
+
+Switch between different hotspots.
+
+Expected:
+The panel updates correctly every time.
+
+---
+
+# 27. VERIFY THE CALCULATIONS
+
+Do not blindly trust the displayed persistence.
+
+Example:
+
+5 analysed days
+5 detected days
+
+Persistence:
+
+5 / 5 × 100 = 100%
+
+Example:
+
+4 detected days
+5 analysed days
+
+Persistence:
+
+4 / 5 × 100 = 80%
+
+Make sure the frontend displays the value supplied by the project's processing layer when that calculation already exists.
+
+Avoid creating conflicting calculations.
+
+---
+
+# 28. FINAL UI REQUIREMENTS
+
+The completed Day 3 interface should contain:
+
+* [ ] Selected Event ID
+* [ ] Location
+* [ ] First Detection
+* [ ] Last Detection
+* [ ] Detection Count
+* [ ] Persistence Percentage
+* [ ] Persistence Category
+* [ ] Historical Timeline
+* [ ] Detection History
+* [ ] FRP
+* [ ] Brightness
+* [ ] Confidence
+* [ ] Satellite
+* [ ] Empty State
+* [ ] Missing Data Handling
+* [ ] Responsive Design
+* [ ] Useful Code Comments
+
+---
+
+# 29. DO NOT MODIFY FUTURE-DAY FEATURES UNNECESSARILY
+
+Day 3 is focused on:
+
+**Historical Hotspot Data + Event History UI**
+
+Do NOT fully implement:
+
+* OSM industrial facilities
+* Industrial proximity scoring
+* Spatial clustering engine
+* Classification engine
+* AI model
+* Final priority engine
+* Advanced analytics
+
+Those belong to later stages of the roadmap.
+
+---
+
+# 30. FINAL VALIDATION
+
+After coding:
+
+1. Check all HTML for errors.
+2. Check CSS for broken selectors.
+3. Check JavaScript for syntax errors.
+4. Check browser console.
+5. Test hotspot selection.
+6. Test event history rendering.
+7. Test timeline rendering.
+8. Test persistence display.
+9. Test missing data.
+10. Test responsive layout.
+11. Ensure existing Day 1 and Day 2 functionality still works.
+12. Ensure no unnecessary files were created.
+
+---
+
+# 31. FINAL RESPONSE FORMAT
+
+After completing the implementation, provide:
+
+## A. Files Changed
+
+List every modified file.
+
+## B. What Was Added
+
+Briefly explain the Day 3 functionality.
+
+## C. How It Works
+
+Explain the data flow in simple language:
+
+Hotspot Selection
+→ Historical Event Data
+→ Event History
+→ Persistence
+→ Timeline
+→ UI
+
+## D. Testing Completed
+
+List the tests you performed.
+
+## E. Important Notes
+
+Mention any assumptions, demo data, missing API data, or integration requirements.
+
+## F. Code Learning Notes
+
+Briefly explain the important functions that a student developer should understand.
+
+---
+
+# MOST IMPORTANT INSTRUCTION
+
+**Do not just make the UI look good.**
+
+Make the code:
+
+* Simple
+* Modular
+* Understandable
+* Reusable
+* Properly commented
+* Easy for a student team to maintain
+
+Every major code section must contain a meaningful comment explaining its purpose.
+
+**Preserve existing functionality.**
+
+**Do not rewrite working modules unnecessarily.**
+
+**Complete ONLY the Day 3 Role 1 frontend responsibilities.**
