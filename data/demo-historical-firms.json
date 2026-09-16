@@ -1,0 +1,33 @@
+[
+    {
+        "id": "HIST-001",
+        "latitude": 21.1458,
+        "longitude": 79.0882,
+        "date": "2026-09-10T08:30:00Z",
+        "brightness": 320.1,
+        "frp": 10.4,
+        "confidence": 75,
+        "satellite": "Aqua"
+    },
+    {
+        "id": "HIST-002",
+        "latitude": 21.1460,
+        "longitude": 79.0880,
+        "date": "2026-09-11T09:15:00Z",
+        "brightness": 315.5,
+        "frp": 8.2,
+        "confidence": 60,
+        "satellite": "Terra"
+    },
+    {
+        "id": "HIST-003",
+        "latitude": 21.1455,
+        "longitude": 79.0885,
+        "date": "2026-09-12T10:45:00Z",
+        "brightness": 330.9,
+        "frp": 15.8,
+        "confidence": 90,
+        "satellite": "Suomi NPP"
+    }
+]
+

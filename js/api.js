@@ -13,11 +13,14 @@ const FIRMS_API_CONFIG = {
     dayRange: 1,
 
     // Defines a fallback URL pointing to our local demo file for testing without a live key.
-    fallbackUrl: "data/demo-firms.json"
+    fallbackUrl: "data/demo-firms.json",
+
+    // Defines a fallback URL pointing to our local demo file for historical testing.
+    historicalFallbackUrl: "data/demo-historical-firms.json"
 // Ends the configuration object.
 };
 
-// Defines an asynchronous function that orchestrates fetching and processing FIRMS data.
+// Defines an asynchronous function that orchestrates fetching and processing FIRMS data for the initial load.
 export async function fetchFIRMSData(useDemo = true) {
     // Declares a variable to hold the final URL we will request data from.
     let requestUrl = "";
@@ -83,6 +86,120 @@ export async function fetchFIRMSData(useDemo = true) {
     // Ends the catch block.
     }
 // Ends the fetchFIRMSData function.
+}
+
+// Defines an asynchronous function to fetch historical data around a specific location.
+export async function fetchHistoricalFirmsData(latitude, longitude, referenceDate, useDemo = true) {
+    // Declares a variable to hold the final URL for historical data fetching.
+    let requestUrl = "";
+    
+    // Checks if the application is running in demo mode for historical data.
+    if (useDemo) {
+        // Sets the request URL to our historical local fallback JSON file.
+        requestUrl = FIRMS_API_CONFIG.historicalFallbackUrl;
+    // Ends the if condition and starts the alternative branch for live historical data.
+    } else {
+        // Calculates a simple bounding box around the selected hotspot (e.g., +/- 0.1 degrees).
+        // Defines the western boundary (longitude minus 0.1).
+        const west = Number(longitude) - 0.1;
+        
+        // Defines the southern boundary (latitude minus 0.1).
+        const south = Number(latitude) - 0.1;
+        
+        // Defines the eastern boundary (longitude plus 0.1).
+        const east = Number(longitude) + 0.1;
+        
+        // Defines the northern boundary (latitude plus 0.1).
+        const north = Number(latitude) + 0.1;
+        
+        // Formats the bounding box string required by the FIRMS API: west,south,east,north.
+        const boundingBox = `${west},${south},${east},${north}`;
+        
+        // Sets the number of historical days to fetch (e.g., 10 days for persistence check).
+        const historicalDays = 10;
+        
+        // Constructs the real NASA API URL for the specified bounding box and historical time range.
+        requestUrl = `${FIRMS_API_CONFIG.endpoint}${FIRMS_API_CONFIG.apiKey}/VIIRS_SNPP_NRT/${boundingBox}/${historicalDays}`;
+    // Ends the else branch.
+    }
+
+    // Prints a message to the browser console indicating the historical fetch has started.
+    console.log(`FIRMS historical request started: fetching from ${requestUrl}`);
+
+    // Starts a try block to handle network errors safely without crashing the application.
+    try {
+        // Sends the network request to the historical URL and waits for the response.
+        const response = await fetch(requestUrl);
+        
+        // Checks if the server responded with an error HTTP status code.
+        if (!response.ok) {
+            // Stops execution and throws a clear error message with the status code.
+            throw new Error(`NASA FIRMS returned HTTP status: ${response.status}`);
+        // Ends the HTTP response check block.
+        }
+
+        // Reads the raw content from the server response as text.
+        const rawText = await response.text();
+        
+        // Prints a success message to the browser console confirming data receipt.
+        console.log("FIRMS historical response received.");
+
+        // Calls our existing function to parse the raw CSV/JSON text into JavaScript objects.
+        const parsedData = parseFIRMSResponse(rawText);
+
+        // Calls our existing function to filter out records that are missing or have invalid coordinates.
+        const validData = validateFIRMSData(parsedData);
+
+        // Calls our existing function to normalize the valid records into the standard ThermalX format.
+        const normalizedHotspots = normalizeHotspotData(validData);
+
+        // Checks if the resulting array contains any valid records.
+        if (normalizedHotspots.length === 0) {
+            // Throws an error to signal that no historical activity was found in this area.
+            throw new Error("No historical hotspots were returned for this location.");
+        // Ends the empty data check block.
+        }
+
+        // Sorts the historical records chronologically from oldest to newest based on the date field.
+        normalizedHotspots.sort((a, b) => {
+            // Converts the date string of record A into a numeric timestamp.
+            const dateA = new Date(a.date).getTime();
+            // Converts the date string of record B into a numeric timestamp.
+            const dateB = new Date(b.date).getTime();
+            // Returns the difference to sort them ascending (oldest first).
+            return dateA - dateB;
+        // Ends the sorting callback function.
+        });
+
+        // Returns a predictable success structure containing our standardized, sorted historical records.
+        // This structure allows Role 4 to easily consume the data or check for success.
+        return {
+            // Sets a success flag indicating the data was fetched and processed correctly.
+            success: true,
+            // Attaches the sorted array of historical hotspot objects.
+            data: normalizedHotspots
+        // Ends the return object.
+        };
+
+    // Catches any errors that occurred during the fetch, parse, or validation steps.
+    } catch (error) {
+        // Logs the exact error message to the browser console for developers.
+        console.error("Historical FIRMS request failed:", error.message);
+        
+        // Returns a predictable failure structure instead of throwing an uncaught error.
+        // This prevents the application from crashing and gives Role 4 an easy way to handle the failure.
+        return {
+            // Sets the success flag to false.
+            success: false,
+            // Provides an empty array as a safe fallback for the data field.
+            data: [],
+            // Provides a human-readable error message that can be displayed in the UI.
+            error: `Unable to fetch historical data: ${error.message}`
+        // Ends the error return object.
+        };
+    // Ends the catch block.
+    }
+// Ends the fetchHistoricalFirmsData function.
 }
 
 // Defines a function to figure out if the data is JSON or CSV and parse it accordingly.
