@@ -1,0 +1,1487 @@
+# THERMALX — DAY 3 — ROLE 2
+
+## GIS & MAP DEVELOPER
+
+### HISTORICAL / EVENT MARKERS IMPLEMENTATION
+
+You are working on the **ThermalX SIH 2026 project**.
+
+Project Name:
+
+**ThermalX**
+
+Project Title:
+
+**AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM & Satellite Data**
+
+---
+
+# 1. YOUR ROLE
+
+You are implementing:
+
+**DAY 3 — ROLE 2 — GIS & MAP DEVELOPER**
+
+According to the ThermalX development plan:
+
+* Role 2 owns GIS and map visualization.
+* Day 3 Role 2 responsibility is to support **historical/event markers**.
+* Role 3 is responsible for fetching historical FIRMS data.
+* Role 4 is responsible for spatial grouping, persistence and related calculations.
+* Role 1 is responsible for the event history UI.
+
+Therefore, your job is primarily:
+
+> **Take the historical/event data provided by the existing application and visualize it correctly on the Leaflet map.**
+
+Do not duplicate the responsibilities of Role 3 or Role 4.
+
+---
+
+# 2. DAY 3 MAIN OBJECTIVE
+
+The final result should allow ThermalX to do this:
+
+```text
+CURRENT FIRMS HOTSPOT
+        ↓
+USER SELECTS HOTSPOT / EVENT
+        ↓
+HISTORICAL DETECTIONS ARE PROVIDED
+        ↓
+ROLE 2 MAP MODULE RECEIVES DATA
+        ↓
+HISTORICAL DETECTIONS ARE DISPLAYED
+        ↓
+USER CAN SEE PREVIOUS DETECTION LOCATIONS
+        ↓
+USER CAN CLICK HISTORICAL MARKER
+        ↓
+DETECTION DETAILS ARE SHOWN
+```
+
+The map must clearly distinguish:
+
+```text
+CURRENT HOTSPOT
+        🔥
+
+HISTORICAL DETECTION
+        •
+```
+
+---
+
+# 3. VERY IMPORTANT — INSPECT THE EXISTING PROJECT FIRST
+
+Before writing or changing any code:
+
+**Inspect the complete existing ThermalX project.**
+
+Check:
+
+```text
+index.html
+css/style.css
+js/app.js
+js/map.js
+js/api.js
+js/processing.js
+js/classification.js
+data/
+assets/
+```
+
+Understand:
+
+* how the current Leaflet map is initialized
+* how current FIRMS hotspots are rendered
+* how data flows between JavaScript modules
+* what hotspot object structure is already being used
+* whether Day 2 functionality already exists
+* whether an event/history structure already exists
+* whether Role 1 already has an information panel
+* whether Role 3 has already created a historical data interface
+
+### IMPORTANT
+
+Do NOT overwrite the existing project.
+
+Do NOT replace working code unnecessarily.
+
+Modify the existing code carefully.
+
+Preserve all working Day 1 and Day 2 functionality.
+
+---
+
+# 4. EXISTING ARCHITECTURE
+
+Maintain this architecture:
+
+```text
+NASA FIRMS
+     ↓
+Role 3 — API/Data Integration
+     ↓
+Raw / Historical FIRMS Data
+     ↓
+Role 4 — Data Processing
+     ↓
+Processed Historical/Event Data
+     ↓
+Role 2 — GIS & Map
+     ↓
+Leaflet Historical Markers
+     ↓
+Role 1 — Dashboard / Event History UI
+```
+
+Role 2 should NOT become the API layer.
+
+---
+
+# 5. CURRENT PROJECT STRUCTURE
+
+Use the existing project structure:
+
+```text
+ThermalX/
+│
+├── index.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+│
+├── data/
+│
+├── assets/
+│
+└── README.md
+```
+
+Primarily work with:
+
+```text
+js/map.js
+```
+
+and only make small compatible changes to:
+
+```text
+js/app.js
+index.html
+css/style.css
+```
+
+if required.
+
+---
+
+# 6. DO NOT BREAK DAY 2
+
+Day 2 functionality must continue working.
+
+The map must still support:
+
+* Leaflet map
+* OpenStreetMap
+* zoom
+* pan
+* current FIRMS hotspots
+* current hotspot popup
+* FRP
+* brightness
+* confidence
+* date
+* satellite information
+* current hotspot layer
+
+Day 3 should ADD functionality rather than replace Day 2.
+
+---
+
+# 7. CREATE A HISTORICAL HOTSPOT LAYER
+
+Create a dedicated Leaflet layer for historical detections.
+
+Example:
+
+```javascript
+const historicalHotspotLayer = L.layerGroup();
+```
+
+Do not mix historical detections directly into the current hotspot layer.
+
+The architecture should become:
+
+```text
+Leaflet Map
+│
+├── Current Hotspot Layer
+│      └── Current FIRMS detections
+│
+└── Historical Hotspot Layer
+       └── Previous FIRMS detections
+```
+
+This separation is important for future development.
+
+---
+
+# 8. ADD HISTORICAL LAYER TO MAP
+
+Initialize the historical layer appropriately.
+
+It should be possible to:
+
+* add historical markers
+* remove historical markers
+* refresh historical markers
+* show/hide historical markers
+* keep the current hotspot layer independent
+
+Do not initialize multiple Leaflet maps.
+
+There should be only one main map instance.
+
+---
+
+# 9. HISTORICAL DATA FORMAT
+
+Support normalized historical detection objects similar to:
+
+```javascript
+{
+    latitude: 25.5941,
+    longitude: 85.1376,
+    brightness: 330.5,
+    frp: 45.7,
+    confidence: "high",
+    date: "2026-09-14",
+    satellite: "VIIRS"
+}
+```
+
+A historical event may contain multiple detections:
+
+```javascript
+{
+    eventId: "TX-001",
+
+    detections: [
+        {
+            latitude: 25.5941,
+            longitude: 85.1376,
+            brightness: 330.5,
+            frp: 45.7,
+            confidence: "high",
+            date: "2026-09-15",
+            satellite: "VIIRS"
+        },
+
+        {
+            latitude: 25.5940,
+            longitude: 85.1378,
+            brightness: 328.2,
+            frp: 41.3,
+            confidence: "nominal",
+            date: "2026-09-14",
+            satellite: "VIIRS"
+        },
+
+        {
+            latitude: 25.5942,
+            longitude: 85.1375,
+            brightness: 331.1,
+            frp: 48.5,
+            confidence: "high",
+            date: "2026-09-13",
+            satellite: "VIIRS"
+        }
+    ]
+}
+```
+
+However:
+
+**Do not force this exact structure if the existing project already uses another normalized structure.**
+
+Use the project's existing data contract whenever available.
+
+---
+
+# 10. CREATE addHistoricalMarker()
+
+Create a reusable function similar to:
+
+```javascript
+addHistoricalMarker(detection)
+```
+
+Responsibilities:
+
+1. Receive one historical detection.
+2. Read latitude and longitude.
+3. Validate coordinates.
+4. Create a Leaflet marker or circle marker.
+5. Add it to `historicalHotspotLayer`.
+6. Create a popup.
+7. Display useful historical detection information.
+
+Concept:
+
+```text
+Historical Detection
+        ↓
+Validate
+        ↓
+Create Leaflet Marker
+        ↓
+Add to Historical Layer
+        ↓
+Attach Popup
+```
+
+---
+
+# 11. HISTORICAL MARKER DESIGN
+
+Historical detections must look different from current hotspots.
+
+Use a simple visual distinction.
+
+For example:
+
+```text
+Current:
+🔥
+
+Historical:
+•
+```
+
+You may use:
+
+```javascript
+L.circleMarker()
+```
+
+or another appropriate Leaflet marker.
+
+Do not use excessive animations.
+
+The map should remain professional and readable.
+
+---
+
+# 12. HISTORICAL POPUP
+
+When the user clicks a historical marker, show:
+
+```text
+Historical Thermal Detection
+
+Date: 14 Sep 2026
+
+Latitude: 25.5940
+Longitude: 85.1378
+
+Brightness: 328.2 K
+FRP: 41.3 MW
+Confidence: Nominal
+
+Satellite: VIIRS
+```
+
+Use the actual available data.
+
+Never invent missing values.
+
+If information is unavailable, either:
+
+```text
+Not available
+```
+
+or omit that field.
+
+---
+
+# 13. CREATE renderHistoricalDetections()
+
+Create a reusable function:
+
+```javascript
+renderHistoricalDetections(detections)
+```
+
+Responsibilities:
+
+1. Clear previous historical markers.
+2. Check whether data exists.
+3. Validate each detection.
+4. Add valid historical markers.
+5. Skip invalid records.
+6. Update the historical layer.
+7. Optionally return useful information such as the number of valid markers rendered.
+
+Concept:
+
+```text
+renderHistoricalDetections()
+            ↓
+Clear old markers
+            ↓
+Validate input
+            ↓
+Loop through detections
+            ↓
+addHistoricalMarker()
+            ↓
+Historical layer updated
+```
+
+---
+
+# 14. CREATE clearHistoricalDetections()
+
+Create:
+
+```javascript
+clearHistoricalDetections()
+```
+
+This function should:
+
+* remove historical markers
+* keep the map alive
+* keep current hotspot markers intact
+* avoid duplicate markers when new historical data is rendered
+
+Use the existing Leaflet LayerGroup.
+
+Do NOT recreate the entire map.
+
+---
+
+# 15. EVENT HISTORY SUPPORT
+
+Create a clean interface for displaying the history of a selected event.
+
+For example:
+
+```javascript
+showEventHistory(event)
+```
+
+or:
+
+```javascript
+showHistoricalDetections(detections)
+```
+
+Use whichever approach fits the existing architecture better.
+
+The important flow is:
+
+```text
+User clicks/selects event
+        ↓
+Event history data received
+        ↓
+Map clears old history
+        ↓
+Map displays new historical detections
+```
+
+---
+
+# 16. EVENT SWITCHING
+
+This must work:
+
+```text
+Select Event TX-001
+        ↓
+Show TX-001 historical markers
+
+Select Event TX-002
+        ↓
+Remove TX-001 historical markers
+        ↓
+Show TX-002 historical markers
+```
+
+There must NOT be stale markers from the previous event.
+
+There must NOT be duplicate markers.
+
+---
+
+# 17. DO NOT FETCH NASA FIRMS FROM map.js
+
+This is extremely important.
+
+Role 3 handles data fetching.
+
+Do NOT do this inside map.js:
+
+```javascript
+fetch(NASA_FIRMS_URL)
+```
+
+Instead:
+
+```text
+api.js
+   ↓
+fetch FIRMS
+   ↓
+app.js / processing
+   ↓
+map.js
+   ↓
+render historical data
+```
+
+The map module should receive data.
+
+---
+
+# 18. DO NOT CALCULATE PERSISTENCE
+
+Role 4 is responsible for:
+
+* grouping nearby detections
+* spatial calculations
+* persistence
+* detection count
+* unique days
+* recurrence rate
+* event IDs
+
+Therefore:
+
+**Do NOT implement persistence calculations in map.js.**
+
+For example, if Role 4 sends:
+
+```javascript
+{
+    eventId: "TX-001",
+    detections: [...],
+    persistenceScore: 75
+}
+```
+
+Role 2 can display the detections.
+
+But Role 2 should not calculate:
+
+```text
+days detected / days analysed
+```
+
+---
+
+# 19. DO NOT IMPLEMENT CLUSTERING
+
+Do not implement Day 5 clustering logic.
+
+Do not calculate:
+
+* spatial clusters
+* event grouping
+* recurrence
+* persistence
+* event generation
+
+Only visualize the historical/event information supplied by the processing layer.
+
+---
+
+# 20. MAP FITTING
+
+Create an optional helper:
+
+```javascript
+fitMapToHistoricalDetections(detections)
+```
+
+If an event has several historical points, the map can focus on them.
+
+Use Leaflet's:
+
+```javascript
+map.fitBounds(...)
+```
+
+when appropriate.
+
+Important:
+
+Do not automatically change the user's map position every time data refreshes.
+
+Only fit the map when the user intentionally opens/selects an event.
+
+---
+
+# 21. INVALID COORDINATES
+
+Before creating any marker, validate:
+
+```text
+Latitude:
+-90 to +90
+
+Longitude:
+-180 to +180
+```
+
+Reject:
+
+```text
+null
+undefined
+NaN
+empty values
+out-of-range coordinates
+malformed records
+```
+
+Example:
+
+```javascript
+if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+) {
+    return;
+}
+```
+
+Do not allow invalid data to crash the map.
+
+---
+
+# 22. EMPTY HISTORICAL DATA
+
+If:
+
+```javascript
+[]
+```
+
+is received:
+
+* clear historical markers
+* do not crash
+* keep the map functional
+
+If the UI allows a message, use:
+
+```text
+No historical detections found for this event.
+```
+
+Do not claim that no historical event ever existed unless the data actually proves it.
+
+---
+
+# 23. MISSING DATA
+
+If a historical record does not contain:
+
+* FRP
+* brightness
+* confidence
+* satellite
+
+do not fabricate a value.
+
+Example:
+
+```text
+FRP: Not available
+```
+
+is acceptable.
+
+---
+
+# 24. HISTORICAL MARKER POPUP FUNCTION
+
+For cleaner code, consider a helper such as:
+
+```javascript
+createHistoricalPopupContent(detection)
+```
+
+This function should generate the popup HTML from the detection object.
+
+Keep popup generation separate from marker creation where practical.
+
+---
+
+# 25. DATA NORMALIZATION
+
+Do not perform unnecessary data transformation inside map.js.
+
+The preferred architecture is:
+
+```text
+Raw FIRMS Data
+      ↓
+Role 3
+      ↓
+Normalized Data
+      ↓
+Role 4
+      ↓
+Processed Event
+      ↓
+Role 2
+      ↓
+Map
+```
+
+The map should consume clean data.
+
+If a tiny compatibility conversion is necessary, document it clearly.
+
+---
+
+# 26. LAYER CONTROL PREPARATION
+
+Prepare the map so future layers can be added.
+
+Eventually ThermalX may have:
+
+```text
+Current FIRMS Hotspots
+Historical Detections
+Thermal Events
+Industrial Facilities
+```
+
+For now, only implement:
+
+```text
+Current Hotspots
+Historical Hotspots
+```
+
+Do not implement OSM industrial layers yet.
+
+---
+
+# 27. OPTIONAL LAYER CONTROL
+
+If the existing architecture supports it, allow:
+
+```text
+☑ Current Hotspots
+☑ Historical Detections
+```
+
+to be toggled.
+
+If adding this would unnecessarily complicate the current project, keep the LayerGroup ready for future integration instead.
+
+Do not break existing UI.
+
+---
+
+# 28. PERFORMANCE
+
+Historical data may contain multiple detections.
+
+Keep rendering reasonably efficient.
+
+Avoid:
+
+* creating unnecessary DOM elements
+* repeatedly initializing the map
+* unnecessary API calls
+* duplicate markers
+* duplicate layers
+* unnecessary recalculations
+
+Use a single LayerGroup and refresh it.
+
+---
+
+# 29. CODE ORGANIZATION
+
+Keep `map.js` organized.
+
+Use sections similar to:
+
+```javascript
+// ====================================================
+// 1. MAP CONFIGURATION
+// ====================================================
+
+// ====================================================
+// 2. MAP INITIALIZATION
+// ====================================================
+
+// ====================================================
+// 3. CURRENT HOTSPOT LAYER
+// ====================================================
+
+// ====================================================
+// 4. HISTORICAL HOTSPOT LAYER
+// ====================================================
+
+// ====================================================
+// 5. CURRENT HOTSPOT MARKERS
+// ====================================================
+
+// ====================================================
+// 6. HISTORICAL MARKERS
+// ====================================================
+
+// ====================================================
+// 7. HISTORICAL POPUP
+// ====================================================
+
+// ====================================================
+// 8. HISTORICAL DATA RENDERING
+// ====================================================
+
+// ====================================================
+// 9. CLEAR / RESET FUNCTIONS
+// ====================================================
+
+// ====================================================
+// 10. EVENT HISTORY
+// ====================================================
+
+// ====================================================
+// 11. MAP FITTING UTILITIES
+// ====================================================
+```
+
+Adapt this to the existing file rather than blindly replacing it.
+
+---
+
+# 30. 🚨 MANDATORY CODE COMMENT REQUIREMENT
+
+THIS IS A NON-NEGOTIABLE REQUIREMENT.
+
+I am a B.Tech student and I need to understand this code later.
+
+Therefore:
+
+> **ADD MEANINGFUL COMMENTS IN EVERY IMPORTANT SECTION OF THE CODE.**
+
+Every major section must explain:
+
+* what it does
+* why it exists
+* what data it receives
+* what it produces
+* how it connects to ThermalX
+
+---
+
+# 31. FUNCTION COMMENTS ARE ALSO MANDATORY
+
+Every important function must have comments.
+
+Use a format similar to:
+
+```javascript
+// ----------------------------------------------------
+// FUNCTION: renderHistoricalDetections()
+//
+// PURPOSE:
+// Displays previous FIRMS detections belonging to the
+// selected thermal event on the Leaflet map.
+//
+// INPUT:
+// detections - array of normalized historical
+//              FIRMS detection objects.
+//
+// PROCESS:
+// 1. Clear previous historical markers.
+// 2. Validate incoming records.
+// 3. Create markers for valid records.
+// 4. Add markers to the historical layer.
+//
+// OUTPUT:
+// Updates the historical hotspot layer.
+// ----------------------------------------------------
+function renderHistoricalDetections(detections) {
+    // Implementation...
+}
+```
+
+---
+
+# 32. COMMENTS MUST EXPLAIN LOGIC
+
+Do not use meaningless comments.
+
+BAD:
+
+```javascript
+// Create marker
+const marker = L.circleMarker(...);
+```
+
+GOOD:
+
+```javascript
+// Historical detections use a separate layer so they
+// can be cleared or hidden without affecting the
+// current FIRMS hotspot markers.
+const marker = L.circleMarker(...);
+```
+
+Another good example:
+
+```javascript
+// Clear previous historical markers before rendering
+// the newly selected event. This prevents markers from
+// Event A remaining visible when the user selects Event B.
+historicalHotspotLayer.clearLayers();
+```
+
+---
+
+# 33. EXPLAIN DIFFICULT JAVASCRIPT
+
+Where code may be difficult for a beginner, explain it.
+
+For example:
+
+```javascript
+// Convert coordinates to Number because external data
+// may provide latitude and longitude as strings.
+// Leaflet requires valid numeric coordinates.
+const latitude = Number(detection.latitude);
+```
+
+Another:
+
+```javascript
+// Check whether the input is an array before processing.
+// This prevents errors when the API or another module
+// returns null, undefined, or an unexpected data type.
+if (!Array.isArray(detections)) {
+    return;
+}
+```
+
+---
+
+# 34. DO NOT OVER-COMMENT SIMPLE SYNTAX
+
+Do not write useless comments like:
+
+```javascript
+// Declare variable
+const map = ...
+```
+
+Comments should explain the **purpose and logic**.
+
+---
+
+# 35. ERROR HANDLING
+
+Use clear error handling.
+
+For example:
+
+```javascript
+try {
+    // Historical rendering logic
+} catch (error) {
+    console.error(
+        "ThermalX Map: Failed to render historical detections.",
+        error
+    );
+}
+```
+
+Do not allow one malformed detection to break the entire map.
+
+---
+
+# 36. DEBUG LOGGING
+
+Add useful development logs where appropriate.
+
+Examples:
+
+```text
+ThermalX Map initialized
+Historical hotspot layer initialized
+Rendering 8 historical detections
+Skipped 1 invalid historical detection
+Historical rendering completed
+```
+
+Do not flood the browser console.
+
+---
+
+# 37. DEMO DATA
+
+If historical data from Role 3 is not available yet, use a small temporary demo dataset.
+
+Example:
+
+```javascript
+const demoHistoricalDetections = [
+    {
+        latitude: 25.5941,
+        longitude: 85.1376,
+        brightness: 330.5,
+        frp: 45.7,
+        confidence: "high",
+        date: "2026-09-15",
+        satellite: "VIIRS"
+    },
+    {
+        latitude: 25.5940,
+        longitude: 85.1378,
+        brightness: 328.2,
+        frp: 41.3,
+        confidence: "nominal",
+        date: "2026-09-14",
+        satellite: "VIIRS"
+    }
+];
+```
+
+Clearly mark it as:
+
+```text
+DEMO DATA
+```
+
+Never present demo data as actual NASA data.
+
+If a real data flow already exists, prefer it over demo data.
+
+---
+
+# 38. DO NOT IMPLEMENT DAY 4
+
+Do NOT implement:
+
+* OSM Overpass API
+* industrial facilities
+* factories
+* refineries
+* power plants
+* mines
+* industrial distance
+* industrial proximity score
+
+Those belong to Day 4.
+
+---
+
+# 39. DO NOT IMPLEMENT DAY 5
+
+Do NOT implement:
+
+* clustering
+* persistence algorithm
+* recurrence rate
+* event generation algorithm
+* TX-001 generation logic
+
+Those belong to Role 4 / Day 5.
+
+---
+
+# 40. DO NOT IMPLEMENT DAY 6
+
+Do NOT implement:
+
+* classification engine
+* industrial score
+* wildfire score
+* agriculture score
+* confidence classification
+* AI/ML model
+
+Those belong to later stages.
+
+---
+
+# 41. FILES TO MODIFY
+
+Prefer:
+
+```text
+js/map.js
+```
+
+Potentially:
+
+```text
+js/app.js
+```
+
+for data-to-map integration.
+
+Potentially:
+
+```text
+index.html
+```
+
+if a required map container/control is missing.
+
+Potentially:
+
+```text
+css/style.css
+```
+
+if marker/map UI styling is needed.
+
+Do not unnecessarily modify:
+
+```text
+api.js
+processing.js
+classification.js
+```
+
+---
+
+# 42. TESTING REQUIREMENTS
+
+After implementation, test all of these.
+
+## TEST 1 — Current hotspots
+
+Confirm Day 2 current hotspot markers still work.
+
+---
+
+## TEST 2 — Historical markers
+
+Pass multiple historical detections.
+
+Confirm all valid detections appear.
+
+---
+
+## TEST 3 — Historical popup
+
+Click a historical marker.
+
+Confirm:
+
+* date
+* latitude
+* longitude
+* brightness
+* FRP
+* confidence
+* satellite
+
+are displayed when available.
+
+---
+
+## TEST 4 — Empty history
+
+Pass:
+
+```javascript
+[]
+```
+
+Confirm the application does not crash.
+
+---
+
+## TEST 5 — Invalid coordinates
+
+Test:
+
+```javascript
+{
+    latitude: 500,
+    longitude: 1000
+}
+```
+
+Confirm the marker is skipped.
+
+---
+
+## TEST 6 — Missing values
+
+Test a detection missing FRP or brightness.
+
+Confirm popup still works.
+
+---
+
+## TEST 7 — Refresh
+
+Render the same historical data twice.
+
+Confirm duplicate markers are NOT created.
+
+---
+
+## TEST 8 — Event switching
+
+Test:
+
+```text
+Event TX-001
+↓
+show history
+
+Event TX-002
+↓
+show history
+```
+
+Confirm TX-001 markers disappear before TX-002 markers appear.
+
+---
+
+## TEST 9 — Map fitting
+
+Select an event with multiple historical detections.
+
+Confirm the map can focus on the event history.
+
+---
+
+## TEST 10 — Browser console
+
+Confirm there are no unexpected JavaScript errors.
+
+---
+
+# 43. EXPECTED MAP RESULT
+
+The final map should conceptually look like:
+
+```text
+┌────────────────────────────────────────┐
+│              THERMALX MAP              │
+│                                        │
+│             •                          │
+│       •          •                     │
+│                                        │
+│                  🔥                    │
+│                                        │
+│          •                             │
+│                    •                   │
+│                                        │
+└────────────────────────────────────────┘
+
+🔥 = Current FIRMS hotspot
+•  = Historical detection
+```
+
+When the user clicks a historical point:
+
+```text
+Historical Thermal Detection
+
+Date: 14 Sep 2026
+Location: 25.5940, 85.1378
+
+Brightness: 328.2 K
+FRP: 41.3 MW
+Confidence: Nominal
+Satellite: VIIRS
+```
+
+---
+
+# 44. FUTURE COMPATIBILITY
+
+The map architecture should eventually support:
+
+```text
+THERMALX MAP
+│
+├── Current FIRMS Hotspots
+│
+├── Historical Detections
+│
+├── Thermal Events
+│
+├── Industrial Facilities
+│
+└── Future GIS Layers
+```
+
+Make the current implementation modular enough to support this.
+
+---
+
+# 45. FINAL STUDENT EXPLANATION
+
+After coding, do NOT just tell me "implementation completed."
+
+Give me a student-friendly explanation.
+
+Explain:
+
+## A. Files modified
+
+Create a table:
+
+```text
+File | What changed | Why
+```
+
+## B. What is the historical layer?
+
+Explain it in very simple language.
+
+## C. Explain the data flow
+
+Explain:
+
+```text
+FIRMS
+ ↓
+Role 3
+ ↓
+Historical Data
+ ↓
+Role 4
+ ↓
+Processed Event
+ ↓
+Role 2
+ ↓
+Leaflet Historical Layer
+ ↓
+Historical Marker
+ ↓
+Popup
+```
+
+## D. Explain every important function
+
+For each function explain:
+
+```text
+Function Name
+Purpose
+Input
+Output
+Used by
+```
+
+## E. Explain Leaflet functions
+
+Explain simply:
+
+```text
+L.layerGroup()
+L.circleMarker()
+bindPopup()
+clearLayers()
+addTo()
+fitBounds()
+```
+
+## F. Explain the difference
+
+Explain:
+
+```text
+Current Hotspot
+Historical Detection
+Thermal Event
+```
+
+in simple language.
+
+---
+
+# 46. FINAL CODE REVIEW
+
+Before finishing:
+
+Review all modified code.
+
+Check:
+
+* no duplicate functions
+* no duplicate map initialization
+* no broken Day 2 functionality
+* no unnecessary libraries
+* no unnecessary API calls
+* no console errors
+* no invalid coordinates being plotted
+* no duplicate historical markers
+* no stale event markers
+* no accidental Day 4/5 functionality
+
+---
+
+# 47. FINAL NON-NEGOTIABLE RULES
+
+Follow ALL of these:
+
+1. Inspect the existing project first.
+2. Preserve existing functionality.
+3. Implement Day 3 Role 2 only.
+4. Focus on historical/event map visualization.
+5. Keep current and historical layers separate.
+6. Do not fetch NASA FIRMS directly from map.js.
+7. Do not implement persistence.
+8. Do not implement clustering.
+9. Do not implement OSM industrial features.
+10. Do not implement classification.
+11. Use reusable functions.
+12. Validate coordinates.
+13. Handle missing data safely.
+14. Handle empty data safely.
+15. Prevent duplicate markers.
+16. Remove stale historical markers when switching events.
+17. Keep current hotspot markers working.
+18. Keep the code beginner-friendly.
+19. **ADD MEANINGFUL COMMENTS TO EVERY IMPORTANT SECTION OF CODE.**
+20. **ADD FUNCTION-LEVEL COMMENTS TO EVERY IMPORTANT FUNCTION.**
+21. Comments must explain the actual logic, not just repeat the code.
+22. Do not use meaningless comments.
+23. Explain difficult JavaScript logic with comments.
+24. Keep the architecture modular.
+25. After implementation, provide the complete student-friendly explanation.
+
+---
+
+# FINAL SUCCESS CONDITION
+
+Day 3 Role 2 is complete when:
+
+> **ThermalX can receive historical detection/event data from the existing data-processing flow, display those previous detections as a separate historical layer on the Leaflet map, allow the user to inspect individual historical detections through popups, switch between events without stale/duplicate markers, and preserve all existing current-hotspot functionality.**
+
+The implementation must be simple, modular, well-commented, and easy for a B.Tech student to understand and modify later.
