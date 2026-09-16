@@ -525,11 +525,24 @@ if (btnTestFetch) {
         // Start a try block to handle any errors that might occur during data fetching.
         try {
             
-            // Call the imported fetchFIRMSData function and wait for it to finish.
-            const hotspots = await fetchFIRMSData(true); // Using true for demo/fallback mode
+            // Call the imported fetchFIRMSData function (Role 3) and wait for it to finish.
+            const apiHotspots = await fetchFIRMSData(true); // Using true for demo/fallback mode
+            
+            // Pass the API data through Role 4 Data Processing pipeline (Integration)
+            let cleanHotspots = [];
+            if (window.ThermalXProcessing && typeof window.ThermalXProcessing.processHotspotData === 'function') {
+                cleanHotspots = window.ThermalXProcessing.processHotspotData(apiHotspots);
+            } else {
+                console.warn("[Integration] Role 4 Processing module missing. Using raw API data directly.");
+                cleanHotspots = apiHotspots;
+            }
+
+            if (cleanHotspots.length === 0) {
+                throw new Error("No valid thermal hotspots were found after processing.");
+            }
             
             // Update the status text to tell the user the data loaded successfully, including the count.
-            testStatusMessage.textContent = `Success! Loaded ${hotspots.length} records. Check the console.`;
+            testStatusMessage.textContent = `Success! Loaded ${cleanHotspots.length} records. Check the console.`;
             
             // Change the text color to green to indicate success.
             testStatusMessage.style.color = "#34d399";
@@ -538,16 +551,16 @@ if (btnTestFetch) {
             if (window.ThermalXUI) window.ThermalXUI.hideLoading();
 
             // Log the final standardized data to the browser console so the developer can inspect it.
-            console.log("Data successfully loaded into app.js:", hotspots);
+            console.log("Data successfully loaded and processed:", cleanHotspots);
             
             // Render the fetched hotspots on the map via Role 2 MapModule
             if (window.MapModule && typeof window.MapModule.renderHotspots === 'function') {
-                window.MapModule.renderHotspots(hotspots);
+                window.MapModule.renderHotspots(cleanHotspots);
             }
 
             // Update the statistics cards in the UI if possible.
             if (window.ThermalXUI) {
-                window.ThermalXUI.updateStatistics({ total: hotspots.length });
+                window.ThermalXUI.updateStatistics({ total: cleanHotspots.length });
             }
 
         // Catch any errors that were thrown by the fetch process.
