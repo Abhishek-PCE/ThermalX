@@ -1,0 +1,759 @@
+You are working on my project **ThermalX**, an SIH project based on the problem statement and the attached 10-Day Development Roadmap.
+
+## MY TASK
+
+Today is:
+
+**Day: 2**
+**Role: 1 — Frontend & UI Developer**
+
+According to the project roadmap, Day 2 Role 1 responsibility is:
+
+* Build the hotspot popup/information panel.
+* Display hotspot information clearly when a hotspot is selected.
+* Work with the data coming from NASA FIRMS.
+* Do NOT take over the responsibilities of other team members unless necessary for integration.
+
+The overall Day 2 objective is:
+
+**Real NASA FIRMS thermal hotspots should appear on the ThermalX map.**
+
+Role 2 is responsible for Leaflet markers and map visualization.
+
+Role 3 is responsible for NASA FIRMS API/data fetching.
+
+Role 4 is responsible for cleaning invalid coordinates, duplicates and missing essential values.
+
+Role 5 is responsible for classification indicators.
+
+Role 6 is responsible for testing and integration.
+
+---
+
+# IMPORTANT PROJECT RULE
+
+This is a **10-day MVP**.
+
+Do NOT unnecessarily introduce:
+
+* React
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* Docker
+* Kubernetes
+* complicated frameworks
+* unnecessary libraries
+
+The roadmap specifically says the first MVP should use:
+
+**HTML + CSS + JavaScript + Leaflet.js + NASA FIRMS + OSM + rule-based classification.**
+
+Keep the implementation simple, understandable and beginner-friendly.
+
+---
+
+# EXISTING PROJECT STRUCTURE
+
+Use the existing project structure:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+Before changing anything:
+
+1. Inspect the existing files.
+2. Understand the current Day 1 implementation.
+3. Do NOT destroy or unnecessarily rewrite working Day 1 code.
+4. Reuse the existing design, naming conventions and components where possible.
+5. Make only the changes required for Day 2 Role 1.
+
+---
+
+# MAIN TASK — HOTSPOT INFORMATION UI
+
+Build a clean and professional **ThermalX Hotspot Information Panel / Popup**.
+
+When a user clicks/selects a thermal hotspot, the UI should display useful information about that hotspot.
+
+The panel should be able to display:
+
+### Basic Information
+
+* Event/Hotspot ID if available
+* Latitude
+* Longitude
+* Detection date
+* Detection time if available
+* Satellite
+* Confidence
+
+### Thermal Information
+
+* Brightness
+* FRP
+* Any other important FIRMS thermal value available in the data
+
+### Location Information
+
+Show:
+
+* Latitude
+* Longitude
+* Location status if available
+* Industrial proximity if the data is available
+
+### Classification Information
+
+If classification data is already available, show:
+
+* Classification
+* Confidence score
+* Evidence/reason
+
+If classification is NOT available yet, do NOT invent it.
+
+Instead show something like:
+
+"Classification: Pending"
+
+This is important because classification belongs mainly to Role 5.
+
+---
+
+# UI DESIGN
+
+The ThermalX dashboard should look like a real professional monitoring dashboard.
+
+Use:
+
+* clean layout
+* cards
+* clear labels
+* readable typography
+* proper spacing
+* responsive design
+* good visual hierarchy
+* professional dashboard appearance
+
+The hotspot information panel should be easy to understand during an SIH demonstration.
+
+Avoid making it unnecessarily complicated.
+
+---
+
+# HOTSPOT PANEL STRUCTURE
+
+Create a panel similar to:
+
+HOTSPOT DETAILS
+
+---
+
+Hotspot ID
+TX-001
+
+Status
+Detected
+
+Classification
+Pending
+
+---
+
+LOCATION
+
+Latitude
+XX.XXXX
+
+Longitude
+XX.XXXX
+
+---
+
+THERMAL DATA
+
+Brightness
+XXX K
+
+FRP
+XX MW
+
+Confidence
+High
+
+---
+
+DETECTION
+
+Date
+YYYY-MM-DD
+
+Time
+HH:MM
+
+Satellite
+Satellite name
+
+---
+
+This is only an example.
+
+Use the actual available data fields from the project.
+
+Do NOT display fake values in the actual application.
+
+---
+
+# IMPORTANT DATA RULE
+
+The UI must be designed to accept hotspot objects from the existing JavaScript data flow.
+
+For example, the application may receive an object similar to:
+
+{
+id: "...",
+latitude: ...,
+longitude: ...,
+brightness: ...,
+frp: ...,
+confidence: ...,
+date: "...",
+satellite: "..."
+}
+
+Do not assume that every field will always exist.
+
+Handle missing values gracefully.
+
+For example:
+
+If FRP is unavailable:
+
+"FRP: Not available"
+
+If satellite is unavailable:
+
+"Satellite: Not available"
+
+Do NOT crash the UI because one field is missing.
+
+---
+
+# ROLE SEPARATION
+
+Respect the team architecture.
+
+### Role 1 — YOU
+
+Responsible for:
+
+* HTML UI
+* CSS
+* Hotspot popup
+* Information panel
+* Displaying hotspot information
+* Responsive UI
+
+### Role 2
+
+Responsible for:
+
+* Leaflet map
+* Markers
+* Map layers
+* Map controls
+* Geospatial visualization
+
+### Role 3
+
+Responsible for:
+
+* NASA FIRMS API
+* fetch()
+* API responses
+* JSON/CSV parsing
+* API errors
+
+### Role 4
+
+Responsible for:
+
+* data cleaning
+* duplicate removal
+* invalid coordinate removal
+* data structures
+
+### Role 5
+
+Responsible for:
+
+* classification logic
+* scoring
+* confidence
+* evidence
+
+### Role 6
+
+Responsible for:
+
+* integration
+* testing
+* Git/GitHub
+* deployment
+
+Do not unnecessarily rewrite another role's module.
+
+If integration requires a small change, make the smallest possible change and clearly explain it.
+
+---
+
+# VERY IMPORTANT — CODE COMMENTS
+
+I am a beginner and I need to understand this project later.
+
+Therefore:
+
+## ADD BEGINNER-FRIENDLY COMMENTS TO EVERY SECTION OF CODE.
+
+This is mandatory.
+
+Every important section of HTML, CSS and JavaScript must have comments explaining:
+
+1. What this section does.
+2. Why it is needed.
+3. How it connects to the rest of the application.
+
+For example:
+
+HTML:
+
+<!-- This section displays the selected hotspot's basic information. -->
+
+CSS:
+
+/*
+This styles the hotspot information card.
+It gives the card spacing, border and readable layout.
+*/
+
+JavaScript:
+
+// This function receives the selected hotspot data
+// and displays its information inside the hotspot panel.
+
+Do NOT add meaningless comments such as:
+
+// create div
+// loop
+// set value
+
+Comments should actually help a beginner understand the code.
+
+---
+
+# COMMENTING STANDARD
+
+Follow this commenting style throughout the project:
+
+### HTML
+
+Before every major UI section:
+
+<!-- ==================== HOTSPOT DETAILS PANEL ==================== -->
+
+Then explain what the section is responsible for.
+
+### CSS
+
+Before every major group:
+
+/* ============================================================
+HOTSPOT DETAILS PANEL
+This section controls the appearance of the selected
+hotspot information panel.
+============================================================ */
+
+### JavaScript
+
+Before every important function:
+
+/*
+
+* Function: showHotspotDetails()
+* Purpose:
+* Displays the information of the hotspot selected by the user.
+*
+* Input:
+* hotspot - object containing hotspot information
+*
+* This function updates the UI without changing the original
+* hotspot data.
+  */
+
+Use comments generously enough that I can understand the project after several days.
+
+Do NOT put one huge comment at the top and assume that is enough.
+
+---
+
+# IMPORTANT: KEEP CODE BEGINNER-FRIENDLY
+
+Write code that a beginner can understand.
+
+Prefer:
+
+* simple variable names
+* simple functions
+* clear logic
+* straightforward DOM manipulation
+* normal JavaScript
+* small functions
+* readable HTML
+* organized CSS
+
+Avoid unnecessarily advanced:
+
+* complex design patterns
+* classes
+* advanced JavaScript syntax
+* complicated abstractions
+* unnecessary custom frameworks
+* over-engineering
+
+The goal is:
+
+**Simple + working + understandable.**
+
+---
+
+# RESPONSIVE DESIGN
+
+The hotspot panel must work on:
+
+* laptop
+* desktop
+* tablet
+* mobile
+
+On smaller screens:
+
+* panel should not cover the entire application unnecessarily
+* information should remain readable
+* cards should stack properly
+* buttons should remain usable
+
+---
+
+# UI STATES
+
+Handle these states:
+
+### 1. No hotspot selected
+
+Display something like:
+
+"Select a hotspot on the map to view its details."
+
+### 2. Hotspot selected
+
+Show the complete available information.
+
+### 3. Missing data
+
+Show:
+
+"Not available"
+
+instead of:
+
+* undefined
+* null
+* NaN
+* blank confusing values
+
+### 4. Loading
+
+If the application is waiting for hotspot data, show an appropriate loading state.
+
+### 5. Error
+
+If hotspot information cannot be displayed, show a simple user-friendly message.
+
+Do not expose raw JavaScript errors to the user.
+
+---
+
+# INTEGRATION WITH LEAFLET
+
+Role 2 owns the Leaflet map.
+
+Your UI should therefore be easy to connect to a Leaflet marker click event.
+
+Create a clear function/interface such as:
+
+showHotspotDetails(hotspot)
+
+The function should accept a hotspot object and update the information panel.
+
+Role 2 should be able to call this function when a marker is clicked.
+
+Do not tightly couple the UI to the Leaflet implementation.
+
+---
+
+# IMPORTANT — DO NOT CREATE FAKE NASA DATA
+
+For development, you may use a clearly marked test/demo hotspot object if the existing application does not yet have real FIRMS data.
+
+But:
+
+* clearly label it as test/demo data
+* do not pretend it is live NASA data
+* do not permanently hard-code fake hotspot results into the production UI
+* keep the UI ready for real FIRMS data
+
+---
+
+# ACCESSIBILITY
+
+Use:
+
+* meaningful HTML elements
+* readable labels
+* buttons with clear text
+* proper contrast
+* descriptive text
+* keyboard-friendly controls where applicable
+
+Do not rely only on colors to communicate information.
+
+---
+
+# VISUAL PRIORITY
+
+The most important information should be immediately visible:
+
+1. Hotspot ID
+2. Classification/status
+3. Location
+4. FRP
+5. Brightness
+6. Confidence
+7. Date/time
+8. Satellite
+
+The UI should help an SIH judge quickly understand what happened when they click a hotspot.
+
+---
+
+# FILES TO MODIFY
+
+First inspect the existing project.
+
+Prefer modifying only:
+
+* index.html
+* css/style.css
+* js/app.js
+
+If another file genuinely needs a small integration change, explain why before changing it.
+
+Do NOT create unnecessary files.
+
+---
+
+# DO NOT BREAK EXISTING FEATURES
+
+Before modifying anything:
+
+Inspect the existing:
+
+* navigation
+* header
+* statistics cards
+* map area
+* information panel
+* responsive structure
+
+Preserve existing functionality.
+
+After changes, verify that:
+
+* website loads
+* map still works
+* existing markers still work
+* existing navigation still works
+* dashboard layout still works
+* hotspot panel works
+* no console errors are introduced
+
+---
+
+# STEP-BY-STEP WORKFLOW
+
+Follow this exact workflow:
+
+### STEP 1 — INSPECT
+
+Inspect the current ThermalX codebase.
+
+Tell me:
+
+* current files
+* current UI structure
+* current map implementation
+* current hotspot data flow
+* what already exists from Day 1
+
+Do not immediately rewrite code.
+
+### STEP 2 — PLAN
+
+Briefly explain what you will change for Day 2 Role 1.
+
+### STEP 3 — IMPLEMENT
+
+Implement the hotspot information panel.
+
+### STEP 4 — INTEGRATE
+
+Connect the panel to the existing hotspot selection flow.
+
+Use:
+
+showHotspotDetails(hotspot)
+
+or an equally simple approach.
+
+### STEP 5 — COMMENTS
+
+Before finishing, check every modified HTML/CSS/JS section.
+
+Make sure every major section has beginner-friendly comments.
+
+### STEP 6 — TEST
+
+Check:
+
+* hotspot selection
+* missing values
+* empty values
+* responsive layout
+* map compatibility
+* browser console errors
+
+### STEP 7 — EXPLAIN
+
+After implementation, explain:
+
+1. What files you changed.
+2. What you added.
+3. How the hotspot panel works.
+4. How hotspot data reaches the UI.
+5. Which function handles selected hotspot data.
+6. How Role 2 can connect Leaflet marker clicks.
+7. What I should learn/understand from today's code.
+8. What remains for Day 3.
+
+---
+
+# IMPORTANT FOR LEARNING
+
+Do not just generate the code and leave.
+
+After implementation, give me a simple explanation of the important code sections.
+
+Explain things like:
+
+* DOM
+* querySelector
+* textContent
+* event listeners
+* functions
+* objects
+* how hotspot data is passed
+* how the UI gets updated
+
+Explain them in beginner-friendly language.
+
+Do not assume I already know advanced JavaScript.
+
+---
+
+# DAY 2 SUCCESS CONDITION
+
+The Day 2 Role 1 task is considered successful when:
+
+A user can:
+
+1. Open ThermalX.
+2. See the dashboard.
+3. See the map.
+4. Select a hotspot.
+5. Open/view the hotspot information.
+6. Understand its:
+
+   * location
+   * date/time
+   * brightness
+   * FRP
+   * confidence
+   * satellite
+7. See missing values handled properly.
+8. Use the interface comfortably on smaller screens.
+
+The roadmap says Day 2's overall target is that real FIRMS thermal hotspots appear on ThermalX, while Role 1 specifically builds the hotspot popup/information panel. Keep that division of responsibility intact.
+
+---
+
+# FINAL IMPORTANT INSTRUCTION
+
+Do not over-engineer this.
+
+Build the **simplest professional implementation that works**.
+
+Prioritize:
+
+**Working MVP > Fancy features**
+
+and
+
+**Understandable code > complicated code**
+
+Every section of code you add or modify MUST contain useful beginner-friendly comments so that I can understand the code later without depending completely on you.
+
+At the end, give me:
+
+### COMPLETED
+
+* files changed
+* features completed
+* testing completed
+
+### HOW IT WORKS
+
+Simple explanation of the data flow.
+
+### WHAT I SHOULD LEARN TODAY
+
+A short beginner-friendly learning checklist.
+
+### NEXT DAY
+
+What will be handled on Day 3 according to the roadmap.

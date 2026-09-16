@@ -1,242 +1,309 @@
 /**
- * ThermalX - Day 1 Role 4
- * Data Processing & Data Quality
+ * ThermalX - Day 1 & Day 2 Role 4
+ * Data Processing Engineer
  * 
- * This file handles transforming raw NASA FIRMS data into a clean, 
- * validated, and standardized format that can be used by the rest 
- * of the ThermalX frontend (Map, Dashboard, etc.).
+ * This module cleans, validates, and standardizes raw NASA FIRMS hotspot data.
+ * It acts as a pipeline between Role 3 (API Fetching) and the rest of the application
+ * (Map, UI, Classification).
  */
 
 // ============================================================================
-// MOCK TEST DATA
+// PROCESSING STATISTICS
 // ============================================================================
+// Stores metrics for the most recent processing run. Useful for debugging and Role 6 testing.
+let processingStats = {
+    totalReceived: 0,
+    validRecords: 0,
+    invalidCoordinates: 0,
+    missingRequiredFields: 0,
+    duplicatesRemoved: 0
+};
 
-// TEST DATA: This is mock data mimicking raw NASA FIRMS output.
-// It is used for testing the processing pipeline before the real API is integrated.
-const TEST_RAW_HOTSPOTS = [
-    {
-        latitude: "23.4567", // Note: String representation
-        longitude: "87.1234",
-        brightness: 320.5,
-        frp: "45.2",
-        confidence: "nominal",
-        acq_date: "2026-09-15", // Note: Different field name
-        satellite: "VIIRS"
-    },
-    {
-        latitude: 23.45672, // Duplicate of above due to rounding
-        longitude: 87.12341,
-        brightness: 310.2,
-        frp: 40.1,
-        confidence: "nominal",
-        acq_date: "2026-09-15",
-        satellite: "VIIRS"
-    },
-    {
-        latitude: -100, // Invalid latitude (out of bounds)
-        longitude: 87.1234,
-        brightness: 300,
-        frp: 20,
-        confidence: "low",
-        acq_date: "2026-09-15",
-        satellite: "MODIS"
-    },
-    {
-        latitude: 24.1234,
-        longitude: 88.5678,
-        brightness: 330.1,
-        // frp missing, which is okay
-        confidence: "high",
-        acq_date: "2026-09-15",
-        satellite: "VIIRS"
-    }
-];
+/**
+ * Resets the processing statistics before a new run.
+ */
+function resetStatistics() {
+    processingStats = {
+        totalReceived: 0,
+        validRecords: 0,
+        invalidCoordinates: 0,
+        missingRequiredFields: 0,
+        duplicatesRemoved: 0
+    };
+}
 
 // ============================================================================
-// CORE PROCESSING FUNCTIONS
+// VALIDATION FUNCTIONS (Day 1 Foundation & Day 2 Strict)
 // ============================================================================
 
 /**
- * Validates a single normalized hotspot object.
+ * Validates whether the given latitude and longitude represent a valid geographic coordinate.
  * 
- * Why it exists: To ensure that no malformed data reaches the map or dashboard,
- * which could cause errors or misleading visualizations.
- * 
- * @param {Object} hotspot - The normalized hotspot object.
- * @returns {boolean} - True if valid, false if invalid.
+ * @param {number} latitude 
+ * @param {number} longitude 
+ * @returns {boolean} True if coordinates are valid.
  */
-function validateHotspot(hotspot) {
-    // Latitude must exist, be numeric, and be between -90 and 90
-    if (typeof hotspot.latitude !== 'number' || isNaN(hotspot.latitude)) return false;
-    if (hotspot.latitude < -90 || hotspot.latitude > 90) return false;
-
-    // Longitude must exist, be numeric, and be between -180 and 180
-    if (typeof hotspot.longitude !== 'number' || isNaN(hotspot.longitude)) return false;
-    if (hotspot.longitude < -180 || hotspot.longitude > 180) return false;
-
-    // A date must exist (we need to know when it happened)
-    if (!hotspot.date) return false;
-
-    // If it passes all critical checks, it's valid
+function isValidCoordinate(latitude, longitude) {
+    if (latitude == null || longitude == null) return false;
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return false;
+    if (latitude < -90 || latitude > 90) return false;
+    if (longitude < -180 || longitude > 180) return false;
     return true;
 }
 
 /**
- * Normalizes a raw hotspot record into the standardized ThermalX format.
+ * Checks if the raw record contains all essential fields for ThermalX.
  * 
- * Why it exists: NASA FIRMS data can come in different formats (CSV, JSON) 
- * and field names might vary (e.g., 'acq_date' vs 'date', strings instead of numbers).
- * Keeping one common structure makes it easier for the map, dashboard and analysis modules 
- * to use hotspot data consistently.
- * 
- * @param {Object} raw - The raw hotspot object.
- * @returns {Object} - The standardized hotspot object.
+ * @param {Object} record - The raw hotspot record.
+ * @returns {boolean} True if all required fields are present.
  */
-function normalizeHotspot(raw) {
-    // Generate a simple unique ID for this session if one isn't provided
-    const generateId = () => `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+function hasRequiredFields(record) {
+    if (!record) return false;
+    
+    // Check for essential properties (accounting for possible FIRMS name variations)
+    const hasLat = record.latitude !== undefined && record.latitude !== null;
+    const hasLon = record.longitude !== undefined && record.longitude !== null;
+    const hasBrightness = record.brightness !== undefined && record.brightness !== null;
+    const hasFrp = record.frp !== undefined && record.frp !== null;
+    const hasConfidence = record.confidence !== undefined && record.confidence !== null;
+    const hasDate = (record.acq_date || record.date || record.timestamp) !== undefined && 
+                    (record.acq_date || record.date || record.timestamp) !== null;
 
-    // Create the standardized object
-    return {
-        id: raw.id || generateId(),
-        // Convert strings to numbers for coordinates
-        latitude: parseFloat(raw.latitude),
-        longitude: parseFloat(raw.longitude),
-        
-        // Brightness and FRP are optional but should be numbers if they exist
-        brightness: raw.brightness !== undefined ? parseFloat(raw.brightness) : null,
-        frp: raw.frp !== undefined ? parseFloat(raw.frp) : null,
-        
-        // Preserve confidence exactly as provided by FIRMS
-        confidence: raw.confidence || "unknown",
-        
-        // Map common date fields to our standard 'date' field
-        date: raw.acq_date || raw.date || raw.timestamp || null,
-        
-        // Preserve satellite information if available
-        satellite: raw.satellite || raw.instrument || "unknown"
-    };
-}
-
-/**
- * Removes duplicate hotspots based on proximity and time.
- * 
- * Why it exists: Satellites often detect the same fire multiple times in one pass,
- * or different satellites detect the same fire. We don't want to clutter the map
- * with multiple overlapping points for the exact same event.
- * 
- * @param {Array} hotspots - Array of validated, normalized hotspots.
- * @returns {Array} - Array of unique hotspots.
- */
-function removeDuplicates(hotspots) {
-    const uniqueMap = new Map();
-
-    hotspots.forEach(hotspot => {
-        // Round the coordinates to 2 decimal places (approx 1.1km precision).
-        // This ensures that tiny floating-point differences do not cause 
-        // the same hotspot to be treated as multiple different records.
-        const roundLat = hotspot.latitude.toFixed(2);
-        const roundLon = hotspot.longitude.toFixed(2);
-        
-        // Create a unique key combining location and date
-        const key = `${roundLat}_${roundLon}_${hotspot.date}`;
-
-        // If we haven't seen this exact location/date combo, keep it.
-        // In the future (Day 2+), we might keep the one with highest FRP instead of just the first one.
-        if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, hotspot);
-        }
-    });
-
-    // Convert the Map values back to a clean array
-    return Array.from(uniqueMap.values());
-}
-
-/**
- * Main processing pipeline for raw NASA FIRMS data.
- * 
- * Why it exists: This is the primary function that Role 3 (API) or Role 6 (Integration)
- * will call. It orchestrates the entire cleaning and structuring process.
- * 
- * @param {Array} rawHotspots - The raw array of data objects.
- * @returns {Array} - The clean, validated, duplicate-free array of hotspot objects.
- */
-function processHotspots(rawHotspots) {
-    if (!Array.isArray(rawHotspots)) {
-        console.error("processHotspots expected an array, got:", typeof rawHotspots);
-        return [];
-    }
-
-    // Step 1: Normalize all raw records into our standard format
-    const normalized = rawHotspots.map(normalizeHotspot);
-
-    // Step 2: Filter out any records that fail strict validation rules
-    const validated = normalized.filter(validateHotspot);
-
-    // Step 3: Remove obvious duplicates based on spatial/temporal rounding
-    const cleanUnique = removeDuplicates(validated);
-
-    console.log(`Processed Hotspots: Started with ${rawHotspots.length}, finished with ${cleanUnique.length}`);
-    return cleanUnique;
+    return hasLat && hasLon && hasBrightness && hasFrp && hasConfidence && hasDate;
 }
 
 // ============================================================================
-// LOCAL STORAGE MANAGEMENT
+// DUPLICATE DETECTION (Day 2)
+// ============================================================================
+
+/**
+ * Creates a unique, deterministic key for a hotspot based on location and time.
+ * We round to 2 decimal places to catch very close points (same fire) on the same day.
+ * 
+ * @param {number} latitude 
+ * @param {number} longitude 
+ * @param {string} date 
+ * @returns {string} The unique key string.
+ */
+function createHotspotKey(latitude, longitude, date) {
+    const roundLat = latitude.toFixed(2);
+    const roundLon = longitude.toFixed(2);
+    return `${roundLat}_${roundLon}_${date}`;
+}
+
+/**
+ * Checks if a key already exists in the provided Set.
+ * 
+ * @param {string} key - The unique hotspot key.
+ * @param {Set} seenKeys - Set of previously seen keys.
+ * @returns {boolean} True if the hotspot is a duplicate.
+ */
+function isDuplicateHotspot(key, seenKeys) {
+    return seenKeys.has(key);
+}
+
+// ============================================================================
+// HOTSPOT NORMALIZATION & FACTORY (Day 1 & Day 2)
+// ============================================================================
+
+/**
+ * Safely converts a value to a finite number.
+ * Returns null if the conversion fails or results in NaN/Infinity.
+ * 
+ * @param {any} val - The value to convert.
+ * @returns {number|null} The finite number or null.
+ */
+function safeToNumber(val) {
+    if (val === null || val === undefined || val === "") return null;
+    const num = Number(val);
+    if (Number.isFinite(num)) {
+        return num;
+    }
+    return null;
+}
+
+/**
+ * Converts a valid raw record into the standardized ThermalX hotspot structure.
+ * This satisfies the Day 1 requirement for a predictable hotspot factory.
+ * 
+ * @param {Object} raw - The raw hotspot object.
+ * @returns {Object} Clean, normalized hotspot object.
+ */
+function cleanHotspotRecord(raw) {
+    const lat = safeToNumber(raw.latitude);
+    const lon = safeToNumber(raw.longitude);
+    const date = raw.acq_date || raw.date || raw.timestamp;
+    
+    // Generate an ID if not provided by the API
+    const generateId = () => `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    const cleanObj = {
+        id: raw.id || generateId(),
+        latitude: lat,
+        longitude: lon,
+        brightness: safeToNumber(raw.brightness),
+        frp: safeToNumber(raw.frp),
+        confidence: String(raw.confidence), // Preserve as a standardized string
+        date: String(date),
+        satellite: raw.satellite || raw.instrument || "unknown"
+    };
+    
+    // Retain Day/Night flag if it exists, as it could be useful later
+    if (raw.daynight) cleanObj.daynight = String(raw.daynight);
+    if (raw.version) cleanObj.version = String(raw.version);
+
+    return cleanObj;
+}
+
+// ALIAS for Day 1 Prompt requirement ("createHotspot(data)")
+const createHotspot = cleanHotspotRecord;
+
+// ============================================================================
+// MAIN DATA PROCESSING PIPELINE (Day 2)
+// ============================================================================
+
+/**
+ * The core processing pipeline. Takes raw FIRMS data and returns clean, usable hotspots.
+ * 
+ * @param {Array} rawHotspots - Array of raw data objects from the API.
+ * @returns {Array} Array of standardized, valid hotspot objects.
+ */
+function processHotspotData(rawHotspots) {
+    resetStatistics();
+
+    // 1. Array check
+    if (!Array.isArray(rawHotspots)) {
+        console.error("[Data Processing] Input is not an array. Safely returning empty array.");
+        return [];
+    }
+
+    processingStats.totalReceived = rawHotspots.length;
+    const cleanHotspots = [];
+    const seenKeys = new Set();
+
+    for (const raw of rawHotspots) {
+        // 2. Validate essential fields existence
+        if (!hasRequiredFields(raw)) {
+            processingStats.missingRequiredFields++;
+            continue; // Skip this record
+        }
+
+        // 3. Normalize numeric values for coordinates
+        const lat = safeToNumber(raw.latitude);
+        const lon = safeToNumber(raw.longitude);
+
+        // 4. Validate Coordinates
+        if (!isValidCoordinate(lat, lon)) {
+            processingStats.invalidCoordinates++;
+            continue; // Skip this record
+        }
+
+        // 5. Generate duplicate key and check for duplicates
+        // Date mapping logic
+        const rawDate = raw.acq_date || raw.date || raw.timestamp;
+        const key = createHotspotKey(lat, lon, rawDate);
+
+        if (isDuplicateHotspot(key, seenKeys)) {
+            processingStats.duplicatesRemoved++;
+            continue; // Skip duplicate
+        }
+
+        // Mark as seen
+        seenKeys.add(key);
+
+        // 6. Clean the record (secondary normalization) and push to valid array
+        const cleanRecord = cleanHotspotRecord(raw);
+        
+        // Final sanity check on numeric fields after cleanHotspotRecord
+        if (cleanRecord.brightness === null || cleanRecord.frp === null) {
+             processingStats.missingRequiredFields++;
+             continue;
+        }
+
+        cleanHotspots.push(cleanRecord);
+    }
+
+    processingStats.validRecords = cleanHotspots.length;
+    
+    // 7. Log statistics
+    console.log("[Data Processing] Pipeline complete.");
+    console.table(processingStats);
+
+    return cleanHotspots;
+}
+
+// ============================================================================
+// LOCAL STORAGE MANAGEMENT (From original day 1 implementation)
 // ============================================================================
 
 const STORAGE_KEY = "thermalx_hotspots";
 
-/**
- * Saves processed hotspots to browser localStorage.
- * 
- * Why it exists: To persist data between page reloads without needing a backend database.
- * This is useful for the Day 1 prototype.
- * 
- * @param {Array} hotspots - The clean array of hotspot objects.
- */
 function saveHotspots(hotspots) {
     try {
-        const jsonString = JSON.stringify(hotspots);
-        localStorage.setItem(STORAGE_KEY, jsonString);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(hotspots));
         console.log(`Saved ${hotspots.length} hotspots to localStorage.`);
     } catch (error) {
         console.error("Failed to save hotspots to localStorage:", error);
     }
 }
 
-/**
- * Loads processed hotspots from browser localStorage.
- * 
- * Why it exists: Allows the dashboard to load immediately with the last known data,
- * providing a faster user experience before the next API fetch completes.
- * 
- * @returns {Array} - The retrieved array of hotspots, or empty array if none found.
- */
 function loadHotspots() {
     try {
         const jsonString = localStorage.getItem(STORAGE_KEY);
-        if (jsonString) {
-            const data = JSON.parse(jsonString);
-            console.log(`Loaded ${data.length} hotspots from localStorage.`);
-            return data;
-        }
+        if (jsonString) return JSON.parse(jsonString);
     } catch (error) {
         console.error("Failed to load hotspots from localStorage:", error);
     }
-    return []; // Return empty array if nothing is saved or parsing fails
+    return [];
 }
+
+// ============================================================================
+// MOCK TEST DATA
+// ============================================================================
+// Used for testing the pipeline according to the 14 requirements.
+const TEST_RAW_HOTSPOTS = [
+    // TEST 1: Valid hotspot
+    { id: "T1", latitude: 23.1, longitude: 87.2, brightness: 310, frp: 20, confidence: "high", acq_date: "2026-09-15" },
+    // TEST 2: Invalid latitude
+    { id: "T2", latitude: 150, longitude: 87.2, brightness: 310, frp: 20, confidence: "high", acq_date: "2026-09-15" },
+    // TEST 3: Invalid longitude
+    { id: "T3", latitude: 23.1, longitude: -200, brightness: 310, frp: 20, confidence: "high", acq_date: "2026-09-15" },
+    // TEST 4: Missing latitude
+    { id: "T4", longitude: 87.2, brightness: 310, frp: 20, confidence: "high", acq_date: "2026-09-15" },
+    // TEST 5: Missing longitude
+    { id: "T5", latitude: 23.1, brightness: 310, frp: 20, confidence: "high", acq_date: "2026-09-15" },
+    // TEST 6: Missing FRP
+    { id: "T6", latitude: 23.1, longitude: 87.2, brightness: 310, confidence: "high", acq_date: "2026-09-15" },
+    // TEST 7: Missing brightness
+    { id: "T7", latitude: 23.1, longitude: 87.2, frp: 20, confidence: "high", acq_date: "2026-09-15" },
+    // TEST 8: Missing confidence
+    { id: "T8", latitude: 23.1, longitude: 87.2, brightness: 310, frp: 20, acq_date: "2026-09-15" },
+    // TEST 9: Missing date
+    { id: "T9", latitude: 23.1, longitude: 87.2, brightness: 310, frp: 20, confidence: "high" },
+    // TEST 10: Duplicate record (same location, same date as T1)
+    { id: "T10", latitude: 23.1, longitude: 87.2, brightness: 320, frp: 25, confidence: "nominal", acq_date: "2026-09-15" },
+    // TEST 11: Numeric values represented as strings (Should be VALID)
+    { id: "T11", latitude: "24.5", longitude: "88.1", brightness: "330", frp: "45.5", confidence: "nominal", acq_date: "2026-09-16" },
+    // TEST 13: Malformed record (garbage data)
+    { id: "T13", latitude: "abc", longitude: null, brightness: Infinity, frp: NaN, confidence: {}, acq_date: [] },
+    // TEST 14: Multiple valid records (just another valid record to prove multiple flow through)
+    { id: "T14", latitude: 25.0, longitude: 89.0, brightness: 340, frp: 50, confidence: "high", acq_date: "2026-09-17" }
+];
 
 // ============================================================================
 // EXPOSE API FOR OTHER ROLES
 // ============================================================================
 
 window.ThermalXProcessing = {
-    processHotspots,
-    validateHotspot,
-    normalizeHotspot,
-    removeDuplicates,
+    isValidCoordinate,
+    hasRequiredFields,
+    createHotspotKey,
+    isDuplicateHotspot,
+    cleanHotspotRecord,
+    createHotspot, // Exported for Day 1 API integration
+    processHotspotData,
     saveHotspots,
     loadHotspots,
-    TEST_RAW_HOTSPOTS // Exported for easy testing from console or other modules
+    processingStats,
+    TEST_RAW_HOTSPOTS
 };
-

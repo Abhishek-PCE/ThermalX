@@ -1,0 +1,1073 @@
+# THERMALX — DAY 2 — ROLE 4
+# DATA PROCESSING ENGINEER
+# TASK: HOTSPOT DATA CLEANING, VALIDATION & STANDARDIZATION
+
+You are working on the SIH26162 — ThermalX project.
+
+I am assigned:
+
+Day: 2
+Role: 4
+Role Name: Data Processing Engineer
+
+Your job is to implement ONLY the Day 2 responsibilities for Role 4 according to the ThermalX development roadmap.
+
+============================================================
+1. PROJECT CONTEXT
+============================================================
+
+ThermalX is a JavaScript-first MVP that:
+
+NASA FIRMS
+    ↓
+Data Fetching
+    ↓
+Raw Hotspot Data
+    ↓
+DATA PROCESSING  ← YOU ARE HERE
+    ↓
+Persistence / Industrial Proximity
+    ↓
+Classification
+    ↓
+Leaflet Map
+    ↓
+Dashboard
+
+ThermalX receives thermal hotspot data from NASA FIRMS.
+
+The data may contain:
+
+- Invalid coordinates
+- Missing latitude/longitude
+- Missing brightness
+- Missing FRP
+- Missing confidence
+- Missing date
+- Duplicate records
+- Empty records
+- Malformed values
+- Unexpected API response structures
+
+Your responsibility is to make sure that only valid, usable hotspot records continue through the application.
+
+IMPORTANT:
+
+This is a beginner-friendly JavaScript-first MVP.
+
+DO NOT introduce:
+
+- React
+- Node.js
+- Python
+- FastAPI
+- PostgreSQL
+- PostGIS
+- TensorFlow
+- PyTorch
+- Machine Learning
+- A server-side database
+- Any unnecessary framework
+
+Use the existing:
+
+- HTML
+- CSS
+- JavaScript
+- JSON
+- Browser APIs
+- Existing project architecture
+
+============================================================
+2. DAY 2 ROLE 4 OBJECTIVE
+============================================================
+
+Implement the data-cleaning and validation layer for ThermalX.
+
+The main objective is:
+
+RAW FIRMS DATA
+    ↓
+VALIDATE
+    ↓
+CLEAN
+    ↓
+REMOVE INVALID RECORDS
+    ↓
+REMOVE DUPLICATES
+    ↓
+STANDARDIZE VALID RECORDS
+    ↓
+RETURN CLEAN HOTSPOT DATA
+
+According to the project roadmap, Role 4 on Day 2 is responsible for:
+
+1. Removing invalid coordinates
+2. Removing duplicates
+3. Removing records missing essential values
+
+Do exactly this first.
+
+Do not prematurely implement Day 3 persistence or Day 4 industrial-distance calculations unless the existing architecture requires a small interface/preparation for them.
+
+============================================================
+3. FIRST — INSPECT THE EXISTING PROJECT
+============================================================
+
+Before modifying anything:
+
+1. Inspect the complete project structure.
+2. Identify the existing JavaScript files.
+3. Read:
+   - index.html
+   - css/style.css
+   - js/app.js
+   - js/api.js
+   - js/map.js
+   - js/processing.js
+   - js/classification.js
+4. Determine how NASA FIRMS data currently enters the application.
+5. Determine the current hotspot object structure.
+6. Determine whether Role 3 has already created a data-fetching function.
+7. Do NOT duplicate API-fetching logic if it already exists.
+8. Do NOT rewrite working code unnecessarily.
+
+The recommended project structure is:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+Your primary work should be inside:
+
+js/processing.js
+
+You may make small compatible changes to other files if required to connect the processing pipeline.
+
+============================================================
+4. IMPORTANT TEAM INTEGRATION RULE
+============================================================
+
+This is a team project.
+
+DO NOT overwrite or break another role's work.
+
+Role responsibilities:
+
+Role 1:
+Frontend & UI
+
+Role 2:
+GIS & Leaflet Map
+
+Role 3:
+Data Integration / NASA FIRMS API
+
+Role 4:
+Data Processing ← YOUR ROLE
+
+Role 5:
+Classification Logic
+
+Role 6:
+Integration, Testing & Deployment
+
+Your processing module should behave like a clean pipeline between Role 3 and the rest of the application.
+
+Ideally:
+
+Role 3:
+fetchFIRMSData()
+
+        ↓
+
+Role 4:
+processHotspotData()
+
+        ↓
+
+Role 2:
+displayHotspotsOnMap()
+
+and later:
+
+        ↓
+
+Role 5:
+classification
+
+============================================================
+5. CREATE / IMPROVE processing.js
+============================================================
+
+Use:
+
+js/processing.js
+
+Create a clean and reusable data-processing module.
+
+The processing layer should contain functions for:
+
+1. Validating coordinates
+2. Validating essential fields
+3. Detecting duplicate records
+4. Cleaning hotspot records
+5. Standardizing values
+6. Processing an array of raw FIRMS records
+
+Suggested function structure:
+
+- isValidCoordinate()
+- hasRequiredFields()
+- createHotspotKey()
+- isDuplicateHotspot()
+- cleanHotspotRecord()
+- processHotspotData()
+
+You may adjust function names if the existing project architecture already uses different names.
+
+Do not blindly copy these names if doing so would conflict with existing code.
+
+============================================================
+6. COORDINATE VALIDATION
+============================================================
+
+Validate latitude and longitude carefully.
+
+Latitude must be:
+
+>= -90
+AND
+<= 90
+
+Longitude must be:
+
+>= -180
+AND
+<= 180
+
+Reject records when:
+
+- latitude is missing
+- longitude is missing
+- latitude is null
+- longitude is null
+- latitude is undefined
+- longitude is undefined
+- latitude is not numeric
+- longitude is not numeric
+- latitude is outside valid range
+- longitude is outside valid range
+- coordinates are clearly malformed
+
+Example:
+
+latitude = 23.8103
+longitude = 90.4125
+
+VALID
+
+Example:
+
+latitude = 150
+longitude = 80
+
+INVALID
+
+Example:
+
+latitude = "abc"
+longitude = 80
+
+INVALID
+
+Example:
+
+latitude = null
+longitude = 80
+
+INVALID
+
+IMPORTANT:
+
+NASA/API values may sometimes arrive as strings.
+
+Therefore, safely convert numeric strings to numbers where appropriate.
+
+Do not reject a valid numeric string simply because its JavaScript type is string.
+
+For example:
+
+"23.8103"
+
+may become:
+
+23.8103
+
+============================================================
+7. ESSENTIAL FIELD VALIDATION
+============================================================
+
+A hotspot record should contain the essential information required by ThermalX.
+
+At minimum validate the availability of:
+
+- latitude
+- longitude
+- brightness
+- FRP
+- confidence
+- date
+
+The exact source field names may vary depending on the NASA FIRMS response.
+
+Inspect the existing API response before deciding the mapping.
+
+Do not assume field names if the existing project already defines them.
+
+A record with missing essential information should be rejected or handled according to a clearly documented rule.
+
+For example:
+
+INVALID:
+
+{
+    latitude: null,
+    longitude: 80,
+    brightness: 320,
+    frp: 45,
+    confidence: "high",
+    date: "2026-09-15"
+}
+
+because latitude is missing.
+
+============================================================
+8. NUMERIC DATA CLEANING
+============================================================
+
+Safely normalize numeric fields such as:
+
+- latitude
+- longitude
+- brightness
+- FRP
+
+Do not blindly use Number() without checking whether the result is valid.
+
+Reject values that become:
+
+NaN
+
+Infinity
+
+-Infinity
+
+when a finite numeric value is required.
+
+Use appropriate JavaScript validation such as:
+
+Number.isFinite()
+
+where appropriate.
+
+Do not silently convert garbage data into zero.
+
+For example:
+
+"abc"
+
+must NOT become:
+
+0
+
+============================================================
+9. CONFIDENCE CLEANING
+============================================================
+
+NASA FIRMS confidence values may not always have exactly the same representation.
+
+Inspect the actual API response used by the project.
+
+Handle the existing confidence representation safely.
+
+Do NOT invent scientific interpretations.
+
+If confidence is represented as:
+
+- numeric
+- low / nominal / high
+- another documented FIRMS representation
+
+preserve or normalize it consistently.
+
+The goal is reliable application data, not changing NASA's meaning.
+
+============================================================
+10. DATE CLEANING
+============================================================
+
+Validate the date/time field used by the project.
+
+A record should not be accepted as a valid hotspot if its required date information is completely unusable.
+
+Do not invent dates.
+
+Do not silently replace missing dates with today's date.
+
+If normalization is necessary, preserve the original information where practical.
+
+Example:
+
+source date
+    ↓
+validated date
+    ↓
+standardized hotspot object
+
+============================================================
+11. DUPLICATE DETECTION
+============================================================
+
+Implement duplicate detection.
+
+The same hotspot record should not appear multiple times in the cleaned dataset.
+
+First inspect the FIRMS data structure.
+
+If the API provides a unique event/detection identifier, prefer using it.
+
+If no reliable unique identifier is available, create a deterministic duplicate key using appropriate fields such as:
+
+- latitude
+- longitude
+- date
+- relevant detection attributes
+
+Do NOT use only latitude and longitude as the duplicate key.
+
+Why?
+
+Because two legitimate hotspot detections can occur at the same location on different dates.
+
+Therefore:
+
+same coordinates + different date
+
+should NOT automatically be treated as a duplicate.
+
+Document the duplicate strategy in comments.
+
+============================================================
+12. CLEAN HOTSPOT OBJECT
+============================================================
+
+Create a consistent internal hotspot object.
+
+The project's roadmap identifies the hotspot structure around:
+
+- latitude
+- longitude
+- brightness
+- FRP
+- confidence
+- date
+
+Preserve additional useful source fields when they are already available and harmless to retain.
+
+A normalized object may look conceptually like:
+
+{
+    id: "...",
+    latitude: 23.8103,
+    longitude: 90.4125,
+    brightness: 325.4,
+    frp: 41.2,
+    confidence: "high",
+    date: "2026-09-15",
+    satellite: "..."
+}
+
+IMPORTANT:
+
+Do not invent values.
+
+If a field is unavailable and essential, reject the record.
+
+If a field is optional, preserve it only when available.
+
+============================================================
+13. PROCESSING PIPELINE
+============================================================
+
+Implement a clear processing pipeline:
+
+raw FIRMS records
+        ↓
+check array/input
+        ↓
+validate record
+        ↓
+validate coordinates
+        ↓
+validate essential fields
+        ↓
+normalize numeric values
+        ↓
+normalize date/confidence where necessary
+        ↓
+generate duplicate key
+        ↓
+remove duplicates
+        ↓
+create clean hotspot object
+        ↓
+return clean array
+
+The function should be predictable.
+
+Example conceptual usage:
+
+const cleanHotspots = processHotspotData(rawHotspots);
+
+The function should return:
+
+[]
+
+when there are no valid records.
+
+It should NOT crash because the API returned an empty dataset.
+
+============================================================
+14. HANDLE BAD API DATA SAFELY
+============================================================
+
+The processing module must safely handle:
+
+- null
+- undefined
+- empty arrays
+- non-array input
+- malformed objects
+- missing properties
+- invalid numbers
+- duplicate records
+- unexpected values
+
+Do not allow one malformed hotspot to crash processing of the entire dataset.
+
+Prefer:
+
+raw data
+    ↓
+record 1 → valid → keep
+record 2 → invalid → remove
+record 3 → valid → keep
+record 4 → duplicate → remove
+record 5 → valid → keep
+
+rather than crashing the whole process.
+
+============================================================
+15. PROCESSING STATISTICS
+============================================================
+
+Create useful processing statistics if this fits naturally into the architecture.
+
+For example:
+
+{
+    totalReceived: 100,
+    validRecords: 82,
+    invalidCoordinates: 7,
+    missingRequiredFields: 6,
+    duplicatesRemoved: 5
+}
+
+This will help Role 6 during testing and debugging.
+
+Do not over-engineer this.
+
+If the current architecture does not need a statistics object, keep it simple and document where such statistics could be added.
+
+============================================================
+16. LOGGING
+============================================================
+
+Use clear development/debug logging where useful.
+
+For example:
+
+- number of records received
+- number of valid records
+- number of invalid records
+- number of duplicates removed
+
+Do not spam the browser console with entire datasets.
+
+Avoid logging sensitive or unnecessary information.
+
+Keep logs useful for debugging.
+
+============================================================
+17. COMMENTS — VERY IMPORTANT
+============================================================
+
+THIS IS A STRICT REQUIREMENT.
+
+I want comments throughout the code so that I can understand the project later.
+
+Add meaningful comments to EVERY MAJOR SECTION of the code.
+
+Comments should explain:
+
+1. WHAT the section does
+2. WHY it exists
+3. HOW important logic works
+
+Do NOT add useless comments such as:
+
+// Create variable
+
+const data = [];
+
+Instead write meaningful comments such as:
+
+// Store the cleaned hotspot records separately from the raw API response.
+// This prevents invalid or duplicate records from reaching the map and
+// classification modules.
+
+Use section comments such as:
+
+// ============================================================
+// COORDINATE VALIDATION
+// ============================================================
+
+// ============================================================
+// REQUIRED FIELD VALIDATION
+// ============================================================
+
+// ============================================================
+// DUPLICATE DETECTION
+// ============================================================
+
+// ============================================================
+// HOTSPOT NORMALIZATION
+// ============================================================
+
+// ============================================================
+// MAIN DATA PROCESSING PIPELINE
+// ============================================================
+
+Every important function must also have a short comment explaining:
+
+- purpose
+- input
+- output
+- important behavior
+
+For example:
+
+/**
+ * Validates whether a latitude and longitude represent
+ * a valid geographic coordinate.
+ *
+ * @param {number|string} latitude
+ * @param {number|string} longitude
+ * @returns {boolean} True when both coordinates are valid.
+ */
+
+Use comments that are understandable to a student learning the code.
+
+Do not write excessively long comments for trivial lines.
+
+The goal is:
+
+"Future me should be able to open processing.js and understand exactly what every important section is doing."
+
+============================================================
+18. CODE QUALITY REQUIREMENTS
+============================================================
+
+Follow these principles:
+
+- Use clean JavaScript.
+- Prefer const and let.
+- Avoid unnecessary global variables.
+- Use descriptive function names.
+- Keep functions focused.
+- Avoid duplicated logic.
+- Avoid deeply nested code.
+- Use early returns for invalid data.
+- Keep the module reusable.
+- Do not modify unrelated UI code.
+- Do not introduce unnecessary dependencies.
+- Follow the existing project's coding style where possible.
+
+If ES modules are already being used, follow the existing module structure.
+
+If they are not being used, do not introduce a module system unnecessarily.
+
+============================================================
+19. DO NOT IMPLEMENT DAY 3+ FEATURES YET
+============================================================
+
+Do NOT turn this task into a complete data science system.
+
+For Day 2 Role 4, focus on:
+
+✓ Data validation
+✓ Coordinate validation
+✓ Essential-field validation
+✓ Numeric normalization
+✓ Duplicate removal
+✓ Basic date/confidence normalization
+✓ Clean hotspot objects
+✓ Processing statistics if useful
+✓ Clear comments
+
+Do NOT implement:
+
+✗ Historical persistence calculation
+✗ Spatial clustering
+✗ Turf.js distance calculations
+✗ Industrial proximity
+✗ Classification scoring
+✗ Machine learning
+✗ Dashboard redesign
+
+Those belong to later days/roles.
+
+The roadmap places persistence and spatial calculations under Role 4 on Day 3–5, but those are NOT the main target of this Day 2 task.
+
+============================================================
+20. INTEGRATION WITH ROLE 3
+============================================================
+
+Role 3 is responsible for:
+
+NASA FIRMS API
+    ↓
+fetch()
+    ↓
+JSON/CSV
+    ↓
+JavaScript objects
+
+Role 4 receives the resulting raw data.
+
+Do NOT duplicate NASA API fetching inside processing.js.
+
+Instead make the processing layer accept raw data.
+
+Conceptually:
+
+const rawData = await fetchFIRMSData();
+
+const cleanData = processHotspotData(rawData);
+
+Then:
+
+cleanData
+
+can be passed to the map/UI/classification pipeline.
+
+If the existing Role 3 implementation uses a different function name, adapt to it rather than creating duplicate functionality.
+
+============================================================
+21. TEST WITH SAMPLE DATA
+============================================================
+
+Create or use a small test dataset.
+
+Include:
+
+TEST 1:
+Valid hotspot
+
+TEST 2:
+Invalid latitude
+
+TEST 3:
+Invalid longitude
+
+TEST 4:
+Missing latitude
+
+TEST 5:
+Missing longitude
+
+TEST 6:
+Missing FRP
+
+TEST 7:
+Missing brightness
+
+TEST 8:
+Missing confidence
+
+TEST 9:
+Missing date
+
+TEST 10:
+Duplicate record
+
+TEST 11:
+Numeric values represented as strings
+
+TEST 12:
+Empty dataset
+
+TEST 13:
+Malformed record
+
+TEST 14:
+Multiple valid records
+
+The processing function should behave predictably for every case.
+
+============================================================
+22. DO NOT DELETE USEFUL DATA
+============================================================
+
+Do not unnecessarily remove valid fields from NASA FIRMS records.
+
+The purpose of processing is:
+
+CLEAN + STANDARDIZE
+
+not:
+
+DESTROY INFORMATION.
+
+If additional fields are useful for later roles, preserve them.
+
+Examples may include:
+
+- satellite
+- scan
+- track
+- day/night
+- version
+- source-specific identifiers
+
+Only preserve fields that actually exist in the source data.
+
+============================================================
+23. ERROR HANDLING
+============================================================
+
+Do not allow malformed input to crash the application.
+
+Handle errors gracefully.
+
+For example:
+
+if (!Array.isArray(rawData)) {
+    return [];
+}
+
+But document WHY this check exists.
+
+If a serious unexpected processing error occurs:
+
+- fail safely
+- provide a useful console error
+- do not silently hide the problem
+
+============================================================
+24. VERIFY THE IMPLEMENTATION
+============================================================
+
+After implementation:
+
+1. Run the project.
+2. Confirm there are no JavaScript syntax errors.
+3. Confirm processing.js loads correctly.
+4. Confirm raw FIRMS data can pass through the processing layer.
+5. Confirm invalid coordinates are removed.
+6. Confirm duplicates are removed.
+7. Confirm missing essential values are rejected.
+8. Confirm valid records remain.
+9. Confirm the map still receives valid hotspot records.
+10. Confirm you did not break Role 1, Role 2, or Role 3 functionality.
+
+============================================================
+25. IMPORTANT: PRESERVE EXISTING WORK
+============================================================
+
+Before editing any file:
+
+READ IT.
+
+Do not replace an entire file simply because a small change is needed.
+
+Make the smallest clean change necessary.
+
+If another team member has already implemented something:
+
+- preserve it
+- integrate with it
+- do not rewrite it without reason
+
+If there is a conflict between your implementation and existing architecture, explain the conflict before making a destructive change.
+
+============================================================
+26. GIT-FRIENDLY IMPLEMENTATION
+============================================================
+
+Keep the changes focused on Day 2 Role 4.
+
+Prefer changes such as:
+
+Modified:
+js/processing.js
+
+Possibly modified:
+js/app.js
+
+Possibly modified:
+other integration file
+
+Only modify files that genuinely need changes.
+
+At the end, provide:
+
+1. Files changed
+2. What changed in each file
+3. Why the change was needed
+4. How the processing pipeline works
+5. How I can test it
+6. Any assumptions made
+7. Any issues that need Role 3 or Role 6 attention
+
+============================================================
+27. FINAL ACCEPTANCE CRITERIA
+============================================================
+
+The task is COMPLETE only if all of the following are true:
+
+[ ] processing.js contains a clean data-processing pipeline.
+
+[ ] Invalid latitude values are rejected.
+
+[ ] Invalid longitude values are rejected.
+
+[ ] Missing essential fields are handled.
+
+[ ] Invalid numeric values are rejected.
+
+[ ] Numeric strings are normalized safely.
+
+[ ] Duplicate hotspot records are detected and removed.
+
+[ ] Same coordinates on different dates are not incorrectly treated as duplicates.
+
+[ ] Valid hotspot records are preserved.
+
+[ ] The resulting hotspot structure is consistent.
+
+[ ] Empty input is handled safely.
+
+[ ] Malformed input does not crash the entire application.
+
+[ ] Processing statistics/logging are useful for debugging where appropriate.
+
+[ ] Existing NASA FIRMS fetching is not unnecessarily duplicated.
+
+[ ] Existing map functionality still works.
+
+[ ] No unnecessary frameworks or backend technologies were introduced.
+
+[ ] Day 3+ features were not prematurely implemented.
+
+[ ] Every major section of code contains meaningful explanatory comments.
+
+[ ] Every important function has a clear explanation of its purpose, input, output, and behavior.
+
+[ ] The code is understandable to a student who needs to maintain it later.
+
+============================================================
+28. FINAL RESPONSE AFTER CODING
+============================================================
+
+After completing the implementation, do NOT simply say:
+
+"Done."
+
+Instead give me a concise technical report containing:
+
+### 1. IMPLEMENTATION SUMMARY
+What you implemented.
+
+### 2. FILES CHANGED
+List every modified/created file.
+
+### 3. DATA FLOW
+Show:
+
+NASA FIRMS
+→ Raw Data
+→ Role 4 Validation
+→ Cleaning
+→ Duplicate Removal
+→ Normalized Hotspots
+→ Map/UI
+
+### 4. VALIDATION RULES
+Explain exactly what gets rejected and why.
+
+### 5. DUPLICATE STRATEGY
+Explain how duplicates are detected.
+
+### 6. TESTING
+Tell me which test cases were executed and their results.
+
+### 7. TEAM INTEGRATION
+Explain how Role 3, Role 4 and Role 2 connect.
+
+### 8. NEXT STEP
+State what Role 4 should work on next according to the ThermalX roadmap.
+
+Do not claim something was tested if you did not actually test it.
+
+============================================================
+FINAL INSTRUCTION
+============================================================
+
+Work carefully.
+
+FIRST understand the existing ThermalX codebase.
+
+THEN implement Day 2 — Role 4.
+
+Keep the implementation simple, reliable, modular and beginner-understandable.
+
+The priority is a WORKING MVP, not sophisticated architecture.
+
+Most importantly:
+
+COMMENT THE CODE.
+
+I want enough meaningful comments throughout the implementation that I can return to the code later and understand:
+
+- what each section does
+- why it exists
+- how the data moves through it
+- why each validation rule exists
+- how duplicate detection works
+- how another team member can use the processed data
+
+Do not sacrifice working functionality for unnecessary complexity.
+
+Begin by inspecting the existing project.

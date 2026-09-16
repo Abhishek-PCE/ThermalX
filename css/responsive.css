@@ -76,9 +76,26 @@
         height: 400px; /* Fixed height for map on mobile */
     }
 
+    /* ============================================================
+       HOTSPOT DETAILS PANEL RESPONSIVE ADJUSTMENTS
+       What this does:
+       Ensures the hotspot panel cards, header, and metrics stack
+       cleanly on mobile screens without overflowing.
+       ============================================================ */
     .tx-event-panel {
         height: auto;
-        min-height: 300px;
+        min-height: 250px;
+        max-height: none;
+    }
+
+    .tx-detail-card {
+        padding: var(--tx-space-sm) var(--tx-space-md);
+    }
+
+    .tx-summary-header {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--tx-space-sm);
     }
 
     /* Filters */
