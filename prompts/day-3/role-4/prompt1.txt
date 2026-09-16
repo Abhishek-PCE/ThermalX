@@ -1,0 +1,1108 @@
+You are working as a senior JavaScript Data Processing Engineer on the ThermalX project.
+
+PROJECT:
+ThermalX — SIH26162
+AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM and Satellite Data.
+
+CURRENT TASK:
+DAY 3 — ROLE 4 — DATA PROCESSING
+
+Your job is ONLY the Day 3 Role 4 work.
+
+==================================================
+1. PROJECT CONTEXT
+==================================================
+
+ThermalX processes NASA FIRMS thermal hotspot data.
+
+The overall flow is:
+
+NASA FIRMS
+    ↓
+Role 3 — Data Fetching
+    ↓
+Raw Hotspot Data
+    ↓
+Role 4 — Data Processing
+    ↓
+Persistence Detection / Spatial Processing
+    ↓
+Role 5 — Classification
+    ↓
+Role 2 — Leaflet Map
+    ↓
+Role 1 — Dashboard UI
+    ↓
+Role 6 — Integration & Testing
+
+The project is currently being developed as a JavaScript-first web MVP.
+
+Use:
+- HTML
+- CSS
+- Vanilla JavaScript
+- Leaflet.js
+- Turf.js
+- JSON
+- Browser storage when necessary
+
+DO NOT introduce:
+- React
+- Node.js
+- Python
+- FastAPI
+- PostgreSQL
+- PostGIS
+- TensorFlow
+- PyTorch
+- YOLO
+- Docker
+- Kubernetes
+
+Do not redesign the entire application.
+
+Do not unnecessarily modify files owned by other roles.
+
+==================================================
+2. DAY 3 ROLE 4 RESPONSIBILITY
+==================================================
+
+According to the project roadmap, Day 3 Role 4 must:
+
+1. Group nearby historical hotspot detections.
+2. Use Turf.js for spatial calculations.
+3. Prepare processed historical data that can be used to determine whether a hotspot repeatedly appears in approximately the same location.
+4. Support the persistence calculation used by Role 5.
+5. Keep the processed data structured and reusable by other modules.
+
+The Day 3 objective is:
+
+"Click a hotspot and see its historical persistence."
+
+Role 3 is responsible for fetching and standardizing historical FIRMS data.
+
+Role 4 is responsible for processing that historical data.
+
+Role 5 will use the processed information for persistence scoring.
+
+Therefore, create clean processing functions that Role 5 can consume later.
+
+==================================================
+3. FIRST — INSPECT THE EXISTING PROJECT
+==================================================
+
+Before changing anything:
+
+1. Inspect the complete project structure.
+2. Inspect:
+   - index.html
+   - js/app.js
+   - js/api.js
+   - js/processing.js
+   - js/map.js
+   - js/classification.js
+   - css/style.css
+   - data/
+3. Understand how Day 1 and Day 2 were implemented.
+4. Determine how FIRMS hotspot data is currently represented.
+5. Determine whether Turf.js is already included.
+6. Determine how JavaScript files are loaded.
+7. Determine whether ES modules are being used.
+8. Determine how data flows from api.js into processing.js and then into the UI/map.
+
+IMPORTANT:
+
+Do NOT blindly overwrite existing code.
+
+Preserve working Day 1 and Day 2 functionality.
+
+If a function already exists, extend it instead of creating a conflicting duplicate.
+
+==================================================
+4. EXPECTED HOTSPOT DATA STRUCTURE
+==================================================
+
+Work with the standardized hotspot structure whenever possible.
+
+The expected structure is approximately:
+
+{
+    id: "...",
+    latitude: 0,
+    longitude: 0,
+    date: "...",
+    frp: 0,
+    brightness: 0,
+    confidence: 0,
+    satellite: "..."
+}
+
+If the existing project uses different property names, DO NOT break the project.
+
+Create a normalization/adaptation layer if necessary.
+
+The processing module should ultimately work with predictable fields:
+
+- id
+- latitude
+- longitude
+- date
+- frp
+- brightness
+- confidence
+- satellite
+
+==================================================
+5. MAIN FILE
+==================================================
+
+Your primary file should be:
+
+js/processing.js
+
+If it does not exist, create it.
+
+If it exists, inspect and extend it.
+
+Keep processing logic separate from:
+
+- UI
+- Leaflet map rendering
+- API requests
+- classification logic
+
+The processing module should contain DATA PROCESSING logic only.
+
+==================================================
+6. IMPLEMENT DATA VALIDATION
+==================================================
+
+Create a reusable function for validating hotspot records.
+
+Example conceptual function:
+
+isValidHotspot(hotspot)
+
+It should verify at minimum:
+
+- latitude exists
+- longitude exists
+- latitude is within -90 to 90
+- longitude is within -180 to 180
+- date exists
+- essential hotspot information is usable
+
+Do not unnecessarily reject valid records.
+
+The function should return:
+
+true / false
+
+Add clear comments explaining every validation rule.
+
+==================================================
+7. IMPLEMENT HOTSPOT NORMALIZATION
+==================================================
+
+Create a function such as:
+
+normalizeHotspot(hotspot)
+
+The purpose is to convert historical/raw records into the internal ThermalX structure.
+
+The normalized object should contain:
+
+{
+    id,
+    latitude,
+    longitude,
+    date,
+    frp,
+    brightness,
+    confidence,
+    satellite
+}
+
+Handle numeric conversion where necessary.
+
+For example:
+
+latitude should become a Number.
+
+longitude should become a Number.
+
+frp should become a Number when possible.
+
+brightness should become a Number when possible.
+
+Do not destroy useful original information unnecessarily.
+
+If a field is unavailable, use a safe value such as null rather than inventing data.
+
+==================================================
+8. IMPLEMENT SPATIAL DISTANCE CALCULATION
+==================================================
+
+Use Turf.js for geographic calculations.
+
+Do NOT manually implement the Haversine formula unless there is a specific reason.
+
+Create a reusable function such as:
+
+calculateDistanceKm(hotspotA, hotspotB)
+
+It should:
+
+1. Create Turf point features from longitude and latitude.
+2. Calculate geographic distance using Turf.js.
+3. Return distance in kilometers.
+
+Remember:
+
+GeoJSON/Turf coordinate order is:
+
+[longitude, latitude]
+
+NOT:
+
+[latitude, longitude]
+
+This is extremely important.
+
+Add a code comment explaining this.
+
+Example conceptual logic:
+
+const pointA = turf.point([
+    hotspotA.longitude,
+    hotspotA.latitude
+]);
+
+const pointB = turf.point([
+    hotspotB.longitude,
+    hotspotB.latitude
+]);
+
+const distance = turf.distance(pointA, pointB, {
+    units: "kilometers"
+});
+
+return distance;
+
+Use the Turf.js version already present in the project.
+
+Do not introduce another GIS library.
+
+==================================================
+9. IMPLEMENT NEARBY DETECTION GROUPING
+==================================================
+
+This is the MAIN task.
+
+Historical FIRMS detections may represent the same persistent thermal source across different days.
+
+Example:
+
+Day 1:
+lat = 25.123
+lon = 85.456
+
+Day 2:
+lat = 25.124
+lon = 85.457
+
+Day 3:
+lat = 25.122
+lon = 85.455
+
+These should potentially belong to the same thermal event if they fall within a reasonable spatial radius.
+
+Create a reusable function such as:
+
+groupNearbyDetections(detections, radiusKm)
+
+The function should:
+
+1. Receive historical hotspot detections.
+2. Compare their geographic positions.
+3. Use Turf.js distance calculations.
+4. Group detections that are spatially close.
+5. Return structured groups.
+
+Do NOT assume that identical latitude/longitude values are required.
+
+Satellite detections can have small positional differences.
+
+==================================================
+10. GROUP STRUCTURE
+==================================================
+
+Use a clean structure similar to:
+
+{
+    eventId: "TX-001",
+    detections: [
+        {...},
+        {...},
+        {...}
+    ],
+    detectionCount: 3,
+    uniqueDays: 3,
+    firstDetection: "...",
+    lastDetection: "..."
+}
+
+The exact structure may be adapted to the existing project.
+
+Important:
+
+Do not calculate classification here.
+
+Do not decide:
+
+Industrial
+Wildfire
+Agriculture
+Other
+
+That belongs to the classification system.
+
+This module should only prepare reliable spatial and temporal information.
+
+==================================================
+11. UNIQUE DAY DETECTION
+==================================================
+
+For each grouped event, calculate:
+
+- detectionCount
+- uniqueDays
+- firstDetection
+- lastDetection
+
+A hotspot detected multiple times on the same date should not automatically count as multiple persistent days.
+
+For example:
+
+June 1 → 3 detections
+June 2 → 2 detections
+June 3 → 1 detection
+
+The event should have:
+
+detectionCount = 6
+
+uniqueDays = 3
+
+This distinction is important for persistence.
+
+Use normalized date values when comparing days.
+
+If timestamps exist, normalize them to calendar dates when calculating unique days.
+
+==================================================
+12. TEMPORAL SORTING
+==================================================
+
+Sort detections chronologically.
+
+Each event should make it easy for the UI to display:
+
+First detection
+    ↓
+Detection
+    ↓
+Detection
+    ↓
+Last detection
+
+Do not depend on the API returning records in chronological order.
+
+Explicitly sort the data.
+
+Add comments explaining why sorting is necessary.
+
+==================================================
+13. EVENT ID GENERATION
+==================================================
+
+Create stable event IDs in the format:
+
+TX-001
+TX-002
+TX-003
+...
+
+If the existing project already has an event-ID system, reuse it.
+
+Do not create random IDs unless necessary.
+
+Keep event IDs predictable for debugging and demo purposes.
+
+==================================================
+14. PERSISTENCE SUPPORT
+==================================================
+
+DO NOT build the final classification engine.
+
+DO NOT build the industrial/wildfire/agriculture classifier.
+
+However, prepare all information required by Role 5.
+
+For each thermal event, expose:
+
+- detectionCount
+- uniqueDays
+- firstDetection
+- lastDetection
+- recurrence information
+- spatial grouping information
+
+If useful, calculate:
+
+durationDays
+
+based on first and last detection.
+
+Be careful:
+
+durationDays and uniqueDays are NOT necessarily the same.
+
+Example:
+
+First detection = June 1
+Last detection = June 5
+
+durationDays = 5 calendar days
+
+But if detections occurred only on:
+
+June 1
+June 3
+June 5
+
+uniqueDays = 3
+
+Preserve both concepts.
+
+==================================================
+15. DO NOT CLAIM SCIENTIFIC CERTAINTY
+==================================================
+
+The roadmap explicitly treats persistence thresholds as prototype rules, not scientific ground truth.
+
+Therefore:
+
+DO NOT write comments or UI text claiming:
+
+"This proves the source is industrial."
+
+Instead, the processing layer should provide factual measurements.
+
+For example:
+
+"Detected on 5 unique days."
+
+"Nearest detections were within X km."
+
+"First detected on..."
+
+"Last detected on..."
+
+Classification and interpretation will happen later.
+
+==================================================
+16. OPTIONAL BROWSER CACHE
+==================================================
+
+If the current project already has a browser caching mechanism, integrate processed historical data carefully.
+
+Possible approach:
+
+localStorage
+
+However:
+
+Do NOT introduce complicated caching architecture on Day 3.
+
+Do NOT cache indefinitely without considering stale data.
+
+If caching is implemented, use a clear key such as:
+
+thermalx_processed_events
+
+or follow the existing project convention.
+
+Add comments explaining:
+
+- what is being cached
+- why it is cached
+- when it should be refreshed
+
+If the project does not need caching yet, do not force it.
+
+==================================================
+17. FUNCTION DESIGN
+==================================================
+
+Prefer small reusable functions.
+
+A reasonable processing.js structure could be:
+
+1. Validation utilities
+2. Normalization utilities
+3. Turf spatial utilities
+4. Temporal utilities
+5. Nearby detection grouping
+6. Event metadata generation
+7. Main processing pipeline
+
+For example:
+
+isValidHotspot()
+
+normalizeHotspot()
+
+calculateDistanceKm()
+
+getDateKey()
+
+getUniqueDetectionDays()
+
+groupNearbyDetections()
+
+buildThermalEvent()
+
+processHistoricalDetections()
+
+Do not blindly use these exact names if the project already has equivalent functions.
+
+Avoid giant functions.
+
+==================================================
+18. MAIN PROCESSING PIPELINE
+==================================================
+
+Create a clear main processing function.
+
+Conceptually:
+
+Raw historical detections
+        ↓
+Validate
+        ↓
+Normalize
+        ↓
+Sort by date
+        ↓
+Group spatially
+        ↓
+Calculate event metadata
+        ↓
+Return thermal events
+
+The output should be easy for:
+
+- Role 1 UI
+- Role 2 map
+- Role 5 classification
+- Role 6 testing
+
+to consume.
+
+==================================================
+19. TEST WITH REALISTIC DATA
+==================================================
+
+Create a small test dataset if the project does not already have one.
+
+Example:
+
+Detection A:
+25.0000, 85.0000, June 1
+
+Detection B:
+25.0010, 85.0010, June 2
+
+Detection C:
+25.0020, 85.0020, June 3
+
+Detection D:
+28.0000, 77.0000, June 1
+
+The first three should potentially form one event depending on the chosen radius.
+
+The fourth should be separate.
+
+Do NOT use fake data as actual NASA data.
+
+Clearly label any test/demo records as test data.
+
+==================================================
+20. RADIUS CONFIGURATION
+==================================================
+
+Do not hard-code spatial grouping logic in multiple places.
+
+Create a configurable value such as:
+
+const DEFAULT_GROUPING_RADIUS_KM = ...
+
+Use a reasonable prototype value based on the existing application context.
+
+IMPORTANT:
+
+Document that this is a prototype parameter.
+
+Do not claim that the chosen radius is scientifically validated.
+
+Make it easy to change later.
+
+==================================================
+21. TURF.JS SAFETY
+==================================================
+
+Before using Turf.js:
+
+Check how Turf.js is currently loaded.
+
+If using CDN, preserve the existing approach.
+
+If using modules, preserve the existing module approach.
+
+Do not introduce conflicting versions.
+
+If Turf.js is unavailable, explain the issue clearly and implement the smallest compatible integration required by the project.
+
+Do not silently use another library.
+
+==================================================
+22. ERROR HANDLING
+==================================================
+
+Processing functions should fail safely.
+
+Examples:
+
+- empty historical dataset
+- null input
+- undefined input
+- malformed hotspot
+- missing latitude
+- missing longitude
+- invalid coordinates
+
+Do not allow one malformed record to crash the entire processing pipeline.
+
+Prefer:
+
+skip invalid record + continue processing
+
+rather than:
+
+crash entire application
+
+When useful, return metadata such as:
+
+{
+    processedEvents: [...],
+    skippedRecords: 2
+}
+
+Follow the existing project architecture if it already has an error-reporting pattern.
+
+==================================================
+23. PERFORMANCE
+==================================================
+
+Historical FIRMS data can contain many records.
+
+Avoid unnecessary repeated processing.
+
+Do not repeatedly clone large arrays unless necessary.
+
+Use efficient loops and data structures where practical.
+
+However:
+
+DO NOT prematurely optimize the project.
+
+Prioritize:
+
+correctness
+readability
+maintainability
+
+over micro-optimizations.
+
+==================================================
+24. COMMENTS — VERY IMPORTANT
+==================================================
+
+I AM A STUDENT AND I WILL NEED TO UNDERSTAND THIS CODE LATER.
+
+Therefore:
+
+ADD COMMENTS TO EVERY LOGICAL SECTION OF CODE.
+
+Do NOT comment every individual line unnecessarily.
+
+Instead, every meaningful section/function must have a clear comment explaining:
+
+1. WHAT the code does.
+2. WHY we need it.
+3. HOW it contributes to ThermalX.
+
+Example:
+
+// ------------------------------------------------------------
+// Calculate geographic distance between two FIRMS detections.
+//
+// WHY:
+// Satellite detections of the same source may have slightly
+// different coordinates on different days.
+//
+// HOW:
+// Turf.js calculates the real geographic distance between
+// the two longitude/latitude points.
+//
+// This value is later used when grouping detections into
+// persistent thermal events.
+// ------------------------------------------------------------
+
+Use comments like this throughout the code.
+
+For important calculations, explain the formula or logic in simple language.
+
+For example:
+
+// uniqueDays counts calendar days rather than raw detections.
+// This prevents multiple satellite detections on the same
+// day from incorrectly increasing the persistence measurement.
+
+For Turf coordinates:
+
+// IMPORTANT:
+// Turf/GeoJSON uses [longitude, latitude].
+// Do not reverse this order.
+
+For grouping:
+
+// Two detections are considered spatially related when their
+// geographic distance is within the configured grouping radius.
+// This is a prototype heuristic, not scientific ground truth.
+
+==================================================
+25. CODE READABILITY RULES
+==================================================
+
+Write beginner-friendly JavaScript.
+
+Prefer:
+
+const
+let
+arrow functions where appropriate
+descriptive variable names
+small functions
+clear return values
+
+Avoid:
+
+unnecessary one-liners
+deeply nested logic
+cryptic variable names
+over-engineering
+unnecessary classes
+unnecessary abstractions
+
+Bad:
+
+const x = d.filter(a=>...);
+
+Better:
+
+const validDetections = detections.filter(
+    (detection) => isValidHotspot(detection)
+);
+
+The goal is that I can open processing.js one month later and understand what every major section does.
+
+==================================================
+26. DO NOT MODIFY OTHER ROLES' RESPONSIBILITIES
+==================================================
+
+Role 4 should NOT take over:
+
+Role 1:
+- Dashboard UI
+- Timeline UI
+- Information panels
+
+Role 2:
+- Leaflet visualization
+- Map controls
+- Marker rendering
+
+Role 3:
+- NASA API fetching
+- OSM API fetching
+
+Role 5:
+- Classification
+- Industrial/Wildfire/Agriculture scoring
+- Final classification confidence
+
+Role 6:
+- Final integration
+- Deployment
+- Complete system testing
+
+You may create small integration changes if absolutely necessary, but keep them minimal.
+
+==================================================
+27. IF APP.JS NEEDS A SMALL CHANGE
+==================================================
+
+If app.js needs to call the processing functions:
+
+Make the smallest possible change.
+
+For example:
+
+Historical FIRMS data
+        ↓
+processHistoricalDetections()
+        ↓
+thermalEvents
+        ↓
+existing application state
+
+Do NOT redesign app.js.
+
+Do NOT redesign the UI.
+
+Do NOT add unrelated features.
+
+==================================================
+28. OUTPUT DATA MUST BE EASY TO DEBUG
+==================================================
+
+During development, make it possible to inspect the processed events.
+
+For example:
+
+console.table(thermalEvents);
+
+or:
+
+console.log("ThermalX processed events:", thermalEvents);
+
+Do not leave excessive console logging in the final production code.
+
+Use clear development logs only where useful.
+
+Comment why the log exists.
+
+==================================================
+29. ACCEPTANCE TESTS
+==================================================
+
+After implementation, verify all of the following:
+
+TEST 1:
+Valid hotspot coordinates are accepted.
+
+TEST 2:
+Invalid coordinates are rejected.
+
+TEST 3:
+Historical detections are normalized.
+
+TEST 4:
+Historical detections are sorted chronologically.
+
+TEST 5:
+Turf.js correctly calculates distance.
+
+TEST 6:
+Nearby detections can be grouped.
+
+TEST 7:
+Far-away detections are separated.
+
+TEST 8:
+Multiple detections on the same day count as:
+
+multiple detections
+
+but only:
+
+one unique detection day.
+
+TEST 9:
+First detection is calculated correctly.
+
+TEST 10:
+Last detection is calculated correctly.
+
+TEST 11:
+Detection count is calculated correctly.
+
+TEST 12:
+Unique day count is calculated correctly.
+
+TEST 13:
+Empty input does not crash.
+
+TEST 14:
+Malformed records do not crash the entire pipeline.
+
+TEST 15:
+Existing Day 1 and Day 2 functionality still works.
+
+TEST 16:
+No classification logic was accidentally added to Role 4.
+
+==================================================
+30. DO NOT BREAK EXISTING FUNCTIONALITY
+==================================================
+
+Before finishing:
+
+Run/inspect the application.
+
+Verify:
+
+- map still loads
+- Leaflet still works
+- FIRMS data still appears
+- existing markers still work
+- existing UI still works
+- historical data can reach processing.js
+- processing.js does not create JavaScript errors
+
+If something breaks:
+
+Fix the root cause.
+
+Do not hide the error.
+
+==================================================
+31. GIT-FRIENDLY CHANGES
+==================================================
+
+Keep the implementation focused on:
+
+DAY 3
+ROLE 4
+
+Avoid unrelated formatting changes.
+
+Avoid rewriting files unnecessarily.
+
+Avoid changing unrelated UI.
+
+The resulting Git diff should clearly show:
+
+"Day 3 Role 4 — historical hotspot processing and spatial grouping."
+
+==================================================
+32. FINAL REPORT
+==================================================
+
+After completing the implementation, give me a concise report containing:
+
+1. Files created.
+2. Files modified.
+3. Functions created/updated.
+4. How Turf.js is being used.
+5. How nearby detections are grouped.
+6. How unique days are calculated.
+7. How event IDs are generated.
+8. Example processed event structure.
+9. Tests performed.
+10. Any problems or assumptions.
+11. Anything Role 5 needs to know for persistence scoring.
+12. Anything Role 6 needs to know for integration.
+
+==================================================
+33. IMPORTANT FINAL RESTRICTIONS
+==================================================
+
+DO NOT:
+
+- add React
+- add Node.js
+- add Python
+- add FastAPI
+- add database systems
+- add ML models
+- add classification logic
+- redesign the UI
+- redesign the map
+- add unnecessary dependencies
+- invent NASA data
+- claim scientific validation
+- overwrite working code unnecessarily
+
+DO:
+
+- use JavaScript
+- use Turf.js
+- process historical FIRMS data
+- validate data
+- normalize data
+- calculate geographic distance
+- group nearby detections
+- calculate detection count
+- calculate unique days
+- calculate first/last detection
+- generate thermal event IDs
+- prepare clean data for Role 5
+- write beginner-friendly code
+- add meaningful comments to EVERY logical section
+- preserve existing functionality
+- test everything before finishing
+
+==================================================
+34. DEFINITION OF DONE
+==================================================
+
+Day 3 Role 4 is complete ONLY when:
+
+NASA FIRMS historical detections
+        ↓
+validated
+        ↓
+normalized
+        ↓
+chronologically sorted
+        ↓
+spatially grouped using Turf.js
+        ↓
+converted into thermal events
+        ↓
+with detectionCount
+        ↓
+uniqueDays
+        ↓
+firstDetection
+        ↓
+lastDetection
+        ↓
+eventId
+
+and this processed data is available for Role 5 to calculate persistence.
+
+The code must be readable enough that a beginner JavaScript developer can understand it later.
+
+MOST IMPORTANT:
+
+DO NOT JUST MAKE THE CODE WORK.
+
+MAKE THE CODE UNDERSTANDABLE.
+
+Every major section must contain explanatory comments describing WHAT it does, WHY it exists, and HOW it works.
+
+Now inspect the existing ThermalX repository and implement Day 3 — Role 4 completely.
