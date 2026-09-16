@@ -1,0 +1,959 @@
+You are working as the Integration, Testing & Reliability Lead for the ThermalX project.
+
+PROJECT:
+ThermalX — SIH26162
+Problem: AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources using NASA FIRMS, OpenStreetMap and multi-source satellite data.
+
+CURRENT DEVELOPMENT STAGE:
+Day 2 — NASA FIRMS Hotspots
+
+YOUR ROLE:
+Role 6 — Integration, Testing & Deployment Lead
+
+==================================================
+1. PRIMARY OBJECTIVE
+==================================================
+
+Your primary responsibility today is to make sure that all Day 2 modules created by the other team members work together correctly.
+
+Day 2 target:
+
+NASA FIRMS
+    ↓
+Data Fetching
+    ↓
+Raw Hotspot Data
+    ↓
+Data Processing
+    ↓
+Leaflet Map
+    ↓
+Hotspot Markers
+    ↓
+Hotspot Information
+
+The final Day 2 system should be able to:
+
+1. Load the ThermalX website.
+2. Fetch or receive NASA FIRMS hotspot data.
+3. Process the data without breaking.
+4. Display valid hotspots on the Leaflet map.
+5. Allow the user to click a hotspot marker.
+6. Display important hotspot information.
+7. Handle API failures gracefully.
+8. Handle empty API responses.
+9. Handle invalid/missing data.
+10. Keep the application usable even when external data fails.
+
+Do NOT build a new architecture.
+
+Do NOT introduce unnecessary frameworks.
+
+Do NOT migrate the project to React, Node.js, Python, FastAPI, databases, TensorFlow, PyTorch, YOLO, Docker, Kubernetes, etc.
+
+The current MVP is intentionally JavaScript-first.
+
+Use the existing project architecture and integrate the existing modules.
+
+==================================================
+2. FIRST: INSPECT THE ENTIRE PROJECT
+==================================================
+
+Before modifying anything, inspect the existing repository.
+
+Check:
+
+- index.html
+- css/style.css
+- js/app.js
+- js/map.js
+- js/api.js
+- js/processing.js
+- js/classification.js
+- data/
+- assets/
+- README.md
+- package/config files if they exist
+- Git status
+- existing branches
+- existing code written for Day 1 and Day 2
+
+Do NOT immediately start writing code.
+
+First understand:
+
+- How the application currently starts.
+- How JavaScript files are loaded.
+- How the map is initialized.
+- How FIRMS data is fetched.
+- What data format the API returns.
+- What hotspot object structure Role 4 created.
+- How markers are created by Role 2.
+- How the UI expects hotspot data.
+- What Role 1 has already implemented.
+- What Role 3 has already implemented.
+- What Role 4 has already implemented.
+- What Role 5 has already implemented.
+
+Preserve working code wherever possible.
+
+==================================================
+3. IMPORTANT TEAM INTEGRATION RULE
+==================================================
+
+You are the integration lead.
+
+Do NOT unnecessarily rewrite another member's module.
+
+If a problem belongs clearly to another role:
+
+1. Identify the problem.
+2. Understand its impact.
+3. Make the smallest integration-safe change possible.
+4. Document what needs to be fixed by that role.
+5. Do not duplicate their entire functionality.
+
+For example:
+
+Role 3:
+NASA FIRMS API fetching
+
+Role 4:
+Data cleaning/validation
+
+Role 5:
+Classification indicators
+
+Role 2:
+Leaflet map and markers
+
+Role 1:
+UI and information panel
+
+Role 6:
+Integration, testing, debugging and reliability
+
+Your job is to make these pieces communicate correctly.
+
+==================================================
+4. VERIFY THE SHARED DATA CONTRACT
+==================================================
+
+Inspect the hotspot data structure currently used by the project.
+
+The expected core hotspot information should include fields such as:
+
+- latitude
+- longitude
+- brightness
+- FRP
+- confidence
+- date
+
+The roadmap defines these as the basic hotspot fields.
+
+Do NOT silently rename fields just because you prefer different names.
+
+If different modules use different field names, identify the mismatch and create the smallest safe normalization layer.
+
+For example:
+
+NASA/API format
+        ↓
+Normalized ThermalX hotspot object
+        ↓
+Processing
+        ↓
+Map
+        ↓
+UI
+
+Make sure every module receives the format it expects.
+
+==================================================
+5. TEST NASA FIRMS DATA FLOW
+==================================================
+
+Verify the complete FIRMS data flow.
+
+Test:
+
+API request
+    ↓
+Response
+    ↓
+JSON/CSV parsing
+    ↓
+JavaScript object
+    ↓
+Data validation
+    ↓
+Map marker
+    ↓
+User interaction
+
+Check for:
+
+- Successful API response
+- Empty response
+- Malformed response
+- Missing latitude
+- Missing longitude
+- Missing FRP
+- Missing brightness
+- Missing confidence
+- Missing date
+- Invalid coordinates
+- Duplicate records
+- Unexpected field values
+- Network failure
+- API failure
+- Request timeout if applicable
+
+Do not allow one bad hotspot record to crash the entire application.
+
+==================================================
+6. MAP + DATA INTEGRATION TEST
+==================================================
+
+Verify that valid FIRMS hotspots reach the Leaflet map.
+
+Test the following:
+
+1. Page loads.
+2. Leaflet map loads.
+3. FIRMS data becomes available.
+4. Valid hotspot records are processed.
+5. Markers are created.
+6. Markers appear at correct coordinates.
+7. Multiple hotspots can be displayed.
+8. Clicking a marker works.
+9. Marker information matches the underlying hotspot record.
+10. No JavaScript errors occur.
+
+Check especially for:
+
+- latitude/longitude reversal
+- string vs number coordinates
+- null coordinates
+- undefined coordinates
+- NaN coordinates
+- invalid Leaflet LatLng values
+- markers being created before the map is initialized
+- data arriving after the map is initialized
+- duplicate markers
+- stale markers remaining after refresh
+
+==================================================
+7. HOTSPOT INFORMATION TEST
+==================================================
+
+When a hotspot is clicked, verify that the displayed information is accurate.
+
+At minimum, verify:
+
+- Latitude
+- Longitude
+- Brightness
+- FRP
+- Confidence
+- Detection date/time if available
+
+Do not invent values.
+
+Do not display misleading placeholder values as real FIRMS values.
+
+If a value is unavailable, display something such as:
+
+"Not available"
+
+instead of crashing or showing:
+
+undefined
+null
+NaN
+
+The information shown to the user must correspond to the selected hotspot.
+
+==================================================
+8. API ERROR HANDLING
+==================================================
+
+Test API failure scenarios.
+
+The application must NOT simply become a blank screen.
+
+Examples:
+
+Scenario A:
+NASA FIRMS request succeeds.
+
+Expected:
+Display hotspot data.
+
+Scenario B:
+NASA FIRMS request fails.
+
+Expected:
+Show a useful user-facing error message.
+
+Scenario C:
+API returns zero hotspots.
+
+Expected:
+Show an appropriate empty-state message.
+
+Scenario D:
+API returns malformed/unexpected data.
+
+Expected:
+Handle it safely and report the problem without crashing.
+
+Scenario E:
+Internet connection is unavailable.
+
+Expected:
+Application should remain usable and show an appropriate status/error message.
+
+Use clear states such as:
+
+Loading...
+Data loaded
+No hotspots found
+Unable to load FIRMS data
+Invalid hotspot data
+
+Do not expose raw technical errors to the user unless useful.
+
+==================================================
+9. LOADING STATE
+==================================================
+
+Verify that the user receives feedback while FIRMS data is loading.
+
+The application should not appear frozen.
+
+Check whether the existing UI supports:
+
+Loading FIRMS data...
+
+After success:
+
+FIRMS data loaded
+
+After failure:
+
+Unable to load FIRMS data.
+
+Use the existing UI design.
+
+Do not redesign the entire dashboard.
+
+==================================================
+10. DATA VALIDATION TESTS
+==================================================
+
+Create or improve lightweight validation tests where appropriate.
+
+Test valid examples:
+
+{
+    latitude: 25.5,
+    longitude: 85.1,
+    brightness: 320,
+    frp: 45,
+    confidence: 80,
+    date: "2026-09-16"
+}
+
+Test invalid examples:
+
+{
+    latitude: null,
+    longitude: 85.1
+}
+
+{
+    latitude: 999,
+    longitude: 85.1
+}
+
+{
+    latitude: 25.5,
+    longitude: null
+}
+
+{
+    latitude: "invalid",
+    longitude: "invalid"
+}
+
+The exact test data may be adjusted to match the existing project's data structure.
+
+The goal is to ensure invalid records cannot break the map or application.
+
+==================================================
+11. DUPLICATE HOTSPOT TESTING
+==================================================
+
+Check whether the same FIRMS record can accidentally produce duplicate markers.
+
+Test:
+
+- duplicate records
+- repeated API calls
+- refresh operations
+- re-rendering
+- switching views if applicable
+
+If duplicate markers occur, identify the source.
+
+Fix only if the fix is clearly part of integration.
+
+Avoid introducing complicated state-management systems.
+
+==================================================
+12. CONSOLE ERROR AUDIT
+==================================================
+
+Open the browser developer console.
+
+Check for:
+
+- JavaScript errors
+- failed network requests
+- undefined variables
+- undefined functions
+- null reference errors
+- Leaflet errors
+- invalid coordinates
+- CORS-related errors
+- failed resource loading
+- unhandled promise rejections
+
+Fix integration-level errors that you can safely fix.
+
+Do not hide errors using:
+
+console.clear()
+
+Do not suppress errors just to make the console look clean.
+
+Do not use empty catch blocks.
+
+Bad:
+
+try {
+    ...
+} catch (error) {
+}
+
+Good:
+
+try {
+    ...
+} catch (error) {
+    console.error("FIRMS data loading failed:", error);
+    // Update the UI with a user-friendly error state.
+}
+
+==================================================
+13. NETWORK TESTING
+==================================================
+
+Use the browser Network tab where possible.
+
+Verify:
+
+- FIRMS request is actually sent.
+- Correct endpoint/configuration is being used.
+- Response status is handled correctly.
+- Response format is what the parser expects.
+- No unnecessary repeated API calls occur.
+- Failed requests are handled.
+- The application does not continuously retry without control.
+
+Do NOT expose API keys or secrets in source code.
+
+If the project currently requires an API key, do not hardcode a real secret into the repository.
+
+Use the existing project's intended configuration approach.
+
+==================================================
+14. CROSS-MODULE INTEGRATION TEST
+==================================================
+
+Perform an end-to-end test.
+
+Test this exact sequence:
+
+1. Open ThermalX.
+2. Wait for application initialization.
+3. Initialize Leaflet.
+4. Request FIRMS data.
+5. Receive response.
+6. Parse response.
+7. Normalize/validate data.
+8. Pass valid hotspots to map.
+9. Create markers.
+10. Click a marker.
+11. Verify displayed information.
+12. Check browser console.
+13. Check Network tab.
+14. Confirm no unexpected errors.
+
+Repeat the test multiple times.
+
+==================================================
+15. TEST WITH MULTIPLE HOTSPOTS
+==================================================
+
+Do not test only one hotspot.
+
+Verify:
+
+- 0 hotspots
+- 1 hotspot
+- several hotspots
+- many hotspots
+
+Make sure:
+
+- all valid hotspots appear
+- markers do not overlap in a way that breaks interaction
+- clicking different markers selects the correct hotspot
+- information does not remain stuck on the previous hotspot
+
+Do not implement advanced clustering unless it already exists.
+
+Clustering is part of the later roadmap.
+
+==================================================
+16. TEST DATA CONSISTENCY
+==================================================
+
+For at least several displayed hotspots, manually compare:
+
+FIRMS response
+        ↓
+Normalized object
+        ↓
+Map marker
+        ↓
+Popup/details
+
+Verify:
+
+Latitude = correct
+Longitude = correct
+FRP = correct
+Brightness = correct
+Confidence = correct
+Date = correct
+
+There must not be silent data transformations that change the meaning of the values.
+
+==================================================
+17. DO NOT IMPLEMENT FUTURE FEATURES
+==================================================
+
+This is Day 2.
+
+Do NOT spend today's work implementing:
+
+- historical persistence
+- temporal clustering
+- advanced industrial proximity
+- full classification engine
+- ML model
+- satellite image analysis
+- advanced dashboard analytics
+- database
+- backend server
+- authentication
+- advanced AI
+
+Those belong to later stages of the roadmap.
+
+Your responsibility is to make today's FIRMS → processing → map → hotspot information flow reliable.
+
+==================================================
+18. COMMENTS ARE MANDATORY
+==================================================
+
+VERY IMPORTANT:
+
+Add comments throughout every section of code that you create or significantly modify.
+
+The purpose is to help me understand the code later.
+
+Comments should explain:
+
+- What the section does
+- Why it exists
+- What input it expects
+- What output it produces
+- Important integration decisions
+- Error-handling logic
+- Non-obvious JavaScript behavior
+
+Do NOT write meaningless comments such as:
+
+// This is a function
+function loadData() {}
+
+Instead write useful comments such as:
+
+// Fetch FIRMS hotspot data and return the raw response.
+// The integration layer will validate and normalize the records
+// before they are passed to the Leaflet map.
+async function loadFirmsData() {
+    ...
+}
+
+For every significant function, add a short explanation.
+
+For every important logical section, add a comment.
+
+For complex conditions, explain WHY the condition exists.
+
+For data transformations, explain the before/after structure.
+
+Keep comments beginner-friendly.
+
+Do NOT comment every single obvious line.
+
+The goal is understandable professional documentation, not excessive comments.
+
+==================================================
+19. CODE QUALITY REQUIREMENTS
+==================================================
+
+Use:
+
+- clear variable names
+- small functions
+- async/await where appropriate
+- try/catch for asynchronous operations
+- defensive checks
+- meaningful error messages
+- modular JavaScript
+- existing project conventions
+
+Avoid:
+
+- unnecessary global variables
+- duplicated code
+- deeply nested logic
+- giant functions
+- unexplained magic numbers
+- unnecessary libraries
+- unnecessary frameworks
+- hardcoded secrets
+- silent failures
+
+Keep the implementation beginner-friendly.
+
+==================================================
+20. GIT SAFETY
+==================================================
+
+Before making changes:
+
+Check:
+
+git status
+
+Do not overwrite another member's uncommitted work.
+
+Inspect the current branch.
+
+After completing integration work:
+
+Check:
+
+git diff
+
+Review every change.
+
+Remove accidental files.
+
+Do not commit:
+
+- API secrets
+- .env files containing secrets
+- OS-generated files
+- unnecessary temporary files
+- node_modules if not intentionally used
+- debugging dumps
+
+If the project's Git workflow already specifies a branch, follow it.
+
+Do not perform destructive Git operations such as:
+
+git reset --hard
+
+git checkout .
+
+git clean -fd
+
+unless explicitly instructed.
+
+==================================================
+21. CREATE A DAY 2 TEST CHECKLIST
+==================================================
+
+Create a simple test checklist/documentation file only if the project structure allows it naturally.
+
+Suggested name:
+
+DAY2_TEST_REPORT.md
+
+Include:
+
+# ThermalX Day 2 Integration Test Report
+
+## Environment
+- Browser:
+- OS:
+- Date:
+- Branch:
+
+## Tests
+
+### 1. Application Startup
+Status: PASS/FAIL
+
+### 2. Leaflet Map
+Status: PASS/FAIL
+
+### 3. FIRMS API Request
+Status: PASS/FAIL
+
+### 4. FIRMS Response Parsing
+Status: PASS/FAIL
+
+### 5. Data Validation
+Status: PASS/FAIL
+
+### 6. Hotspot Markers
+Status: PASS/FAIL
+
+### 7. Marker Click
+Status: PASS/FAIL
+
+### 8. Hotspot Information
+Status: PASS/FAIL
+
+### 9. Empty Response
+Status: PASS/FAIL
+
+### 10. API Failure
+Status: PASS/FAIL
+
+### 11. Invalid Data
+Status: PASS/FAIL
+
+### 12. Duplicate Data
+Status: PASS/FAIL
+
+### 13. Browser Console
+Status: PASS/FAIL
+
+### 14. Network Requests
+Status: PASS/FAIL
+
+## Bugs Found
+
+List each bug.
+
+Example:
+
+BUG-001:
+Description:
+Impact:
+Cause:
+Fix:
+Status:
+
+## Integration Status
+
+Overall:
+PASS / PASS WITH MINOR ISSUES / BLOCKED
+
+Do not falsely mark something PASS if it was not actually tested.
+
+==================================================
+22. FINAL ACCEPTANCE CRITERIA
+==================================================
+
+Do not consider Day 2 Role 6 complete until the following are verified:
+
+[ ] Project starts successfully.
+
+[ ] Existing Day 1 UI still works.
+
+[ ] Leaflet map loads correctly.
+
+[ ] FIRMS request works or failure is handled correctly.
+
+[ ] FIRMS response is parsed correctly.
+
+[ ] Invalid records do not crash the application.
+
+[ ] Valid hotspot records reach the map.
+
+[ ] Hotspot markers appear at correct coordinates.
+
+[ ] Latitude and longitude are not accidentally reversed.
+
+[ ] Multiple hotspots can be displayed.
+
+[ ] Clicking a marker selects the correct hotspot.
+
+[ ] FRP is displayed correctly.
+
+[ ] Brightness is displayed correctly.
+
+[ ] Confidence is displayed correctly.
+
+[ ] Date/time is displayed correctly when available.
+
+[ ] Missing values are handled safely.
+
+[ ] Empty API response is handled.
+
+[ ] API/network failure is handled.
+
+[ ] No critical JavaScript errors remain.
+
+[ ] No unnecessary duplicate API requests occur.
+
+[ ] No API secrets are exposed.
+
+[ ] Existing modules have not been unnecessarily rewritten.
+
+[ ] Code comments have been added to every significant section modified.
+
+[ ] Comments explain WHY important integration logic exists.
+
+[ ] Git diff has been reviewed.
+
+[ ] No unrelated files were modified.
+
+[ ] DAY2_TEST_REPORT.md is accurate if created.
+
+==================================================
+23. IMPORTANT BEHAVIOR IF SOMETHING IS BROKEN
+==================================================
+
+If you find a problem:
+
+DO NOT immediately rewrite the whole project.
+
+Follow this process:
+
+1. Reproduce the bug.
+2. Identify the exact module causing it.
+3. Determine whether it is an integration issue or another role's responsibility.
+4. Make the smallest safe fix.
+5. Test the fix.
+6. Test the complete flow again.
+7. Document the issue.
+
+If a required API cannot be tested because of:
+
+- API key problems
+- CORS
+- network problems
+- service downtime
+- unavailable endpoint
+
+do NOT fake a successful test.
+
+Instead:
+
+1. Clearly document the limitation.
+2. Test the rest of the integration using existing test/demo data if available.
+3. Make sure the application fails gracefully.
+4. Report exactly what could and could not be verified.
+
+==================================================
+24. FINAL REPORT TO ME
+==================================================
+
+After completing the work, provide a concise final report containing:
+
+1. What you inspected.
+2. What you changed.
+3. Files modified.
+4. Integration flow verified.
+5. Tests performed.
+6. Tests that passed.
+7. Tests that failed.
+8. Bugs discovered.
+9. Bugs fixed.
+10. Remaining issues.
+11. Any work required from Roles 1–5.
+12. Whether Day 2 Role 6 can be considered complete.
+
+Use this format:
+
+========================================
+THERMALX — DAY 2 ROLE 6 REPORT
+========================================
+
+STATUS:
+[PASS / PASS WITH MINOR ISSUES / BLOCKED]
+
+FILES MODIFIED:
+- ...
+
+INTEGRATION VERIFIED:
+- FIRMS → Data
+- Data → Processing
+- Processing → Map
+- Map → Marker
+- Marker → Information
+
+TESTS PASSED:
+- ...
+
+TESTS FAILED:
+- ...
+
+BUGS FIXED:
+- ...
+
+REMAINING ISSUES:
+- ...
+
+DEPENDENCIES ON OTHER ROLES:
+- ...
+
+SECURITY CHECK:
+- API secrets exposed: YES/NO
+
+CONSOLE CHECK:
+- Critical errors: YES/NO
+
+FINAL VERDICT:
+[Day 2 Role 6 Complete / Needs More Work]
+
+========================================
+
+IMPORTANT FINAL RULE:
+
+Do not claim that something works unless you actually inspected or tested it.
+
+Do not invent API responses.
+
+Do not invent test results.
+
+Do not introduce unnecessary technology.
+
+Do not sacrifice the existing working MVP architecture.
+
+Keep ThermalX JavaScript-first, modular, explainable and easy for the team to understand.
+
+The goal today is RELIABLE INTEGRATION, not adding more features.
