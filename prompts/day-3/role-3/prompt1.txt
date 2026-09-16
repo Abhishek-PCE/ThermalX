@@ -1,0 +1,454 @@
+You are working on the ThermalX SIH26162 project.
+
+DAY: 3
+ROLE: 3 — DATA INTEGRATION DEVELOPER
+
+IMPORTANT PROJECT CONTEXT:
+ThermalX is a JavaScript-first MVP for detecting and classifying thermal hotspots.
+
+The overall project flow is:
+
+NASA FIRMS
+↓
+Role 3: Data Fetching
+↓
+Raw Hotspot Data
+↓
+Role 4: Data Processing
+↓
+Persistence Detection / Industrial Proximity
+↓
+Role 5: Classification
+↓
+Role 2: Leaflet Map
+↓
+Role 1: Dashboard UI
+↓
+Role 6: Integration
+
+TODAY'S DAY 3 OBJECTIVE:
+"Click a hotspot and see its historical persistence."
+
+YOUR ROLE 3 RESPONSIBILITY FOR DAY 3:
+1. Fetch historical NASA FIRMS hotspot data.
+2. Convert the received response into JavaScript objects.
+3. Standardize every hotspot record into one common format.
+4. The standardized object MUST contain:
+   - id
+   - latitude
+   - longitude
+   - date
+   - frp
+   - brightness
+   - confidence
+   - satellite
+5. Keep the data format compatible with Role 4 processing and Role 2 map modules.
+6. Handle API errors.
+7. Handle empty API responses.
+8. Handle invalid or incomplete records.
+9. Do not introduce a backend.
+10. Use JavaScript fetch(), async/await, try/catch and JSON/CSV parsing.
+11. Keep the implementation simple and suitable for the 10-day MVP.
+12. Do NOT introduce React, Node.js, Python, FastAPI, PostgreSQL, PostGIS, TensorFlow, PyTorch, YOLO, Kubernetes or Docker.
+13. Do not redesign unrelated modules.
+
+PROJECT STRUCTURE:
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+PRIMARY FILE:
+js/api.js
+
+TASK:
+Implement or update the historical FIRMS data integration inside js/api.js.
+
+FIRST:
+Inspect the existing project files and understand the current Day 1 and Day 2 implementation.
+
+DO NOT unnecessarily rewrite working code.
+
+Reuse existing:
+- API configuration
+- functions
+- variable names
+- data structures
+- error-handling patterns
+- module/export patterns
+
+If the project already has a FIRMS fetching function, extend it rather than creating a conflicting duplicate.
+
+HISTORICAL DATA FLOW:
+
+User selects a hotspot
+        ↓
+Get hotspot latitude/longitude/date
+        ↓
+Determine historical date range
+        ↓
+Request historical FIRMS data
+        ↓
+Receive API response
+        ↓
+Parse response
+        ↓
+Validate records
+        ↓
+Standardize records
+        ↓
+Return standardized historical hotspot array
+        ↓
+Role 4 processes historical detections
+        ↓
+Persistence can be calculated
+
+STANDARD DATA FORMAT:
+
+Every valid historical detection should become:
+
+{
+    id: "...",
+    latitude: 0,
+    longitude: 0,
+    date: "...",
+    frp: 0,
+    brightness: 0,
+    confidence: "...",
+    satellite: "..."
+}
+
+IMPORTANT:
+Use sensible null/default handling where the source does not provide an optional value.
+
+Do NOT invent scientific data.
+
+Do NOT pretend missing FIRMS fields exist.
+
+Do NOT silently convert invalid data into valid-looking data.
+
+VALIDATION REQUIREMENTS:
+
+For every record:
+
+1. Latitude must be valid.
+2. Longitude must be valid.
+3. Required date information must exist.
+4. Essential hotspot information must be available.
+5. Invalid records should be skipped or safely handled.
+6. The function should never crash because one record is malformed.
+
+HISTORICAL GROUPING:
+
+The historical-fetching code should return individual standardized detections.
+
+DO NOT calculate persistence inside Role 3.
+
+Persistence belongs to Role 4.
+
+Role 3 only provides reliable historical data.
+
+The returned array should allow Role 4 to calculate:
+- detection count
+- unique detection days
+- first detection
+- last detection
+- recurrence
+- persistence
+
+API ERROR HANDLING:
+
+Implement clear handling for:
+
+1. Network failure
+2. HTTP error
+3. Empty response
+4. Invalid JSON/CSV
+5. Missing fields
+6. Malformed records
+7. API timeout if relevant
+
+Use try/catch.
+
+Return a predictable result instead of allowing an uncaught error.
+
+Example conceptual result:
+
+{
+    success: true,
+    data: [...]
+}
+
+or
+
+{
+    success: false,
+    data: [],
+    error: "Human-readable error message"
+}
+
+If the existing project already uses another result structure, KEEP THE EXISTING STRUCTURE instead of creating a new incompatible one.
+
+IMPORTANT CORS/API NOTE:
+
+Do not invent a proxy server or backend.
+
+The ThermalX MVP is client-side.
+
+If the existing NASA FIRMS API configuration has limitations such as CORS, API-key requirements, or endpoint limitations, clearly isolate that configuration so the rest of the application remains clean.
+
+DO NOT expose a real secret API key in source code.
+
+If the project already contains a placeholder API key mechanism, preserve it.
+
+FUNCTION DESIGN:
+
+Create clean reusable functions such as:
+
+- fetchHistoricalFirmsData(...)
+- parseHistoricalFirmsResponse(...)
+- normalizeHistoricalHotspot(...)
+- validateHistoricalHotspot(...)
+
+BUT:
+
+Before creating these functions, inspect the existing code.
+
+If equivalent functions already exist, improve/reuse them rather than duplicating functionality.
+
+EVERY LINE MUST BE EASY TO UNDERSTAND.
+
+THIS IS EXTREMELY IMPORTANT:
+
+Add an explanatory comment to EVERY line of code.
+
+The comments must explain WHAT the line does and, where useful, WHY it is needed.
+
+Example:
+
+const response = await fetch(url);
+// Sends an HTTP request to the FIRMS API and waits until the server responds.
+
+if (!response.ok) {
+// Checks whether the server returned an HTTP error status.
+
+throw new Error(`FIRMS API error: ${response.status}`);
+// Stops execution and creates a readable error message when the request fails.
+
+const data = await response.json();
+// Converts the JSON response body into a JavaScript object.
+
+DO NOT write useless comments such as:
+
+// This is a variable
+// This is a function
+// This line executes
+
+Instead, explain the actual purpose.
+
+For example:
+
+const latitude = Number(record.latitude);
+// Converts the latitude received from the API into a JavaScript number so it can be validated and used for map calculations.
+
+COMMENT STYLE:
+- Beginner-friendly
+- Simple English
+- Technically correct
+- One useful comment for every line
+- Explain important parameters
+- Explain why validation is performed
+- Explain API operations
+- Explain transformations
+- Explain return values
+
+DO NOT put all explanations only above the function.
+
+I WANT COMMENTS THROUGHOUT THE CODE.
+
+DATA NORMALIZATION:
+
+The FIRMS API may return field names that differ from our internal format.
+
+Map source fields into:
+
+source field → ThermalX field
+
+latitude → latitude
+longitude → longitude
+acq_date/acquisition date → date
+frp → frp
+brightness/bright_ti4/etc. → brightness where appropriate
+confidence → confidence
+satellite → satellite
+
+Do not assume field names without inspecting the existing API response/parser.
+
+If CSV is used:
+1. Read the CSV text.
+2. Separate headers.
+3. Parse rows.
+4. Map columns to standardized fields.
+5. Convert numeric fields to numbers.
+6. Validate the resulting objects.
+
+If JSON is used:
+1. Parse JSON.
+2. Identify the hotspot array.
+3. Normalize each record.
+4. Validate each record.
+5. Return the standardized array.
+
+DEDUPLICATION:
+
+Do not perform sophisticated spatial clustering in Role 3.
+
+Role 4 owns grouping nearby detections and spatial calculations.
+
+Role 3 may only remove obvious exact duplicate records if the existing project requires it.
+
+Do not change Role 4's responsibilities.
+
+DATE HANDLING:
+
+Keep the original detection date information in a consistent format.
+
+If a timestamp exists, preserve useful timestamp information.
+
+Do not fabricate a detection date.
+
+Make sure historical records can be sorted chronologically.
+
+SORTING:
+
+If appropriate, return historical detections ordered by date from oldest to newest.
+
+Make this behavior clear in a comment.
+
+INTEGRATION:
+
+Make sure the output can be consumed by:
+
+js/processing.js
+
+and eventually:
+
+js/map.js
+js/app.js
+
+Do not directly implement persistence calculations in api.js.
+
+Do not implement classification in api.js.
+
+Do not implement map markers in api.js.
+
+Do not implement UI in api.js.
+
+Role 3 is responsible for DATA INTEGRATION.
+
+BACKWARD COMPATIBILITY:
+
+Day 2 FIRMS functionality must continue working.
+
+Do not break:
+- current hotspot fetching
+- current map markers
+- current popup data
+- current dashboard
+- existing function calls
+
+If a function signature must change, update the affected caller carefully.
+
+TESTING:
+
+After implementation, test:
+
+TEST 1:
+Valid historical FIRMS response.
+
+TEST 2:
+Empty response.
+
+TEST 3:
+Network failure.
+
+TEST 4:
+HTTP error.
+
+TEST 5:
+Malformed record.
+
+TEST 6:
+Record with missing optional field.
+
+TEST 7:
+Multiple historical detections.
+
+TEST 8:
+Dates in different order.
+
+TEST 9:
+Invalid latitude.
+
+TEST 10:
+Invalid longitude.
+
+For each test, explain the expected behavior in comments or a short test section.
+
+DEMO/FALLBACK:
+
+The project roadmap later requires DEMO MODE using saved JSON such as demo-data.json.
+
+Do not overbuild this today.
+
+However, structure the data-fetching function so a future demo-data fallback can easily be connected.
+
+DO NOT ADD:
+- backend
+- database
+- ML
+- AI model
+- authentication
+- unnecessary libraries
+- unnecessary frameworks
+- unnecessary files
+
+USE:
+- Vanilla JavaScript
+- fetch()
+- async/await
+- try/catch
+- JSON/CSV parsing
+- existing project architecture
+
+FINAL REQUIREMENT:
+
+After modifying the code:
+
+1. Show exactly which files were changed.
+2. Explain what was added.
+3. Explain how historical FIRMS data flows through the code.
+4. Explain every function in simple language.
+5. Explain how Role 4 will receive the data.
+6. Explain how the code handles errors.
+7. Explain how a beginner can trace one historical hotspot from API response → standardized object.
+8. Verify that Day 2 functionality has not been unnecessarily broken.
+9. Keep the code clean and beginner-friendly.
+10. Keep comments on EVERY line of code.
+
+MOST IMPORTANT:
+Do not generate code blindly.
+
+FIRST inspect the existing ThermalX project.
+Then modify only the necessary files.
+Preserve the existing architecture.
+Follow the Day 3 Role 3 responsibility exactly.
