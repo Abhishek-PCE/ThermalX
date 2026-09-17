@@ -1076,7 +1076,7 @@ Then fix issues.
 
 Then verify that existing features still work.
 
-Keep the implementation:
+Keep the implementation: 
 
 * simple
 * modular
