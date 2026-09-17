@@ -342,8 +342,38 @@ function showHotspotDetails(hotspot) {
                         window.MapModule.renderIndustrialFacilities(processedContext.facilities);
                     }
                     
-                    // Update UI with the nearest facility data
-                    if (processedContext.nearestFacility) {
+                    // ==========================================
+                    // DAY 4 ROLE 5: Industrial Context Scoring
+                    // ==========================================
+                    let finalContextScore = null;
+                    if (window.ThermalXClassification && typeof window.ThermalXClassification.evaluateIndustrialContext === 'function') {
+                        // Convert proximity into an explainable heuristic score
+                        finalContextScore = window.ThermalXClassification.evaluateIndustrialContext(processedContext);
+                    }
+
+                    // Update UI with the nearest facility data and Role 5 evidence
+                    if (finalContextScore) {
+                        if (finalContextScore.nearestFacility) {
+                            const nearest = finalContextScore.nearestFacility;
+                            setElementText('event-facility', `${nearest.name} (${nearest.type})`);
+                            setElementText('event-distance', `${parseFloat(nearest.distanceFromHotspot.toFixed(2))} km`);
+                        } else {
+                            setElementText('event-facility', "No nearby industrial facilities.");
+                            setElementText('event-distance', "—");
+                        }
+                        
+                        // Append Role 5 evidence to the evidence section
+                        const existingEvidence = document.getElementById('event-evidence')?.textContent || "";
+                        if (finalContextScore.evidence && finalContextScore.evidence.length > 0) {
+                            const newEvidence = finalContextScore.evidence[0].description;
+                            if (existingEvidence === "Classification pending Role 5 analysis." || existingEvidence === "—") {
+                                setElementText('event-evidence', newEvidence);
+                            } else {
+                                setElementText('event-evidence', existingEvidence + " | " + newEvidence);
+                            }
+                        }
+                    } else if (processedContext.nearestFacility) {
+                        // Fallback UI update if Role 5 is missing
                         const nearest = processedContext.nearestFacility;
                         const distText = nearest.distanceFromHotspot !== undefined 
                             ? `${nearest.distanceFromHotspot.toFixed(2)} km` 
