@@ -756,6 +756,78 @@ For example:
 // ========================================
 ```
 
+---
+
+# 30. FINAL DELIVERABLES
+
+By the end of this task, the Day 5 implementation should be able to:
+
+1. Load thermal hotspot data without crashing.
+2. Cluster nearby detections into a single thermal event when appropriate.
+3. Keep separate detections as separate events when geographically distinct.
+4. Group detections across multiple dates when the event remains spatially persistent.
+5. Compute detectionCount, uniqueDays, firstDetection, and lastDetection correctly.
+6. Compute persistence/recurrence using unique days rather than raw records.
+7. Generate clean event IDs like `TX-001`, `TX-002`, etc.
+8. Pass processed thermal events into the map and UI modules without breaking the application.
+9. Handle empty, invalid, duplicate, and malformed input safely.
+10. Keep performance stable for moderate-to-large hotspot datasets.
+
+The result should be a working prototype of persistent thermal-event detection that is ready for later Day 6 classification work.
+
+---
+
+# 31. SUCCESS CRITERIA
+
+Your Day 5 work is considered successful only if:
+
+* the app does not crash on empty or invalid input
+* nearby detections cluster correctly
+* same-location detections across different dates are grouped into one event when appropriate
+* spatially separate events remain separate
+* event IDs are stable and readable
+* detectionCount and uniqueDays are accurate
+* firstDetection and lastDetection are correct
+* persistence/recurrence values are realistic and within valid ranges
+* events can be rendered on the map and inspected in the UI
+* the integration points between API → processing → app → map still work
+
+---
+
+# 32. ROLE BOUNDARY REMINDER
+
+This is not a full classification engine task.
+This is not a rewrite of the project architecture.
+This is not a redesign of the map or dashboard.
+
+This task is specifically about integration, validation, and making sure the Day 5 persistence + clustering pipeline works end-to-end.
+
+That means:
+
+* validate the existing modules
+* fix compatibility issues
+* test edge cases
+* preserve working features
+* keep the implementation simple and beginner-friendly
+* leave a reliable foundation for Day 6 classification
+
+---
+
+# 33. FINAL INSTRUCTION
+
+Do not add unnecessary complexity.
+Do not create duplicate versions of functions that already exist.
+Do not break other roles' work.
+Do not silently ignore malformed data.
+Do not overengineer the MVP.
+
+Your goal is to make the Day 5 thermal event persistence pipeline reliable, understandable, and ready for the next stage of the ThermalX roadmap.
+
+If the existing project already has a working method, reuse it.
+If a function is missing, add only the code necessary to complete the required Day 5 behavior.
+If an issue occurs, debug it, explain it in comments, and fix the root cause rather than patching around symptoms.
+
+
 Use this style wherever appropriate.
 
 ---
