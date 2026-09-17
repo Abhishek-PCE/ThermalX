@@ -1,993 +1,824 @@
-You are working on the **ThermalX — SIH26162** project.
+# THERMALX — DAY 4 DEVELOPMENT TASK
 
-# YOUR ROLE
+## ROLE 4: DATA PROCESSING ENGINEER
 
-You are implementing:
+You are working on the **ThermalX** project for SIH26162.
 
-**DAY 3 — ROLE 4: DATA PROCESSING ENGINEER**
+Read and understand the existing project structure and code before making changes.
 
-Your job is to process and structure the thermal hotspot data received from NASA FIRMS so that ThermalX can determine whether a hotspot is recurring/persistent over time.
+### PROJECT GOAL
 
-According to the project roadmap, Day 3 objective is:
+ThermalX detects thermal hotspots using NASA FIRMS and helps determine whether a hotspot is likely related to:
 
-> Click a hotspot and see its historical persistence.
+* Industrial activity
+* Wildfire
+* Agricultural burning
+* Other / Unknown
 
-Role 4 responsibilities for Day 3:
-
-* Group nearby thermal detections.
-* Perform spatial calculations.
-* Use Turf.js where appropriate.
-* Calculate persistence.
-* Support historical hotspot/event grouping.
-* Prepare clean processed data for Role 1, Role 2, Role 5 and Role 6.
-
-The Day 3 architecture is:
+The current MVP architecture is:
 
 NASA FIRMS
-↓
-Role 3 — Data Fetching
-↓
-Raw Historical Hotspot Data
-↓
-ROLE 4 — DATA PROCESSING
-↓
-Spatial grouping
-↓
-Temporal grouping
-↓
-Persistence calculation
-↓
-Processed hotspot/event data
-↓
-Role 1 — History UI
-Role 2 — Historical Map
-Role 5 — Classification
-Role 6 — Testing
+→ Data Fetching
+→ Data Processing
+→ Persistence / Spatial Analysis
+→ Industrial Context
+→ Classification
+→ Leaflet Map
+→ Dashboard
 
-# IMPORTANT — FIRST INSPECT THE EXISTING PROJECT
+The project intentionally uses:
 
-Before writing or changing any code:
+* HTML
+* CSS
+* Vanilla JavaScript
+* Leaflet.js
+* Turf.js
+* NASA FIRMS
+* OpenStreetMap / Overpass API
+* localStorage
 
-1. Inspect the complete existing ThermalX project.
-2. Read all existing JavaScript files.
-3. Understand how NASA FIRMS data is currently fetched.
-4. Find the existing hotspot data structure.
-5. Find how current hotspots are displayed.
-6. Understand how files communicate with each other.
-7. Check whether Turf.js is already included.
-8. Check whether any processing/history logic already exists.
-9. Do NOT overwrite working functionality.
-10. Do NOT rebuild the project from scratch.
-11. Do NOT unnecessarily change the project architecture.
-12. Reuse existing functions and data structures whenever possible.
+Do NOT introduce React, Node.js, Python, FastAPI, PostgreSQL, PostGIS, TensorFlow, PyTorch, Docker, Kubernetes, or other advanced technologies during this MVP stage.
 
-The final application must keep all existing working functionality.
+The project is designed to remain a simple **client-side JavaScript MVP**.
 
-# DAY 3 MAIN OBJECTIVE
+---
 
-Implement the data-processing pipeline:
+# MY ROLE
 
-FIRMS historical data
-↓
-Validate data
-↓
-Standardize records
-↓
-Remove invalid records
-↓
-Group spatially close detections
-↓
-Group detections across dates
-↓
-Identify recurring thermal events
-↓
-Calculate:
+I am **Role 4 — Data Processing Engineer**.
 
-* detection count
-* unique detection days
-* first detection
-* last detection
-* persistence
-* recurrence information
+My responsibility is:
 
-↓
-Generate processed event objects
+* Clean and structure incoming data
+* Maintain consistent hotspot data structures
+* Calculate spatial relationships
+* Calculate hotspot-to-industrial-facility distance
+* Prepare data for clustering and persistence
+* Support classification with processed evidence
+* Use Turf.js for spatial calculations
+* Use localStorage where appropriate
+* Make processing functions reusable by other modules
 
-# ROLE 4 RESPONSIBILITY
+According to the Day 4 plan:
 
-Keep Role 4 focused on:
+> Calculate hotspot-to-facility distance.
 
-DATA PROCESSING
+The Day 4 objective is:
 
-NOT:
+> Select a hotspot and see nearby industrial facilities, their distance, and their type.
 
-* UI design
-* Leaflet visualization
-* API fetching
-* classification
-* machine learning
-* database development
+Do not take over the responsibilities of Role 2, Role 3, Role 5, or Role 1 unnecessarily.
 
-Role 3 fetches the data.
+---
 
-Role 4 processes the data.
+# IMPORTANT INSTRUCTION — FIRST INSPECT THE PROJECT
 
-Role 5 later uses processed features for classification.
+Before writing or modifying code:
 
-Role 1 displays the results.
+1. Inspect the complete existing project.
+2. Identify:
 
-Role 2 visualizes them on the map.
+   * index.html
+   * css/style.css
+   * js/app.js
+   * js/map.js
+   * js/api.js
+   * js/processing.js
+   * js/classification.js
+   * data/
+   * assets/
+3. Understand how hotspot data currently flows through the application.
+4. Identify how OSM/Overpass facility data is currently returned.
+5. Reuse the existing architecture instead of creating unnecessary new files.
+6. Do NOT overwrite working code unnecessarily.
+7. Preserve all existing Day 1–Day 3 functionality.
 
-# FILE TO USE
+If a required file or function already exists, improve/reuse it rather than duplicating it.
 
-Prefer:
+---
 
-js/processing.js
+# DAY 4 ROLE 4 OBJECTIVE
 
-If this file already exists, extend it rather than replacing it.
+Implement the **data-processing layer required for industrial proximity analysis**.
 
-If processing functions are currently located elsewhere, keep the existing architecture where practical and move code only when necessary.
+The system should be able to:
 
-Do NOT create unnecessary files.
+1. Receive a hotspot.
+2. Receive nearby industrial facilities from OSM/Overpass.
+3. Validate their coordinates.
+4. Calculate the geographic distance between the hotspot and each facility.
+5. Sort facilities by distance.
+6. Identify the nearest facility.
+7. Store the calculated distance in a clean data structure.
+8. Return the processed information so Role 1 can display it and Role 5 can later use it for classification.
 
-# STANDARD HOTSPOT DATA
+---
 
-The historical FIRMS records should be standardized into a structure similar to:
+# STEP 1 — UNDERSTAND THE DATA STRUCTURES
 
+Use a consistent hotspot structure.
+
+A hotspot should contain fields such as:
+
+```javascript
 {
-id: "...",
-latitude: 0,
-longitude: 0,
-date: "...",
-frp: 0,
-brightness: 0,
-confidence: "...",
-satellite: "..."
+    id,
+    latitude,
+    longitude,
+    brightness,
+    frp,
+    confidence,
+    date,
+    satellite
 }
-
-Use the project's existing data structure if one already exists.
-
-Do not create a second incompatible hotspot format without a strong reason.
-
-# STEP 1 — VALIDATE HOTSPOT DATA
-
-Before processing historical records:
-
-Check for:
-
-* valid latitude
-* valid longitude
-* valid date
-* required thermal values
-* valid record structure
-
-Remove records with unusable coordinates.
-
-Latitude should be within:
-
--90 to 90
-
-Longitude should be within:
-
--180 to 180
-
-Do not allow invalid records to enter spatial calculations.
-
-# STEP 2 — NORMALIZE DATES
-
-Historical FIRMS data may contain different date/time representations.
-
-Create a consistent date representation for processing.
-
-For persistence calculations, identify the calendar day of each detection.
-
-For example:
-
-2026-09-10T12:30:00
-2026-09-10T18:20:00
-
-should count as:
-
-ONE DETECTION DAY
-
-not two separate days.
-
-Do not unnecessarily destroy the original timestamp if the existing application needs it.
-
-Keep the original information where useful.
-
-# STEP 3 — SPATIAL GROUPING
-
-The same real-world thermal source may appear as multiple FIRMS detections close to each other.
-
-Use **Turf.js** if it is already included or can be safely added according to the existing project setup.
-
-Use spatial calculations to determine whether detections are close enough to belong to the same thermal event.
-
-Create a configurable spatial threshold.
-
-For example:
-
-EVENT_CLUSTER_RADIUS
-
-Do NOT scatter the threshold throughout the code.
-
-Keep it in one clearly named constant.
-
-The exact value should be chosen based on the existing project configuration if one exists.
-
-Do not claim the threshold is scientifically validated.
-
-It is an MVP prototype parameter.
-
-# IMPORTANT: DO NOT CONFUSE TWO DIFFERENT CONCEPTS
-
-There are two different things:
-
-1. Spatial proximity
-2. Temporal persistence
-
-Spatial proximity answers:
-
-"Are these detections close enough to potentially represent the same location/event?"
-
-Temporal persistence answers:
-
-"How often was this event detected across the analysed days?"
-
-Keep these calculations separate and understandable.
-
-# STEP 4 — GROUP NEARBY DETECTIONS
-
-Group detections that are spatially close.
-
-For every event/group, maintain information such as:
-
-* event ID
-* detections
-* detection count
-* coordinates
-* dates
-* unique dates
-* first detection
-* last detection
-
-Example conceptual structure:
-
-{
-eventId: "TX-001",
-detections: [],
-detectionCount: 8,
-uniqueDays: 5,
-firstDetection: "...",
-lastDetection: "...",
-latitude: 0,
-longitude: 0
-}
-
-Use the project's existing naming conventions if different.
-
-# STEP 5 — EVENT IDs
-
-Create readable thermal event IDs.
-
-Use the roadmap's format:
-
-TX-001
-TX-002
-TX-003
-...
-
-Event IDs should be generated consistently.
-
-Do not create random IDs that make debugging difficult.
-
-If event IDs are already generated elsewhere, reuse them instead of creating duplicates.
-
-# STEP 6 — CALCULATE UNIQUE DETECTION DAYS
-
-For every thermal event:
-
-Count how many distinct calendar days contain at least one detection.
-
-Example:
-
-September 10 → detected
-September 11 → detected
-September 12 → detected
-September 13 → no detection
-September 14 → detected
-
-Unique detection days = 4
-
-# STEP 7 — CALCULATE DAYS ANALYSED
-
-Determine the number of calendar days represented by the historical dataset being analysed.
-
-For example:
-
-First analysed day = September 10
-Last analysed day = September 14
-
-Days analysed = 5
-
-Be careful about inclusive date counting.
-
-September 10 through September 14 represents:
-
-5 days
-
-Do not accidentally calculate it as 4.
-
-# STEP 8 — PERSISTENCE
-
-The roadmap defines:
-
-Persistence = days detected / days analysed
-
-Convert the result into a percentage.
-
-Example:
-
-days detected = 4
-days analysed = 5
-
-Persistence:
-
-4 / 5 × 100 = 80%
-
-Store both if useful:
-
-persistenceRatio: 0.8
-
-persistenceScore: 80
-
-# PERSISTENCE CATEGORIES
-
-Use the roadmap's prototype thresholds:
-
-0–20% → Low
-21–50% → Moderate
-51–80% → High
-81–100% → Very High
-
-These are:
-
-**PROTOTYPE RULES**
-
-They are NOT scientific ground truth.
-
-Make the thresholds easy to modify later.
-
-For example, use a dedicated function:
-
-getPersistenceCategory(score)
-
-or equivalent.
-
-# IMPORTANT EDGE CASE
-
-If:
-
-daysAnalysed = 0
-
-do NOT divide by zero.
-
-Return a safe result such as:
-
-persistenceScore = 0
-
-or another approach consistent with the existing application.
-
-Explain the handling in a comment.
-
-# STEP 9 — FIRST AND LAST DETECTION
-
-For every event calculate:
-
-firstDetection
-
-lastDetection
-
-These should come from the earliest and latest detection timestamps/dates in that event.
-
-Example:
-
-firstDetection:
-2026-09-10
-
-lastDetection:
-2026-09-15
-
-# STEP 10 — DETECTION COUNT
-
-For every event calculate:
-
-detectionCount
-
-This is the total number of FIRMS detection records belonging to the event.
-
-Do NOT confuse:
-
-detectionCount
-
-with:
-
-uniqueDays
-
-Example:
-
-Day 1 → 3 detections
-Day 2 → 2 detections
-Day 3 → 4 detections
-
-detectionCount = 9
-
-uniqueDays = 3
-
-# STEP 11 — EVENT REPRESENTATIVE COORDINATES
-
-Each event needs coordinates so Role 2 can eventually display it on the map.
-
-Calculate or select representative:
-
-latitude
-longitude
-
-Use a sensible approach consistent with the current project.
-
-If averaging coordinates, clearly document that the resulting coordinate represents the event approximately.
-
-Do not imply that it is an exact physical source location.
-
-# STEP 12 — TURF.JS
-
-Use Turf.js for spatial calculations where useful.
-
-Prefer clear Turf.js operations rather than manually implementing geographic distance formulas.
-
-Possible useful operations include:
-
-* point creation
-* distance calculations
-* spatial proximity checks
-
-Only use functions that are actually necessary.
-
-Do not add Turf.js functionality just for the sake of using the library.
-
-# STEP 13 — DATA PROCESSING FUNCTIONS
-
-Create small reusable functions where appropriate.
-
-Possible functions include:
-
-validateHotspot()
-
-normalizeHotspot()
-
-getDateKey()
-
-groupNearbyDetections()
-
-calculateUniqueDays()
-
-calculateDaysAnalysed()
-
-calculatePersistence()
-
-getPersistenceCategory()
-
-createThermalEvent()
-
-processHistoricalHotspots()
-
-The exact names can be adapted to the existing codebase.
-
-Do not create duplicate functions if equivalent functions already exist.
-
-# STEP 14 — FINAL EVENT DATA
-
-The processed result should contain enough information for later modules.
-
-A conceptual example:
-
-{
-eventId: "TX-001",
-
-```
-latitude: 25.123,
-longitude: 85.456,
-
-detections: [],
-
-detectionCount: 8,
-
-uniqueDays: 5,
-
-daysAnalysed: 7,
-
-persistenceRatio: 0.714,
-
-persistenceScore: 71.4,
-
-persistenceCategory: "High",
-
-firstDetection: "2026-09-10",
-
-lastDetection: "2026-09-16"
 ```
 
+Industrial facilities should use a consistent structure such as:
+
+```javascript
+{
+    id,
+    name,
+    type,
+    latitude,
+    longitude,
+    tags
 }
+```
 
-Do not blindly copy this exact structure if the existing project already has a compatible structure.
+The exact property names should match the existing project if these structures already exist.
 
-The important requirement is that the information is available clearly.
+Do not create duplicate representations of the same data.
 
-# DATA FOR ROLE 5
+---
 
-Role 5 will later need processing features for classification.
+# STEP 2 — VALIDATE COORDINATES
 
-Make it possible to access:
+Create or improve reusable validation logic.
 
-* persistenceScore
-* detectionCount
-* uniqueDays
-* firstDetection
-* lastDetection
-* representative coordinates
+Validate:
 
-Later Role 5 may combine these with:
+* latitude exists
+* longitude exists
+* latitude is between -90 and 90
+* longitude is between -180 and 180
+* values are numeric
 
-* industrial proximity
-* FRP
-* FIRMS confidence
+Invalid facilities or hotspots must not be used in spatial calculations.
 
-Do NOT implement Role 5's classifier today unless the existing code requires a small compatibility change.
+Do not allow:
 
-# DATA FOR ROLE 1
+```text
+undefined
+null
+NaN
+empty strings
+invalid coordinates
+```
 
-Role 1 should eventually be able to display:
+to reach Turf.js calculations.
 
-Event ID
-First detection
-Last detection
-Detection count
-Unique days
-Days analysed
-Persistence %
-Persistence category
+If invalid data is found, handle it safely instead of crashing the application.
 
-Make sure the processed event object exposes these values cleanly.
+---
 
-# DATA FOR ROLE 2
+# STEP 3 — USE TURF.JS FOR DISTANCE CALCULATION
 
-Role 2 should eventually be able to display historical events on Leaflet.
+Use **Turf.js** for geographic distance calculations.
 
-Therefore every processed event should have valid representative coordinates.
+Do NOT calculate geographic distance using a simple difference such as:
 
-Do not implement map UI unless a tiny integration change is necessary.
+```javascript
+Math.sqrt(
+    Math.pow(lat1 - lat2, 2) +
+    Math.pow(lon1 - lon2, 2)
+)
+```
 
-# PERFORMANCE
+That is not an appropriate geographic distance calculation.
 
-Do not perform expensive calculations unnecessarily.
+Use Turf.js point features and Turf's distance functionality.
 
-The MVP should be able to process a reasonable historical FIRMS dataset in the browser.
+The distance should preferably be represented in **kilometers** because ThermalX will display distances such as:
 
-Avoid deeply nested loops where a simpler approach works.
+```text
+1.2 km
+3.8 km
+12.4 km
+```
 
-However:
+Keep the raw numerical distance available for calculations.
 
-Do NOT sacrifice correctness just to optimize prematurely.
+---
 
-Keep the implementation understandable for a beginner.
+# STEP 4 — CREATE A REUSABLE DISTANCE FUNCTION
 
-# NO DATABASE
+Create a reusable function similar in purpose to:
 
-Do not add:
+```javascript
+calculateDistanceBetweenHotspotAndFacility()
+```
 
-* PostgreSQL
-* MongoDB
-* Firebase
-* Supabase
-* backend database
+The exact function name can follow the existing coding style.
 
-The roadmap explicitly keeps the MVP client-side.
+The function should:
 
-Use JavaScript data structures.
+* accept hotspot coordinates
+* accept facility coordinates
+* create Turf points
+* calculate distance
+* return distance in kilometers
 
-If the project already uses localStorage for another purpose, do not break it.
+Example conceptual result:
 
-# NO MACHINE LEARNING
+```javascript
+{
+    distanceKm: 1.24
+}
+```
 
-Do NOT implement:
+Do not hard-code distances.
 
-* TensorFlow
-* PyTorch
-* Random Forest
-* XGBoost
-* neural networks
-* trained models
+Every distance must be calculated from the actual coordinates.
 
-Day 3 Role 4 is data processing.
+---
 
-Classification comes later.
+# STEP 5 — PROCESS ALL NEARBY FACILITIES
 
-# NO NEW FRAMEWORK
+Create a reusable function that accepts:
 
-Do not migrate to:
+```text
+hotspot + array of facilities
+```
 
-* React
-* Vue
-* Angular
-* Next.js
-* Node.js backend
+and returns facilities enriched with calculated distance.
 
-Keep the current:
+Example:
 
-HTML
-CSS
-JavaScript
-Leaflet
-Turf.js
+```javascript
+[
+    {
+        id: "facility-1",
+        name: "Example Factory",
+        type: "factory",
+        latitude: 25.60,
+        longitude: 85.10,
+        distanceKm: 1.24
+    },
+    {
+        id: "facility-2",
+        name: "Example Power Plant",
+        type: "power",
+        latitude: 25.61,
+        longitude: 85.13,
+        distanceKm: 4.82
+    }
+]
+```
 
-architecture.
+Do not mutate the original API response unnecessarily.
 
-# COMMENTS — VERY IMPORTANT
+Prefer creating processed objects.
 
-I am a beginner and I want to understand this code later.
+---
+
+# STEP 6 — SORT BY DISTANCE
+
+Sort processed facilities from nearest to farthest.
+
+Example:
+
+```text
+Factory A — 1.2 km
+Power Plant B — 3.7 km
+Mine C — 8.4 km
+```
+
+The nearest facility should be easily accessible.
+
+For example:
+
+```javascript
+nearestFacility
+```
+
+or another clean property consistent with the existing architecture.
+
+---
+
+# STEP 7 — NEAREST FACILITY RESULT
+
+Create a reusable processing result containing information such as:
+
+```javascript
+{
+    hotspotId: "...",
+    facilities: [...],
+    nearestFacility: {...},
+    nearestDistanceKm: 1.24
+}
+```
+
+This result will later be used by:
+
+* Role 1 → UI
+* Role 2 → Map
+* Role 5 → Classification
+* Role 6 → Testing
+
+Keep the result simple and predictable.
+
+---
+
+# STEP 8 — INDUSTRIAL PROXIMITY CATEGORIES
+
+Prepare the data so Role 5 can later calculate an industrial-context score.
+
+Use the roadmap's prototype idea:
+
+* Very close → High relevance
+* Moderately close → Medium relevance
+* Far → Low relevance
+
+IMPORTANT:
+
+These are **decision-support heuristics**, NOT proof that an industrial facility caused the hotspot.
+
+Do not label a hotspot as definitely industrial merely because a facility is nearby.
+
+If you implement proximity categories, keep them clearly named as heuristic indicators.
+
+For example:
+
+```javascript
+{
+    distanceKm: 1.2,
+    proximityLevel: "high"
+}
+```
+
+The thresholds should be easy to change later.
+
+Do not scatter hard-coded thresholds throughout multiple files.
+
+---
+
+# STEP 9 — PREPARE FOR FUTURE CLASSIFICATION
+
+The processing layer should expose useful information for Role 5.
+
+For example:
+
+```javascript
+{
+    industrialDistanceKm,
+    nearestFacility,
+    industrialProximityLevel
+}
+```
+
+This data may later become part of the classification evidence.
+
+Do NOT build the complete classification engine today.
+
+Do NOT create the final Industrial/Wildfire/Agriculture scoring engine unless the existing code already requires a small compatibility change.
+
+Your primary task is **data processing and industrial proximity**.
+
+---
+
+# STEP 10 — DO NOT BREAK EXISTING FEATURES
+
+Preserve:
+
+* NASA FIRMS hotspot fetching
+* hotspot markers
+* Leaflet map
+* hotspot popups
+* historical data
+* persistence calculations
+* existing UI
+* existing filters
+* responsive design
+* existing classification code
+* existing Git/project structure
+
+If your change affects another module, make the smallest safe modification necessary.
+
+---
+
+# STEP 11 — HANDLE EDGE CASES
+
+The code must safely handle:
+
+### No facilities
+
+If no industrial facilities are returned:
+
+```text
+No nearby industrial facilities found.
+```
+
+Do not crash.
+
+### Invalid facility
+
+Ignore or safely reject the invalid facility.
+
+### Invalid hotspot
+
+Do not calculate distance.
+
+### Empty array
+
+Return a sensible empty result.
+
+### API failure
+
+The processing layer should not crash if the API returns an error.
+
+### Duplicate facilities
+
+Avoid unnecessary duplicate processing where practical.
+
+### Extremely distant facility
+
+The distance should still be calculated correctly.
+
+---
+
+# STEP 12 — LOCALSTORAGE
+
+If the existing project already uses localStorage for caching processed data, integrate with that architecture.
+
+Do not create unnecessary storage systems.
+
+If useful, cache processed industrial proximity information using a clear key structure.
+
+However, do NOT cache stale data indefinitely.
+
+Keep the implementation simple and appropriate for the MVP.
+
+---
+
+# STEP 13 — CODE COMMENTS — VERY IMPORTANT
+
+I am a student and I need to understand this project later.
 
 Therefore:
 
-## ADD COMMENTS IN EVERY LOGICAL SECTION OF CODE.
+## ADD COMMENTS TO EVERY SECTION OF CODE.
 
-Every meaningful function/block should have a beginner-friendly comment explaining:
+Every meaningful section/function should have a clear comment explaining:
 
-1. WHAT the section does.
-2. WHY it is needed.
-3. WHAT the important variables mean.
-4. WHAT data goes into it.
-5. WHAT data comes out of it.
-6. Which role/module uses the result.
-
-Do NOT use useless comments like:
-
-// loop
-// function
-// calculate
-
-Instead use explanatory comments.
+1. What the code does.
+2. Why it is needed.
+3. What input it expects.
+4. What output it produces.
+5. Any important logic or assumption.
 
 For example:
 
-// Persistence tells us how consistently this thermal event
-// appeared across the days we analysed. It is calculated as
-// unique detection days divided by total analysed days.
-// This is an MVP heuristic, not scientific ground truth.
+```javascript
+// Calculate the geographic distance between the selected hotspot
+// and an industrial facility using Turf.js.
+// The result is returned in kilometers so it can be displayed
+// in the ThermalX dashboard and used by the classification layer.
+```
 
-For spatial grouping:
+For more complex logic, explain it step-by-step.
 
-// Here we group detections that are geographically close to each other.
-// Multiple satellite detections may represent the same real-world
-// thermal event, so we combine nearby points before calculating
-// persistence.
+Do NOT add meaningless comments like:
 
-For date grouping:
+```javascript
+// This is a function
+```
 
-// A single day may contain multiple FIRMS detections.
-// We count the calendar date only once when calculating
-// persistence, so three detections on the same day do not
-// incorrectly become three persistence days.
+Comments should help a beginner understand the actual logic.
 
-For invalid data:
+Add comments before:
 
-// Invalid coordinates are removed before spatial calculations.
-// Turf.js expects valid geographic coordinates, so allowing
-// malformed records into the calculation could produce incorrect results.
+* imports
+* constants
+* helper functions
+* validation functions
+* Turf.js calculations
+* loops
+* filtering
+* sorting
+* proximity classification
+* nearest-facility selection
+* localStorage logic
+* exported functions
+* important conditionals
 
-Comments should help me understand the project months later.
+---
 
-Do not comment every obvious syntax line.
+# STEP 14 — BEGINNER-FRIENDLY CODE
 
-Instead, comment EVERY IMPORTANT LOGICAL SECTION.
+Write code that a BTech CSE student can understand.
 
-# ERROR SAFETY
+Prefer:
 
-The processing pipeline must not crash because of one bad FIRMS record.
+* clear variable names
+* small functions
+* simple control flow
+* reusable functions
+* minimal abstraction
 
-If one record is invalid:
+Avoid unnecessarily advanced JavaScript.
 
-* skip it
-* continue processing valid records
-* optionally record/debug the problem
+Do not use complicated one-liners when a few readable lines would be easier to understand.
 
-Do not terminate the entire application because one record is malformed.
+---
 
-# EMPTY DATA
+# STEP 15 — MODULE RESPONSIBILITY
 
-Handle:
+Respect the current project architecture.
 
-[]
+### api.js
 
-correctly.
+Responsible for:
 
-If there are no historical detections:
+* fetching external API data
 
-return a safe empty result.
+### processing.js
 
-Do not create fake events.
+Responsible for:
 
-The UI should be able to display something like:
+* cleaning
+* validating
+* transforming
+* calculating distances
+* spatial processing
 
-"No historical detections available."
+### map.js
 
-# DUPLICATES
+Responsible for:
 
-Be aware that duplicate FIRMS records may exist.
+* Leaflet map
+* markers
+* layers
+* visual map representation
 
-Do not blindly count exact duplicates as separate meaningful events if the existing project architecture expects deduplication.
+### classification.js
 
-If deduplication is implemented:
+Responsible for:
 
-keep it simple and explain the rule clearly in comments.
+* classification logic
 
-Do not remove records merely because they are geographically close; spatially close detections may legitimately represent multiple observations of the same event.
+### app.js
 
-# TEST CASES
+Responsible for:
 
-After implementation, test at least:
+* connecting modules
+* application flow
+* UI events
 
-### TEST 1 — Empty data
+Do not put all logic inside app.js.
 
-Input:
+---
 
-[]
+# STEP 16 — UI INTEGRATION
+
+Only make the minimum UI integration required to verify the processing functionality.
+
+When a user selects a hotspot, the system should eventually be able to expose information like:
+
+```text
+Industrial Context
+
+Nearest Facility:
+Example Factory
+
+Type:
+Factory
+
+Distance:
+1.24 km
+
+Proximity:
+High
+```
+
+If Role 1 already owns the information panel, do NOT redesign the entire UI.
+
+Instead, expose clean processed data that Role 1 can consume.
+
+---
+
+# STEP 17 — MAP INTEGRATION
+
+Do not take over Role 2's responsibility.
+
+However, make sure the processed facility data remains compatible with map visualization.
+
+The processed facility object should retain:
+
+* latitude
+* longitude
+* type
+* name
+* distance
+
+so the map layer can use it.
+
+---
+
+# STEP 18 — TESTING
+
+After implementation, test at least these cases:
+
+### Test 1 — One hotspot + one facility
 
 Expected:
 
-No events / safe empty result.
+```text
+Distance calculated correctly.
+```
 
-### TEST 2 — One detection
-
-One hotspot on one day.
-
-Expected:
-
-detectionCount = 1
-uniqueDays = 1
-
-### TEST 3 — Multiple detections on same day
-
-Example:
-
-3 detections
-same location
-same date
+### Test 2 — One hotspot + multiple facilities
 
 Expected:
 
-detectionCount = 3
-uniqueDays = 1
+```text
+All facilities receive distance.
+Facilities are sorted nearest → farthest.
+Nearest facility is correctly identified.
+```
 
-Persistence should use 1 day, NOT 3 days.
-
-### TEST 4 — Multiple days
-
-Example:
-
-detections on:
-
-Day 1
-Day 2
-Day 3
-Day 5
+### Test 3 — No facilities
 
 Expected:
 
-uniqueDays = 4
+```text
+No crash.
+Empty result handled correctly.
+```
 
-### TEST 5 — Persistence
-
-If:
-
-uniqueDays = 4
-daysAnalysed = 5
+### Test 4 — Invalid coordinates
 
 Expected:
 
-persistence = 80%
+```text
+Invalid data is ignored safely.
+```
 
-### TEST 6 — Persistence category
+### Test 5 — Multiple industrial facility types
 
-Check:
+Test:
 
-0–20 → Low
-21–50 → Moderate
-51–80 → High
-81–100 → Very High
-
-### TEST 7 — Invalid coordinates
-
-Include:
-
-latitude = 999
+* factory
+* power plant
+* refinery
+* mine
+* oil/gas infrastructure
 
 Expected:
 
-record removed.
+```text
+Type remains available in processed data.
+```
 
-### TEST 8 — Multiple spatial groups
+### Test 6 — Existing application
 
-Provide detections in two clearly separated locations.
+Confirm:
 
-Expected:
+* map still works
+* hotspot markers still work
+* popups still work
+* historical data still works
+* existing UI still works
+* no JavaScript console errors
 
-two separate thermal events.
+---
 
-### TEST 9 — Nearby detections
+# STEP 19 — CONSOLE DEBUGGING
 
-Provide multiple geographically close detections.
+During development, use clear debugging messages where useful.
 
-Expected:
+For example:
 
-they can be grouped into the same event according to the configured threshold.
+```javascript
+console.log("Processed industrial facilities:", facilities);
+console.log("Nearest facility:", nearestFacility);
+```
 
-### TEST 10 — Missing fields
+Do not leave excessive debugging logs in the final production version.
 
-Provide a record missing required values.
+---
 
-Expected:
+# STEP 20 — SECURITY / RELIABILITY
 
-application does not crash.
+Do not trust API data blindly.
 
-### TEST 11 — Zero analysed days
+Validate external data before processing.
 
-Expected:
+Do not insert raw API values into HTML using unsafe methods if they can contain arbitrary content.
 
-no division-by-zero error.
+Prefer safe DOM manipulation where appropriate.
 
-# IMPORTANT SCIENTIFIC / RESPONSIBLE WORDING
+Do not expose API keys in unnecessary places.
 
-Do not claim:
+If the NASA FIRMS API requires a key, follow the existing project's approach and do not invent credentials.
 
-"This is definitely the same fire."
+---
 
-Do not claim:
+# STEP 21 — DO NOT OVERENGINEER
 
-"This proves the source."
+This is a 10-day MVP.
 
-Spatial grouping and persistence are only indicators.
+The roadmap explicitly prioritizes a working MVP over sophisticated technology.
 
-Use wording such as:
+Therefore:
 
-"Potential recurring thermal event"
+DO NOT:
 
-or:
+* build a backend
+* build a database
+* train machine learning models
+* introduce React
+* introduce Python
+* introduce PostgreSQL
+* redesign the whole application
+* add unnecessary libraries
+* create unnecessary files
 
-"Persistent thermal activity"
+Focus specifically on the Day 4 Role 4 requirement.
 
-where appropriate.
+---
 
-Remember that the persistence thresholds are prototype rules and not scientific ground truth.
+# STEP 22 — FINAL IMPLEMENTATION CHECK
 
-# GIT-FRIENDLY CHANGES
+After coding, verify:
 
-Keep the changes focused on Day 3 Role 4.
+[ ] Existing project structure preserved
+[ ] Existing Day 1–Day 3 functionality preserved
+[ ] Hotspot coordinates validated
+[ ] Facility coordinates validated
+[ ] Turf.js used for geographic distance
+[ ] Distance returned in kilometers
+[ ] Multiple facilities processed
+[ ] Facilities sorted by distance
+[ ] Nearest facility identified
+[ ] Proximity level prepared
+[ ] Invalid data handled
+[ ] Empty results handled
+[ ] Existing APIs not unnecessarily changed
+[ ] Data structure is reusable by other roles
+[ ] Code is beginner-friendly
+[ ] Every meaningful code section has explanatory comments
+[ ] No unnecessary frameworks introduced
+[ ] No console errors
+[ ] No broken UI
+[ ] No unnecessary duplicate code
 
-Do not modify unrelated UI.
+---
 
-Do not change styling unnecessarily.
+# VERY IMPORTANT — DO NOT STOP AT EXPLANATION
 
-Do not change the NASA API implementation unless required for data compatibility.
+Do not merely explain what should be done.
 
-Do not modify classification logic unnecessarily.
+Actually inspect the existing ThermalX project and implement the required Day 4 Role 4 changes in the appropriate files.
 
-Do not modify deployment configuration unnecessarily.
+Before modifying anything, understand the existing code.
 
-# AFTER IMPLEMENTATION
+After modifying it:
 
-After coding, provide me with:
+1. Explain exactly which files you changed.
+2. Explain what you added to each file.
+3. Explain the data flow in simple language.
+4. Explain the distance calculation in beginner-friendly language.
+5. Explain how another team member can use your processed data.
+6. Mention any assumptions you had to make.
+7. Mention anything that could not be implemented because the existing project does not yet contain the required dependency/API/data.
 
-## 1. FILES CHANGED
+---
 
-List every modified file.
+# FINAL TEACHING REQUIREMENT
 
-Example:
+After implementation, give me a short section titled:
 
-* js/processing.js
-* js/app.js
+## "WHAT I SHOULD UNDERSTAND FROM TODAY"
 
-Explain why each file was changed.
+Explain in very simple terms:
 
-## 2. FUNCTIONS CREATED / MODIFIED
+* What data processing means in ThermalX.
+* Why we validate coordinates.
+* Why Turf.js is being used.
+* How distance between two geographic points is calculated.
+* What nearest facility means.
+* What industrial proximity means.
+* Why proximity does NOT prove that an industrial facility caused the hotspot.
+* How today's work will help Role 5 with classification.
+* How today's work connects to Day 5 clustering and persistence.
 
-Give me the function names and explain each one in very simple language.
+Keep this explanation beginner-friendly.
 
-## 3. DATA FLOW
+Remember:
 
-Show:
+**Working MVP > sophisticated technology.**
 
-FIRMS historical data
-↓
-Validation
-↓
-Normalization
-↓
-Spatial grouping
-↓
-Temporal grouping
-↓
-Unique days
-↓
-Persistence
-↓
-Thermal events
-↓
-Role 1 / Role 2 / Role 5
+The goal is not to make ThermalX unnecessarily complex.
 
-## 4. PERSISTENCE EXAMPLE
-
-Show one simple example of how:
-
-days detected / days analysed
-
-becomes the final percentage and category.
-
-## 5. TEST RESULTS
-
-Tell me exactly what you tested.
-
-Do NOT claim something passed unless you actually tested it.
-
-If something could not be tested, clearly say so.
-
-## 6. BEGINNER CODE GUIDE
-
-Explain:
-
-"If you want to understand this code later, start here..."
-
-Then give me the recommended reading order of the functions/files.
-
-## 7. POSSIBLE ISSUES
-
-Tell me honestly if there are any concerns regarding:
-
-* spatial threshold
-* historical data availability
-* performance
-* duplicate records
-* date handling
-* Turf.js
-* browser limitations
-
-# FINAL RULES
-
-Before finishing:
-
-* Preserve existing functionality.
-* Do not rebuild the project.
-* Do not add unnecessary technologies.
-* Keep Role 4 focused on DATA PROCESSING.
-* Use Turf.js appropriately.
-* Validate data before calculations.
-* Handle empty and invalid data safely.
-* Calculate unique detection days correctly.
-* Calculate persistence correctly.
-* Keep persistence thresholds configurable.
-* Treat thresholds as prototype heuristics.
-* Keep event IDs readable.
-* Keep the code modular.
-* Add beginner-friendly comments in EVERY logical section.
-* Test the implementation.
-* Explain every important modification.
-
-MOST IMPORTANT:
-
-**BUILD DAY 3 — ROLE 4 DATA PROCESSING AND HISTORICAL PERSISTENCE.**
-
-Do NOT build the entire ThermalX project from scratch.
-
-Do NOT implement Day 4, Day 5, or Day 6 features unless a tiny compatibility change is required.
-
-The goal is to make historical FIRMS hotspot data usable as clean, persistent thermal-event data for the rest of the ThermalX system.
+The goal is to make the Day 4 Role 4 data-processing component **correct, reusable, understandable, and stable**.
