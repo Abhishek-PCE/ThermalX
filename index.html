@@ -275,6 +275,31 @@
                         </div>
                     </div>
 
+                    <!-- ========================================================== -->
+                    <!-- DAY 4 ROLE 1: INDUSTRIAL CONTEXT PANEL -->
+                    <!-- ========================================================== -->
+                    <!-- 
+                        Industrial Context Panel:
+                        Displays nearby industrial facilities for the selected
+                        thermal hotspot to help evaluate if the fire is industrial.
+                    -->
+                    <div class="tx-detail-card" id="industrial-context-panel">
+                        <div class="tx-card-title">
+                            <span class="tx-card-icon">🏭</span>
+                            <h4>INDUSTRIAL CONTEXT</h4>
+                        </div>
+                        
+                        <!-- Explanatory text -->
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 15px; font-style: italic; line-height: 1.4; border-left: 2px solid #3b82f6; padding-left: 8px;">
+                            Nearby industrial facilities are shown as contextual evidence. Proximity alone does not prove that a facility caused the thermal event.
+                        </div>
+
+                        <!-- Container for dynamic facility cards -->
+                        <div id="industrial-facilities-container">
+                            <div style="color: #888; font-size: 0.85rem; font-style: italic;">No hotspot selected.</div>
+                        </div>
+                    </div>
+
                     <!-- Card 5: Classification Details & Evidence (Rule-based heuristics from Role 5) -->
                     <div class="tx-detail-card">
                         <div class="tx-card-title">
