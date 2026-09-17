@@ -1,0 +1,1010 @@
+You are working as the **Frontend & UI Developer for ThermalX**.
+
+## PROJECT
+
+Project Name: **ThermalX**
+
+ThermalX is a JavaScript-first web application for detecting, analyzing, classifying, and visualizing thermal hotspots detected by NASA FIRMS.
+
+The overall MVP flow is:
+
+NASA FIRMS Data
+→ Map
+→ Historical Detections
+→ Persistence
+→ Industrial Context
+→ Classification
+→ Evidence
+→ Priority
+
+The project is intentionally being built using:
+
+* HTML
+* CSS
+* Vanilla JavaScript
+* Leaflet.js
+* NASA FIRMS
+* OpenStreetMap / Overpass
+* Turf.js
+* Browser localStorage
+
+Do NOT introduce React, Node.js, Python, FastAPI, PostgreSQL, PostGIS, TensorFlow, PyTorch, Docker, Kubernetes, or other unnecessary technologies during this MVP stage.
+
+The goal is a working and understandable MVP, not an over-engineered application.
+
+---
+
+# YOUR ROLE
+
+You are acting as:
+
+**Role 1 — Frontend & UI Developer**
+
+Your responsibility for **Day 5** is:
+
+> Build the Thermal Event UI / Event Panel around clustered thermal-event data.
+
+The roadmap defines Day 5 as:
+
+**Objective:** ThermalX identifies persistent thermal events.
+
+For Role 1 specifically:
+
+* Build the event panel around thermal-event data.
+* Display clustered thermal events instead of forcing the user to inspect hundreds of individual hotspot points.
+* Make the event information understandable to a normal user.
+* Prepare the UI so later classification, evidence, confidence, and priority information can easily be added.
+
+Do NOT take ownership of the backend/data-processing logic.
+
+Role 4 owns:
+
+* Spatial clustering
+* Temporal grouping
+* Persistence
+* Detection count
+* Unique days
+* First/last detection
+* Recurrence rate
+* Event IDs
+
+Role 2 owns:
+
+* Event representation on the Leaflet map
+
+Role 3 supports:
+
+* Clustering data flow
+
+You consume the event data produced by those modules and create the frontend experience.
+
+---
+
+# IMPORTANT EXISTING PROJECT RULE
+
+Before changing anything:
+
+1. Inspect the complete existing project.
+2. Understand the current:
+
+   * index.html
+   * css/style.css
+   * js/app.js
+   * js/map.js
+   * js/api.js
+   * js/processing.js
+   * js/classification.js
+3. Do NOT blindly replace existing code.
+4. Preserve working features.
+5. Do NOT remove existing functionality unless it is genuinely broken and your change is required.
+6. Reuse the existing architecture and design language wherever possible.
+7. If a required file/module does not exist, create it.
+8. If a required function already exists, extend it instead of creating conflicting duplicate functions.
+
+The recommended project structure is:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+---
+
+# DAY 5 MAIN OBJECTIVE
+
+Create a polished **Thermal Event Panel** that works with clustered thermal-event data.
+
+The user should be able to:
+
+1. See thermal events on the dashboard.
+2. Select an event.
+3. Open its detailed event panel.
+4. Understand:
+
+   * Event ID
+   * Detection count
+   * Number of unique days
+   * First detection
+   * Last detection
+   * Persistence
+   * Recurrence
+   * Average FRP
+   * Location
+   * Current status
+5. Understand that one event represents multiple related thermal detections.
+6. See a timeline/history representation.
+7. Easily understand which events are persistent.
+
+---
+
+# EXPECTED EVENT DATA
+
+The UI should be prepared to consume an event object similar to:
+
+{
+id: "TX-001",
+latitude: 25.5941,
+longitude: 85.1376,
+detections: [],
+detectionCount: 8,
+uniqueDays: 5,
+firstDetection: "2026-09-10",
+lastDetection: "2026-09-14",
+persistenceScore: 62,
+recurrenceRate: 0.62,
+averageFRP: 145.5,
+averageBrightness: 328.4,
+confidence: "high"
+}
+
+IMPORTANT:
+
+Do not assume the exact existing object structure.
+
+First inspect the existing processing.js and data structures.
+
+Adapt the UI to the existing structure.
+
+If fields are missing, create safe fallbacks instead of crashing.
+
+---
+
+# EVENT ID
+
+The roadmap uses event IDs such as:
+
+TX-001
+TX-002
+TX-003
+
+Display the event ID prominently.
+
+Example:
+
+THERMAL EVENT
+TX-001
+
+Do not generate random IDs in the frontend if Role 4 already provides event IDs.
+
+---
+
+# EVENT PANEL DESIGN
+
+Create a clear and modern ThermalX event details panel.
+
+The panel should contain:
+
+## 1. Event Header
+
+Display:
+
+* Thermal Event
+* Event ID
+* Location
+* Status / persistence level
+
+Example:
+
+Thermal Event
+TX-001
+
+Persistent Event
+
+---
+
+## 2. Event Summary
+
+Show important metrics using cards or compact information blocks:
+
+* Detection Count
+* Unique Days
+* Persistence
+* Average FRP
+* Confidence
+* Recurrence Rate
+
+Example:
+
+Detection Count
+8
+
+Unique Days
+5
+
+Persistence
+62%
+
+Average FRP
+145.5 MW
+
+Confidence
+High
+
+---
+
+# 3. PERSISTENCE INDICATOR
+
+Create a visual persistence indicator.
+
+For example:
+
+Persistence
+████████████░░░░ 62%
+
+The implementation may use:
+
+* progress bar
+* circular indicator
+* percentage badge
+* horizontal meter
+
+Choose the option that best matches the existing ThermalX UI.
+
+Persistence thresholds from the project roadmap are:
+
+0–20% → Low
+
+21–50% → Moderate
+
+51–80% → High
+
+81–100% → Very High
+
+IMPORTANT:
+
+These are prototype rules, NOT scientific ground truth.
+
+Do not present them as scientifically validated thresholds.
+
+---
+
+# 4. DETECTION HISTORY
+
+Create an event-history section.
+
+Display:
+
+* First Detection
+* Last Detection
+* Detection Count
+* Unique Days
+
+Example:
+
+Detection History
+
+First detected
+10 Sep 2026
+
+Last detected
+14 Sep 2026
+
+Detected
+8 times
+
+Unique days
+5
+
+---
+
+# 5. TIMELINE
+
+Create a simple visual timeline showing detections across time.
+
+Example:
+
+10 Sep
+●
+
+11 Sep
+●
+
+12 Sep
+●
+
+13 Sep
+●
+
+14 Sep
+●
+
+If exact detection dates are available, use them.
+
+If exact historical detection data is not available, do NOT invent dates.
+
+Use whatever real data exists.
+
+---
+
+# 6. LOCATION INFORMATION
+
+Display:
+
+* Latitude
+* Longitude
+* Detection area / location if available
+* Number of nearby detections
+
+Example:
+
+Location
+
+25.5941° N
+85.1376° E
+
+If a location name is unavailable, simply show the coordinates.
+
+Do not invent a city or facility name.
+
+---
+
+# 7. EVENT STATUS
+
+Create a clear status based on persistence.
+
+Possible UI labels:
+
+Low Persistence
+Moderate Persistence
+High Persistence
+Very High Persistence
+
+Use the existing project styling.
+
+Do not make the status look like a legal or scientific conclusion.
+
+---
+
+# 8. EMPTY STATE
+
+When no event is selected, show a useful empty state.
+
+Example:
+
+Select a thermal event
+
+Choose an event from the map to view its history, persistence, and detection details.
+
+Do NOT leave a blank panel.
+
+---
+
+# 9. LOADING STATE
+
+When event information is being prepared, show a simple loading state.
+
+Example:
+
+Analyzing thermal event...
+
+Do not freeze the interface.
+
+---
+
+# 10. ERROR STATE
+
+If an event object is incomplete or invalid:
+
+Show a friendly message.
+
+Example:
+
+Event details unavailable
+
+Some thermal-event data is missing or could not be processed.
+
+Do NOT allow undefined/null values to create broken UI.
+
+---
+
+# MAP ↔ EVENT PANEL CONNECTION
+
+The event panel must be connected to the map.
+
+When the user selects/clicks a thermal event:
+
+1. Identify the event.
+2. Pass the selected event to the frontend UI.
+3. Open/update the event panel.
+4. Display the correct event information.
+5. Keep the selected event visually identifiable if the current map architecture supports it.
+
+Do NOT duplicate map logic unnecessarily.
+
+If map.js already has event-selection functionality, reuse it.
+
+---
+
+# EVENT LIST
+
+If the current dashboard has enough space, create an event list or event summary section.
+
+Each event item should show:
+
+* Event ID
+* Persistence
+* Detection count
+* Classification placeholder if available
+* Priority placeholder if available
+
+Example:
+
+TX-001
+High Persistence
+8 detections
+
+TX-002
+Moderate Persistence
+4 detections
+
+TX-003
+Very High Persistence
+12 detections
+
+Clicking an event should open its detailed panel.
+
+If the current design does not have enough space, prioritize the detailed event panel over a large event list.
+
+---
+
+# RESPONSIVE DESIGN
+
+The UI MUST work on:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile phone
+
+On desktop:
+
+Map + event panel can appear side by side.
+
+On mobile:
+
+Stack them vertically.
+
+Example:
+
+MAP
+↓
+EVENT PANEL
+
+Do not allow:
+
+* horizontal page overflow
+* text being cut off
+* event cards extending outside the screen
+* buttons becoming impossible to tap
+* tiny unreadable text
+* broken Leaflet map dimensions
+
+Use responsive CSS.
+
+---
+
+# VISUAL DESIGN
+
+Keep the ThermalX interface professional and suitable for a hackathon presentation.
+
+The design should communicate:
+
+* Satellite monitoring
+* Thermal detection
+* Geospatial intelligence
+* Environmental monitoring
+* Data analysis
+
+Do not make it childish.
+
+Do not use excessive animations.
+
+Do not overload the interface with unnecessary gradients or decorative elements.
+
+Prioritize:
+
+* readability
+* hierarchy
+* clean cards
+* clear metrics
+* clear labels
+* professional spacing
+* responsive behavior
+
+---
+
+# JAVASCRIPT ARCHITECTURE
+
+Keep responsibilities separated.
+
+UI-related functions should preferably remain in:
+
+app.js
+
+Map-specific functionality should remain in:
+
+map.js
+
+Data fetching should remain in:
+
+api.js
+
+Data processing should remain in:
+
+processing.js
+
+Classification should remain in:
+
+classification.js
+
+Do not put all code into one giant JavaScript file.
+
+If a dedicated UI module is necessary, you may create:
+
+js/ui.js
+
+but only if it genuinely improves the existing architecture.
+
+---
+
+# SAFE DATA HANDLING
+
+The UI must handle:
+
+* missing persistenceScore
+* missing detectionCount
+* missing uniqueDays
+* missing FRP
+* missing confidence
+* missing coordinates
+* empty detections array
+* null values
+* undefined values
+
+Never render:
+
+undefined
+
+null
+
+NaN
+
+Instead show:
+
+N/A
+
+when appropriate.
+
+---
+
+# IMPORTANT: DO NOT INVENT DATA
+
+This is extremely important.
+
+Do NOT fabricate:
+
+* FIRMS detections
+* dates
+* FRP values
+* confidence values
+* facility distances
+* persistence percentages
+* classification results
+
+If real data is unavailable, use:
+
+N/A
+
+or existing demo data only if the project already contains demo data.
+
+---
+
+# CLASSIFICATION PLACEHOLDER
+
+Day 5 is primarily about thermal-event clustering and UI.
+
+The final classification engine belongs to Day 6.
+
+Therefore, do NOT build the full classification engine now.
+
+However, design the event panel so a future section can easily display:
+
+Classification
+Industrial
+
+Confidence
+82%
+
+Evidence
+5 consecutive days
+1.2 km from facility
+High average FRP
+
+For now, if classification is unavailable, show:
+
+Classification
+Pending analysis
+
+This keeps the UI compatible with Day 6.
+
+---
+
+# PRIORITY PLACEHOLDER
+
+Similarly, Day 8 introduces priority levels:
+
+Low
+Medium
+High
+Critical
+
+Do not build the full priority engine now.
+
+But leave the UI architecture ready to display a future priority value.
+
+If unavailable:
+
+Priority
+Pending analysis
+
+---
+
+# EVENT DATA FLOW
+
+Follow this conceptual flow:
+
+Raw FIRMS detections
+↓
+Role 4 processing
+↓
+Spatial clustering
+↓
+Temporal grouping
+↓
+Persistence calculation
+↓
+Thermal Event Object
+↓
+Role 1 Event UI
+↓
+User selects event
+↓
+Event Details Panel
+
+Do not move clustering logic into the UI.
+
+---
+
+# CODE COMMENTS — VERY IMPORTANT
+
+I need to understand this project later.
+
+Therefore:
+
+## ADD COMMENTS TO EVERY SECTION OF CODE.
+
+Every major section of HTML, CSS, and JavaScript must contain a clear beginner-friendly comment explaining:
+
+1. What this section does.
+2. Why it exists.
+3. How it connects to ThermalX.
+
+Examples:
+
+HTML:
+
+<!-- Thermal Event Panel:
+     This section displays details of the thermal event selected by the user.
+     It receives processed event information from JavaScript. -->
+
+CSS:
+
+/* Thermal Event Summary Cards:
+These styles create small metric cards for detection count,
+persistence, FRP, and other event information. */
+
+JavaScript:
+
+// Updates the Event Details panel whenever the user selects a thermal event.
+// The selected event comes from the processed thermal-event data.
+
+Do NOT add meaningless comments like:
+
+// create div
+// set color
+// function
+
+Comments should actually help a beginner understand the code.
+
+---
+
+# COMMENT REQUIREMENT
+
+For every major function, add a comment above the function explaining:
+
+* purpose
+* input
+* output
+* important logic
+
+Example:
+
+// renderEventDetails()
+// Purpose: Displays the selected thermal event inside the Event Details panel.
+// Input: event object created by the processing module.
+// Output: Updates the HTML elements with event information.
+// Important: Uses safe fallback values when some event fields are missing.
+
+---
+
+# CODE QUALITY
+
+Write clean beginner-readable JavaScript.
+
+Prefer:
+
+const
+let
+functions
+arrays
+objects
+template literals
+
+Avoid unnecessarily advanced JavaScript.
+
+Do not use complicated patterns just to make the code shorter.
+
+Readable code is more important than minimum line count.
+
+---
+
+# DO NOT BREAK EXISTING FEATURES
+
+Before finishing:
+
+Test all previously working features.
+
+Make sure your changes do not break:
+
+* Leaflet map
+* NASA FIRMS data
+* existing markers
+* hotspot selection
+* historical data
+* existing dashboard
+* filters
+* navigation
+* responsive design
+
+If something is already working, preserve it.
+
+---
+
+# TEST WITH REALISTIC DATA
+
+If the actual clustering module is already available:
+
+Use its output.
+
+If it is not yet available:
+
+Create a temporary development adapter/mock ONLY if necessary to test the UI.
+
+Clearly label mock/demo data.
+
+Do not replace the actual processing system with mock data.
+
+---
+
+# ACCEPTANCE CRITERIA
+
+The implementation is successful only if:
+
+[ ] Thermal events can be represented in the UI.
+
+[ ] Event IDs such as TX-001 are displayed.
+
+[ ] User can select an event.
+
+[ ] Event panel opens/updates correctly.
+
+[ ] Detection count is displayed.
+
+[ ] Unique days are displayed.
+
+[ ] First detection is displayed.
+
+[ ] Last detection is displayed.
+
+[ ] Persistence percentage is displayed.
+
+[ ] Persistence level is displayed.
+
+[ ] Average FRP is displayed when available.
+
+[ ] Recurrence rate is displayed when available.
+
+[ ] Location/coordinates are displayed.
+
+[ ] Detection history/timeline is displayed when data exists.
+
+[ ] Missing data does not crash the UI.
+
+[ ] Empty state exists.
+
+[ ] Loading state exists.
+
+[ ] Error state exists.
+
+[ ] Mobile layout works.
+
+[ ] Desktop layout works.
+
+[ ] Existing features continue working.
+
+[ ] No unnecessary frameworks are introduced.
+
+[ ] Code is commented section-by-section.
+
+[ ] Major functions have beginner-friendly comments.
+
+[ ] No fake scientific conclusions are displayed.
+
+[ ] No fake FIRMS data is created.
+
+---
+
+# IMPORTANT SCIENTIFIC WORDING
+
+ThermalX is a decision-support prototype.
+
+Never display language that implies certainty.
+
+Use wording such as:
+
+"Persistent thermal event"
+
+"Likely source"
+
+"AI-assisted classification"
+
+"Requires human verification"
+
+"Prototype persistence score"
+
+Avoid statements such as:
+
+"This is definitely an illegal fire."
+
+"This factory caused the fire."
+
+"This is confirmed industrial activity."
+
+The roadmap specifically requires responsible wording and says not to claim certainty or illegal activity.
+
+---
+
+# FINAL TASK
+
+Now inspect the existing ThermalX project and implement **Day 5 — Role 1**.
+
+Your work should focus on:
+
+**THERMAL EVENT UI**
+
+The final user experience should be:
+
+FIRMS hotspots
+↓
+Clustered thermal events
+↓
+User selects TX-001
+↓
+Event panel opens
+↓
+User sees:
+
+* Event ID
+* Location
+* Detection count
+* Unique days
+* First detection
+* Last detection
+* Persistence
+* Recurrence
+* Average FRP
+* Confidence
+* Timeline/history
+  ↓
+  User can understand how persistent the thermal event is.
+
+---
+
+# BEFORE MODIFYING FILES
+
+First inspect the project and identify:
+
+1. Existing event-related code.
+2. Existing map-selection logic.
+3. Existing processing data structure.
+4. Existing dashboard UI.
+5. Existing CSS design system.
+6. Existing responsive behavior.
+
+Then make the smallest clean set of changes required.
+
+---
+
+# AFTER IMPLEMENTATION
+
+After coding:
+
+1. Check for JavaScript errors.
+2. Check for HTML errors.
+3. Check for CSS layout problems.
+4. Check event selection.
+5. Check empty state.
+6. Check missing-data handling.
+7. Check desktop layout.
+8. Check mobile layout.
+9. Check that existing functionality still works.
+10. Explain exactly which files were changed.
+11. Explain what each changed section does.
+12. Tell me how to test the Day 5 Role 1 functionality manually.
+
+Do not simply say "done."
+
+Give a concise implementation summary and testing checklist.
+
+---
+
+# FINAL DEVELOPMENT PRINCIPLE
+
+Follow this rule throughout the task:
+
+**Never sacrifice a working MVP for a sophisticated feature.**
+
+The goal is a stable, understandable, demonstrable ThermalX Day-5 implementation.
+
+Build the UI in a way that can later receive:
+
+Day 6 → Classification
+
+Day 7 → Dashboard integration
+
+Day 8 → Evidence + Confidence + Priority
+
+Day 9 → Demo Mode + Testing
+
+Day 10 → Final Deployment
+
+But do NOT implement those future features unnecessarily today.
