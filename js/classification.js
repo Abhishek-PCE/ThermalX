@@ -46,6 +46,136 @@ const CATEGORIES = {
  */
 
 // ============================================================================
+// DAY 3 ROLE 5: PERSISTENCE SCORING ENGINE
+// ============================================================================
+
+// --------------------------------------------------
+// Persistence Threshold Configuration
+// Defines the prototype thresholds used to categorize
+// how frequently a thermal event was detected.
+// These values are decision-support heuristics,
+// not scientific ground truth.
+// --------------------------------------------------
+const PERSISTENCE_THRESHOLDS = {
+    LOW: { max: 20, label: "LOW" },
+    MODERATE: { max: 50, label: "MODERATE" },
+    HIGH: { max: 80, label: "HIGH" },
+    VERY_HIGH: { max: 100, label: "VERY HIGH" }
+};
+
+// --------------------------------------------------
+// Date Normalization
+// Converts different date representations into a
+// consistent YYYY-MM-DD format so multiple detections
+// on the same calendar day are counted only once.
+// --------------------------------------------------
+function normalizeDateString(dateInput) {
+    if (!dateInput) return null;
+    return String(dateInput).split('T')[0];
+}
+
+// --------------------------------------------------
+// Unique Days Calculation
+// Determines the number of unique calendar days
+// on which the event was detected.
+// --------------------------------------------------
+function getUniqueDays(detections) {
+    if (!Array.isArray(detections)) return 0;
+    const uniqueDaysSet = new Set();
+    detections.forEach(det => {
+        // Look for the date in common properties
+        const rawDate = det.date || det.acq_date || det.timestamp;
+        if (rawDate) {
+            const dateStr = normalizeDateString(rawDate);
+            if (dateStr) uniqueDaysSet.add(dateStr);
+        } else if (typeof det === 'string' || typeof det === 'number') {
+            // Handle if the array just contains raw strings/timestamps
+            const dateStr = normalizeDateString(det);
+            if (dateStr) uniqueDaysSet.add(dateStr);
+        }
+    });
+    return uniqueDaysSet.size;
+}
+
+// --------------------------------------------------
+// Persistence Score Calculation & Category
+// Calculates the percentage of analysed days on which
+// the thermal event was detected.
+// Formula:
+// persistence = (days detected / days analysed) × 100
+// --------------------------------------------------
+function calculatePersistence(event, analysisDays = 7) {
+    // --------------------------------------------------
+    // Validation
+    // Protects the application from invalid or incomplete
+    // historical data.
+    // --------------------------------------------------
+    if (!event) {
+        throw new Error("Invalid event data provided for persistence calculation.");
+    }
+
+    let daysDetected = 0;
+
+    // Use Role 4's pre-calculated uniqueDays if available
+    if (event.persistence && typeof event.persistence.uniqueDays === 'number') {
+        daysDetected = event.persistence.uniqueDays;
+    } 
+    // Fallback: extract unique days from an array of raw detections
+    else if (Array.isArray(event.detections)) {
+        daysDetected = getUniqueDays(event.detections);
+    } else {
+        // Minimal fallback
+        daysDetected = 0;
+    }
+
+    // Safety checks
+    if (!Number.isFinite(analysisDays) || analysisDays < 1) {
+        analysisDays = 1;
+    }
+
+    if (daysDetected > analysisDays) {
+        // Cap daysDetected to analysisDays to prevent > 100%
+        daysDetected = analysisDays;
+    }
+
+    // Calculate score
+    let score = (daysDetected / analysisDays) * 100;
+    
+    // Clamp between 0 and 100 just in case
+    score = Math.max(0, Math.min(100, score));
+    
+    // Format to 2 decimal places
+    score = parseFloat(score.toFixed(2));
+
+    // --------------------------------------------------
+    // Persistence Category
+    // Converts the numerical persistence percentage into
+    // LOW, MODERATE, HIGH, or VERY HIGH based on thresholds.
+    // Exactly 20 falls into LOW, 50 into MODERATE, etc.
+    // --------------------------------------------------
+    let category = PERSISTENCE_THRESHOLDS.LOW.label;
+    if (score > PERSISTENCE_THRESHOLDS.HIGH.max) {
+        category = PERSISTENCE_THRESHOLDS.VERY_HIGH.label;
+    } else if (score > PERSISTENCE_THRESHOLDS.MODERATE.max) {
+        category = PERSISTENCE_THRESHOLDS.HIGH.label;
+    } else if (score > PERSISTENCE_THRESHOLDS.LOW.max) {
+        category = PERSISTENCE_THRESHOLDS.MODERATE.label;
+    }
+
+    // Generate explainable evidence
+    const evidenceString = `Detected on ${daysDetected} of ${analysisDays} analysed days.`;
+
+    return {
+        daysDetected: daysDetected,
+        daysAnalysed: analysisDays,
+        persistenceScore: score,
+        persistenceCategory: category,
+        evidence: evidenceString
+    };
+}
+
+
+// ============================================================================
 // 3 & 5. INITIAL INDICATORS & SCORING SYSTEM PLACEHOLDER
 // ============================================================================
 /**
@@ -56,7 +186,7 @@ const CATEGORIES = {
  */
 const HEURISTICS = {
     INDUSTRIAL: {
-        minPersistenceScore: 70,     // High persistence indicates static flare/factory
+        minPersistenceScore: 50,     // High/Moderate persistence indicates static flare/factory
         maxFacilityDistance: 2.0,    // km
         requiresHighFRP: false       // Industrial could be low or high FRP
     },
@@ -138,7 +268,22 @@ function classifyHotspot(hotspot) {
         industrialScore += 50;
         result.evidence.push(`Proximity to facility (${hotspot.industrialContext.distance}km)`);
     }
-    if (hotspot.persistence && hotspot.persistence.score >= HEURISTICS.INDUSTRIAL.minPersistenceScore) {
+
+    // Connect Day 3 Role 5 Persistence Calculation
+    if (hotspot.persistence && typeof hotspot.persistence.uniqueDays === 'number') {
+        // Use default 7 days analysis period for prototype if not specified
+        const analysisDays = hotspot.analysisDays || 7;
+        const persistenceResult = calculatePersistence(hotspot, analysisDays);
+        
+        // Expose persistence data for the UI
+        result.persistenceData = persistenceResult;
+
+        if (persistenceResult.persistenceScore >= HEURISTICS.INDUSTRIAL.minPersistenceScore) {
+            industrialScore += 40;
+            result.evidence.push(`Persistence (${persistenceResult.persistenceCategory}): ${persistenceResult.evidence}`);
+        }
+    } else if (hotspot.persistence && hotspot.persistence.score >= HEURISTICS.INDUSTRIAL.minPersistenceScore) {
+        // Fallback for older mock tests
         industrialScore += 40;
         result.evidence.push(`High persistence score (${hotspot.persistence.score})`);
     }
@@ -241,6 +386,8 @@ const TEST_CLASSIFICATION_CASES = {
 // ============================================================================
 window.ThermalXClassification = {
     CATEGORIES,
+    PERSISTENCE_THRESHOLDS,
+    calculatePersistence,
     classifyHotspot,
     isClassifiable,
     TEST_CLASSIFICATION_CASES

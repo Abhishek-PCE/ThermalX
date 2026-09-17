@@ -10,6 +10,7 @@
 window.MapModule = (function() {
     let map = null;
     let markersLayer = null;
+    let historicalLayer = null; // Day 3: Separate layer for event history
 
     /**
      * Initializes the Leaflet map and base layers.
@@ -181,6 +182,133 @@ window.MapModule = (function() {
         }
     }
 
+    // ====================================================
+    // HISTORICAL MARKERS (Day 3 Role 2)
+    // ====================================================
+
+    /**
+     * ----------------------------------------------------
+     * FUNCTION: clearHistoricalDetections()
+     * PURPOSE: Removes old historical markers when switching
+     *          events, keeping the map clean and preventing
+     *          stale data overlays.
+     * ----------------------------------------------------
+     */
+    function clearHistoricalDetections() {
+        if (historicalLayer) {
+            historicalLayer.clearLayers();
+        }
+    }
+
+    /**
+     * ----------------------------------------------------
+     * FUNCTION: createHistoricalPopupContent(detection)
+     * PURPOSE: Generates the HTML for a historical detection popup.
+     *          Ensures missing values are safely handled.
+     * ----------------------------------------------------
+     */
+    function createHistoricalPopupContent(detection) {
+        const frpText = (detection.frp !== undefined && detection.frp !== null) ? `${detection.frp} MW` : 'Not available';
+        const brightText = (detection.brightness !== undefined && detection.brightness !== null) ? `${detection.brightness} K` : 'Not available';
+        const confText = detection.confidence || 'Not available';
+        const satText = detection.satellite || 'Unknown';
+        const dateText = detection.date || 'Unknown Date';
+
+        return `
+            <div style="font-family: monospace; font-size: 13px; min-width: 180px;">
+                <strong style="color: #607d8b;">• Historical Thermal Detection</strong><br>
+                <hr style="border: 0; border-top: 1px solid #ccc; margin: 5px 0;">
+                <strong>Date:</strong> ${dateText}<br>
+                <strong>Location:</strong> ${detection.latitude.toFixed(4)}, ${detection.longitude.toFixed(4)}<br>
+                <br>
+                <strong>Brightness:</strong> ${brightText}<br>
+                <strong>FRP:</strong> ${frpText}<br>
+                <strong>Confidence:</strong> ${confText}<br>
+                <strong>Satellite:</strong> ${satText}
+            </div>
+        `;
+    }
+
+    /**
+     * ----------------------------------------------------
+     * FUNCTION: addHistoricalMarker(detection)
+     * PURPOSE: Creates a distinct circle marker for a single
+     *          historical point and adds it to historicalLayer.
+     * ----------------------------------------------------
+     */
+    function addHistoricalMarker(detection) {
+        if (!map || !historicalLayer) return;
+
+        // Visual distinction: small grey/blue circle marker instead of large flame icon
+        const marker = L.circleMarker([detection.latitude, detection.longitude], {
+            radius: 6,
+            fillColor: "#607d8b", // Grey-blue color
+            color: "#fff",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        });
+
+        marker.bindPopup(createHistoricalPopupContent(detection));
+        marker.addTo(historicalLayer);
+    }
+
+    /**
+     * ----------------------------------------------------
+     * FUNCTION: renderHistoricalDetections(detections)
+     * PURPOSE: Loops through an array of historical detections,
+     *          validates coordinates, and renders them.
+     * INPUT: detections - Array of historical objects
+     * ----------------------------------------------------
+     */
+    function renderHistoricalDetections(detections) {
+        clearHistoricalDetections(); // Ensure no stale markers
+
+        // Check whether the input is an array before processing
+        // This prevents errors if API or processing layer yields null
+        if (!Array.isArray(detections)) {
+            console.warn("ThermalX Map: Expected array of historical detections, got something else.");
+            return 0;
+        }
+
+        let validCount = 0;
+
+        detections.forEach(det => {
+            // Validate coordinates: prevent Leaflet from crashing on NaN or out-of-bounds
+            const lat = Number(det.latitude);
+            const lng = Number(det.longitude);
+
+            if (
+                !Number.isFinite(lat) || !Number.isFinite(lng) ||
+                lat < -90 || lat > 90 || lng < -180 || lng > 180
+            ) {
+                return; // Skip invalid
+            }
+
+            addHistoricalMarker(det);
+            validCount++;
+        });
+
+        console.log(`ThermalX Map: Rendered ${validCount} historical detections.`);
+        return validCount;
+    }
+
+    /**
+     * ----------------------------------------------------
+     * FUNCTION: fitMapToHistoricalDetections(detections)
+     * PURPOSE: Zooms and pans the map to comfortably fit
+     *          all historical markers for an event.
+     * ----------------------------------------------------
+     */
+    function fitMapToHistoricalDetections() {
+        if (!map || !historicalLayer) return;
+        
+        const bounds = historicalLayer.getBounds();
+        if (bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+        }
+    }
+
     // Expose public API
     return {
         initMap,
@@ -188,6 +316,9 @@ window.MapModule = (function() {
         clearMapMarkers,
         centerMapOn,
         renderHotspots,
+        renderHistoricalDetections,
+        clearHistoricalDetections,
+        fitMapToHistoricalDetections,
         getMapInstance: () => map
     };
 })();
