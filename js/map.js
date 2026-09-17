@@ -50,10 +50,23 @@ window.MapModule = (function() {
             "Satellite (Esri)": satelliteLayer
         };
 
-        L.control.layers(baseMaps).addTo(map);
-
-        // Initialize a feature group for markers to easily clear them later
+        // Initialize a feature group for current markers to easily clear them later
         markersLayer = L.featureGroup().addTo(map);
+
+        // ----------------------------------------------------
+        // HISTORICAL HOTSPOT LAYER (Day 3)
+        // WHY: We keep historical markers in a separate layer
+        // so they can be toggled, cleared, or styled independently
+        // from the current active FIRMS hotspots.
+        // ----------------------------------------------------
+        historicalLayer = L.featureGroup().addTo(map);
+
+        const overlayMaps = {
+            "Current Hotspots": markersLayer,
+            "Historical Detections": historicalLayer
+        };
+
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
 
         // Clean up any placeholder text in the map container (e.g. from index.html)
         const placeholder = document.querySelector(`#${containerId} .tx-map-placeholder`);

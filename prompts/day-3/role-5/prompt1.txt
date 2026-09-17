@@ -1,0 +1,896 @@
+You are working as Role 5 — Classification / Intelligence Logic Engineer
+for the ThermalX project.
+
+PROJECT:
+ThermalX — AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources
+
+PROBLEM STATEMENT:
+SIH26162 — AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OpenStreetMap (OSM), and Multi-Spectral Satellite Data.
+
+==================================================
+YOUR TASK — DAY 3 / ROLE 5
+==================================================
+
+Today is DAY 3.
+
+Your responsibility is to implement the DAY 3 Role 5 work from the ThermalX development roadmap.
+
+DAY 3 OBJECTIVE:
+Create and integrate the persistence scoring logic that determines how frequently a thermal event has been detected over the analysed time period.
+
+The roadmap defines:
+
+Persistence Score = days detected / days analysed
+
+Prototype thresholds:
+
+0–20%   → Low
+21–50%  → Moderate
+51–80%  → High
+81–100% → Very High
+
+IMPORTANT:
+These thresholds are prototype decision-support rules.
+They are NOT scientific ground truth.
+
+Do not present persistence as proof that a hotspot is industrial.
+Persistence is only one evidence feature that will later be used by the classification system.
+
+==================================================
+FIRST — INSPECT THE EXISTING PROJECT
+==================================================
+
+Before writing or modifying any code:
+
+1. Inspect the complete existing ThermalX project structure.
+2. Identify the existing:
+   - HTML files
+   - CSS files
+   - JavaScript files
+   - data files
+   - API/data-processing modules
+   - existing hotspot data structures
+   - existing historical-data handling
+   - existing event/grouping logic
+   - existing classification logic
+3. Understand how the existing modules communicate.
+4. Do NOT unnecessarily create duplicate files or duplicate functions.
+5. Reuse existing architecture wherever possible.
+6. Do not break functionality implemented by other team members.
+
+Expected project structure from the roadmap may include:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+However, DO NOT assume the project currently matches this structure.
+Inspect the actual repository first.
+
+==================================================
+DAY 3 ROLE 5 RESPONSIBILITY
+==================================================
+
+Implement a reusable persistence-scoring module.
+
+The module must be able to receive historical detection/event information and calculate:
+
+1. Number of unique days detected
+2. Number of days analysed
+3. Persistence percentage
+4. Persistence category
+5. Supporting evidence
+6. A structured persistence result
+
+Example:
+
+If an event was detected on:
+
+Day 1
+Day 2
+Day 3
+Day 4
+Day 5
+
+and the analysis period contains:
+
+7 days
+
+Then:
+
+daysDetected = 5
+daysAnalysed = 7
+
+persistenceScore =
+(5 / 7) × 100
+
+The result should contain the calculated percentage and category.
+
+==================================================
+PERSISTENCE CATEGORIES
+==================================================
+
+Implement the following prototype thresholds:
+
+0–20%:
+LOW
+
+21–50%:
+MODERATE
+
+51–80%:
+HIGH
+
+81–100%:
+VERY HIGH
+
+IMPORTANT EDGE CASE:
+
+A score of exactly:
+
+20%
+50%
+80%
+
+must be handled consistently.
+
+Prefer defining the thresholds explicitly in code instead of scattering
+magic numbers throughout the project.
+
+For example, use constants such as:
+
+PERSISTENCE_THRESHOLDS
+
+or an equivalent clean structure.
+
+Do NOT hard-code the same numbers in multiple functions.
+
+==================================================
+EXPECTED FUNCTIONAL DESIGN
+==================================================
+
+Create a clean reusable function similar in purpose to:
+
+calculatePersistence(...)
+
+The exact function signature should depend on the existing project architecture.
+
+The function should:
+
+1. Validate the input.
+2. Extract detection dates.
+3. Normalize dates consistently.
+4. Determine unique detection days.
+5. Determine the analysis period.
+6. Calculate persistence percentage.
+7. Clamp the result between 0 and 100 if necessary.
+8. Assign a persistence category.
+9. Return a structured result.
+
+Example conceptual result:
+
+{
+    daysDetected: 5,
+    daysAnalysed: 7,
+    persistenceScore: 71.43,
+    persistenceCategory: "HIGH"
+}
+
+You may add additional useful evidence fields if they fit the existing architecture.
+
+For example:
+
+{
+    daysDetected: 5,
+    daysAnalysed: 7,
+    persistenceScore: 71.43,
+    persistenceCategory: "HIGH",
+    firstDetection: "...",
+    lastDetection: "...",
+    detectionDates: [...]
+}
+
+Do NOT blindly copy this object if the project already has a shared event/evidence structure.
+Integrate with the existing structure instead.
+
+==================================================
+DATE HANDLING
+==================================================
+
+Historical FIRMS data can contain multiple detections on the same day.
+
+Example:
+
+2026-09-10 10:20
+2026-09-10 12:30
+2026-09-10 15:45
+
+These should count as:
+
+1 detected day
+
+NOT:
+
+3 detected days.
+
+Therefore:
+
+daysDetected = number of UNIQUE calendar dates
+
+not:
+
+number of FIRMS records.
+
+Make the date normalization robust.
+
+Avoid timezone-related bugs where possible.
+
+Use a consistent date representation such as:
+
+YYYY-MM-DD
+
+for comparison.
+
+==================================================
+ANALYSIS PERIOD
+==================================================
+
+The persistence calculation depends on:
+
+daysDetected
+daysAnalysed
+
+Do not invent an analysis period if the existing project already provides one.
+
+Inspect how Role 3 / Role 4 provide historical data and determine whether
+the analysis window is already available.
+
+If the existing system provides:
+
+startDate
+endDate
+
+use those values.
+
+If the existing event-processing pipeline already calculates the analysed
+period, reuse it.
+
+Do not create a second conflicting definition of the analysis period.
+
+If the existing project does not yet provide enough information to calculate
+daysAnalysed correctly:
+
+1. Build the persistence function so it accepts the required information.
+2. Clearly document the expected input.
+3. Create a small local test dataset.
+4. Do not fake live historical data.
+
+==================================================
+IMPORTANT ARCHITECTURE RULE
+==================================================
+
+Role 5 owns the persistence scoring logic.
+
+Role 4 owns:
+- cleaning
+- grouping
+- clustering
+- temporal grouping
+- persistence detection/data preparation
+
+Role 3 owns:
+- historical FIRMS retrieval
+- API/data fetching
+
+Do NOT take over Role 3 or Role 4 responsibilities.
+
+Your job is to consume their processed data and produce the
+persistence intelligence result.
+
+Keep responsibilities separated.
+
+==================================================
+DATA CONTRACT
+==================================================
+
+Before implementing the final function, determine what historical event
+object the existing project currently uses.
+
+If needed, establish a clean data contract.
+
+Conceptually, the function may receive something like:
+
+{
+    eventId: "TX-001",
+
+    detections: [
+        {
+            date: "2026-09-10",
+            latitude: 25.123,
+            longitude: 85.123,
+            frp: 45.2
+        },
+        {
+            date: "2026-09-11",
+            latitude: 25.124,
+            longitude: 85.124,
+            frp: 48.1
+        }
+    ],
+
+    analysisStartDate: "2026-09-10",
+    analysisEndDate: "2026-09-16"
+}
+
+Again:
+
+DO NOT force this exact structure if the existing project already has
+a different shared structure.
+
+Adapt to the existing architecture.
+
+==================================================
+VALIDATION
+==================================================
+
+Implement validation for cases such as:
+
+1. No detections
+2. Missing detections
+3. Empty detection array
+4. Missing dates
+5. Invalid dates
+6. Duplicate detections on the same day
+7. One detection day
+8. Detection on every analysed day
+9. More detections than expected
+10. Invalid analysis period
+11. Start date after end date
+12. Same start and end date
+13. Missing event ID if event ID is required by the architecture
+
+The system must fail safely.
+
+Do NOT allow:
+
+NaN
+
+Infinity
+
+undefined persistence percentages
+
+negative persistence
+
+persistence greater than 100%
+
+==================================================
+TEST CASES
+==================================================
+
+Create or add simple test cases appropriate to the existing project.
+
+At minimum test:
+
+TEST 1:
+0 detected days
+
+Expected:
+0%
+LOW
+
+TEST 2:
+1 detected day out of 10
+
+Expected:
+10%
+LOW
+
+TEST 3:
+3 detected days out of 10
+
+Expected:
+30%
+MODERATE
+
+TEST 4:
+6 detected days out of 10
+
+Expected:
+60%
+HIGH
+
+TEST 5:
+9 detected days out of 10
+
+Expected:
+90%
+VERY HIGH
+
+TEST 6:
+10 detected days out of 10
+
+Expected:
+100%
+VERY HIGH
+
+TEST 7:
+Multiple detections on the same date.
+
+Example:
+
+2026-09-10
+2026-09-10
+2026-09-10
+
+Expected:
+
+daysDetected = 1
+
+NOT 3.
+
+TEST 8:
+Invalid date.
+
+The system should handle it safely without crashing the application.
+
+==================================================
+EXPLAINABILITY
+==================================================
+
+The persistence result must be understandable by a human.
+
+Do not only return:
+
+71.43
+
+Return enough information to explain:
+
+"Detected on 5 of 7 analysed days."
+
+This is important because ThermalX is designed around explainable
+decision support.
+
+A future UI should be able to display something similar to:
+
+Persistence
+71.4%
+
+HIGH
+
+Detected on 5 of 7 analysed days
+
+Do NOT directly build a large UI unless required by the existing code.
+
+Focus primarily on the Role 5 logic.
+
+==================================================
+PREPARE FOR DAY 6 CLASSIFICATION
+==================================================
+
+Although today is Day 3, design the persistence output so that it can
+later be consumed by the classification engine.
+
+The roadmap later uses persistence as one of the classification features.
+
+The Day 6 roadmap gives an example:
+
+Industrial Score =
+Persistence × 0.35
++
+Industrial Proximity × 0.30
++
+FRP × 0.20
++
+Confidence × 0.15
+
+DO NOT implement the full Day 6 classification engine today unless
+the existing project already requires a small integration point.
+
+For Day 3, your main deliverable is:
+
+Historical data
+→ Persistence calculation
+→ Persistence category
+→ Explainable persistence evidence
+
+==================================================
+DO NOT IMPLEMENT ML TODAY
+==================================================
+
+Do not introduce:
+
+TensorFlow
+PyTorch
+YOLO
+Random Forest
+XGBoost
+scikit-learn
+Python ML pipelines
+FastAPI
+Node.js backend
+PostgreSQL
+PostGIS
+
+unless such technologies are ALREADY present in the current project and
+are required by the current architecture.
+
+Do not unnecessarily change the architecture.
+
+The uploaded roadmap describes the original Day 3 Role 5 responsibility
+as persistence scoring and explicitly treats these thresholds as prototype
+rules rather than scientific ground truth.
+
+==================================================
+CODE QUALITY
+==================================================
+
+Write clean beginner-friendly JavaScript.
+
+Prefer:
+
+- small functions
+- meaningful variable names
+- constants for thresholds
+- reusable functions
+- clear return objects
+- defensive validation
+- minimal duplication
+- ES6+ JavaScript where appropriate
+
+Avoid:
+
+- unnecessary abstractions
+- huge functions
+- deeply nested conditions
+- magic numbers
+- duplicate logic
+- unnecessary dependencies
+
+Do not install a library just to solve a simple JavaScript problem.
+
+==================================================
+VERY IMPORTANT — CODE COMMENTS
+==================================================
+
+I specifically need to understand this code later.
+
+Therefore:
+
+ADD COMMENTS TO EVERY LOGICAL SECTION OF THE CODE.
+
+Do NOT comment every individual line unnecessarily.
+
+Instead, divide the code into clear logical sections and explain what
+each section is doing.
+
+For example:
+
+// --------------------------------------------------
+// Persistence Threshold Configuration
+// Defines the prototype thresholds used to categorize
+// how frequently a thermal event was detected.
+// These values are decision-support heuristics,
+// not scientific ground truth.
+// --------------------------------------------------
+
+Then:
+
+// --------------------------------------------------
+// Date Normalization
+// Converts different date representations into a
+// consistent YYYY-MM-DD format so multiple detections
+// on the same calendar day are counted only once.
+// --------------------------------------------------
+
+Then:
+
+// --------------------------------------------------
+// Persistence Score Calculation
+// Calculates the percentage of analysed days on which
+// the thermal event was detected.
+// Formula:
+// persistence = detected days / analysed days × 100
+// --------------------------------------------------
+
+Then:
+
+// --------------------------------------------------
+// Persistence Category
+// Converts the numerical persistence percentage into
+// LOW, MODERATE, HIGH, or VERY HIGH.
+// --------------------------------------------------
+
+Then:
+
+// --------------------------------------------------
+// Validation
+// Protects the application from invalid or incomplete
+// historical data.
+// --------------------------------------------------
+
+The comments must explain:
+
+1. WHAT the section does.
+2. WHY it exists.
+3. HOW the important logic works.
+
+This is especially important for:
+- date handling
+- unique-day calculation
+- persistence formula
+- threshold classification
+- validation
+- returned evidence
+
+==================================================
+COMMENT QUALITY RULE
+==================================================
+
+Write comments as if another beginner JavaScript developer will read
+this project 3 months later.
+
+Bad comment:
+
+// calculate score
+
+Good comment:
+
+// Calculate persistence as the percentage of analysed
+// calendar days on which this thermal event was detected.
+// Multiple FIRMS detections on the same day count as one
+// detected day.
+
+Avoid useless comments such as:
+
+// increment i
+i++;
+
+Comments should explain logic, not obvious syntax.
+
+==================================================
+DOCUMENT THE FORMULA
+==================================================
+
+Clearly document the formula in the source code:
+
+Persistence Score =
+(days detected / days analysed) × 100
+
+Also explain that:
+
+- multiple detections on one day count as one day
+- the score represents recurrence during the selected analysis period
+- the score is a prototype heuristic
+- it does NOT prove industrial activity
+
+==================================================
+INTEGRATION
+==================================================
+
+After implementing the logic:
+
+1. Find where historical event data is produced.
+2. Connect the persistence calculation to the existing data flow if
+   the necessary data is already available.
+3. Do not break existing functionality.
+4. Make the persistence result accessible to other modules.
+5. If there is already an event object, add persistence information
+   to that object in a clean way.
+
+The desired conceptual flow is:
+
+Historical FIRMS Data
+        ↓
+Processed Historical Event
+        ↓
+Role 5 Persistence Calculation
+        ↓
+Persistence Score
+        ↓
+Persistence Category
+        ↓
+Explainable Evidence
+
+==================================================
+UI INTEGRATION — ONLY IF APPROPRIATE
+==================================================
+
+If the existing project already has a suitable event details panel,
+make the smallest necessary change so that persistence information can
+be displayed.
+
+For example:
+
+Persistence
+71.4%
+HIGH
+
+Detected on 5 of 7 analysed days
+
+Do NOT redesign the entire dashboard.
+
+Do NOT modify unrelated UI.
+
+Do NOT take over Role 1's responsibilities.
+
+==================================================
+DO NOT BREAK OTHER TEAM MEMBERS' WORK
+==================================================
+
+This is a team project.
+
+Before changing a file:
+
+Understand whether the file belongs primarily to another role.
+
+Avoid overwriting or restructuring another person's implementation.
+
+If integration requires a change:
+
+- make the smallest change possible
+- preserve existing functionality
+- explain what was changed
+
+==================================================
+DEBUGGING
+==================================================
+
+After implementation:
+
+1. Check browser console for errors.
+2. Check for undefined variables.
+3. Check for NaN.
+4. Check date parsing.
+5. Check duplicate-day handling.
+6. Check boundary thresholds.
+7. Check empty data handling.
+8. Check that the application still loads normally.
+9. Check that existing map/API functionality is not broken.
+
+If a bug exists in another module and it prevents your feature from
+working:
+
+Do not silently rewrite the entire module.
+
+Identify the issue and make the minimum safe integration fix.
+
+==================================================
+FINAL VERIFICATION
+==================================================
+
+Before finishing, verify the complete flow:
+
+Historical detections
+        ↓
+Unique detection days
+        ↓
+Days analysed
+        ↓
+Persistence percentage
+        ↓
+Persistence category
+        ↓
+Explainable evidence
+        ↓
+Event object / UI integration
+
+Verify that an event detected repeatedly across several days produces
+a higher persistence score than a short-lived event.
+
+==================================================
+FINAL RESPONSE FROM YOU
+==================================================
+
+After completing the implementation, provide me with a concise report
+containing:
+
+1. Files created
+2. Files modified
+3. Functions created/modified
+4. Persistence formula used
+5. Thresholds used
+6. Data structure used
+7. Test cases performed
+8. Any edge cases handled
+9. Any integration changes
+10. Any issues that remain
+11. How Role 4 / Role 3 data should connect to this logic
+12. How the result will later be consumed by the Day 6 classification engine
+
+Also explain the most important parts of the code in beginner-friendly
+language.
+
+==================================================
+STRICT RULES
+==================================================
+
+DO NOT:
+
+- rewrite the entire project
+- create unnecessary files
+- introduce unnecessary frameworks
+- introduce unnecessary dependencies
+- change the architecture without reason
+- implement unrelated Day 4/5/6 features
+- claim persistence proves industrial activity
+- treat prototype thresholds as scientific truth
+- remove existing working functionality
+- leave unexplained complex code
+
+DO:
+
+- inspect first
+- understand existing code
+- implement only Day 3 Role 5
+- keep the implementation modular
+- use reusable JavaScript functions
+- validate inputs
+- handle duplicate dates correctly
+- make the output explainable
+- add meaningful comments to EVERY logical section
+- keep the code beginner-friendly
+- prepare clean output for future classification
+- test the implementation
+- report exactly what changed
+
+==================================================
+SUCCESS CRITERIA
+==================================================
+
+The task is COMPLETE only when:
+
+[ ] Existing project has been inspected.
+
+[ ] Historical event data structure is understood.
+
+[ ] Persistence calculation is implemented.
+
+[ ] Unique detection days are calculated correctly.
+
+[ ] Days analysed is handled correctly.
+
+[ ] Persistence percentage is calculated correctly.
+
+[ ] Persistence categories are implemented.
+
+[ ] Boundary values are handled consistently.
+
+[ ] Invalid input is handled safely.
+
+[ ] Duplicate detections on the same date count as ONE day.
+
+[ ] Explainable evidence is returned.
+
+[ ] Persistence result can be consumed by other modules.
+
+[ ] Existing functionality is not broken.
+
+[ ] Relevant tests have been performed.
+
+[ ] Browser console has no new errors.
+
+[ ] Every logical code section contains clear explanatory comments.
+
+[ ] Comments explain WHAT, WHY, and HOW for important logic.
+
+[ ] The implementation is ready to support the future classification
+    engine.
+
+FINAL PRINCIPLE:
+
+Build the smallest clean implementation that works reliably.
+
+Do not over-engineer Day 3.
+
+ThermalX must remain understandable, explainable, and easy for the team
+to extend.
