@@ -478,6 +478,98 @@ function processHistoricalDetections(rawHistoricalDetections) {
 
 
 // ============================================================================
+// DAY 4 ROLE 4: INDUSTRIAL PROXIMITY PROCESSING
+// ============================================================================
+
+/**
+ * ------------------------------------------------------------
+ * Determines a heuristic proximity level based on distance.
+ * 
+ * WHAT: Assigns "high", "medium", or "low" based on distance in km.
+ * WHY: Helps Role 5 (Classification) make heuristic decisions without hardcoding numbers everywhere.
+ * ------------------------------------------------------------
+ */
+function determineProximityLevel(distanceKm) {
+    if (distanceKm <= 2.0) return "high";
+    if (distanceKm <= 5.0) return "medium";
+    return "low";
+}
+
+/**
+ * ------------------------------------------------------------
+ * Processes raw facilities from Role 3 against the selected hotspot.
+ * 
+ * WHAT:
+ * 1. Validates coordinates.
+ * 2. Calculates distance to each facility.
+ * 3. Sorts them from nearest to farthest.
+ * 4. Identifies the nearest facility and its proximity level.
+ * 
+ * INPUT:
+ * @param {Object} hotspot - The currently selected thermal hotspot
+ * @param {Array} rawFacilities - The array of facilities fetched by Role 3
+ * 
+ * OUTPUT:
+ * An enriched context object containing sorted facilities and nearest facility data.
+ * ------------------------------------------------------------
+ */
+function processIndustrialProximity(hotspot, rawFacilities) {
+    // Return empty fallback if input is missing or empty
+    if (!hotspot || !isValidCoordinate(hotspot.latitude, hotspot.longitude)) {
+        return { error: "Invalid hotspot coordinates", facilities: [] };
+    }
+    
+    if (!Array.isArray(rawFacilities) || rawFacilities.length === 0) {
+        return { facilities: [], error: "No facilities provided" };
+    }
+
+    const processedFacilities = [];
+
+    // Loop through each facility and calculate spatial distance
+    for (const facility of rawFacilities) {
+        // Validate coordinates for the facility
+        if (!isValidCoordinate(facility.latitude, facility.longitude)) {
+            continue; // Safely skip invalid facilities
+        }
+
+        // Calculate geographic distance using our existing Turf.js helper
+        const distKm = calculateDistanceKm(hotspot, facility);
+
+        // Create a processed copy so we don't mutate the raw API response
+        processedFacilities.push({
+            id: facility.id,
+            name: facility.name,
+            type: facility.type,
+            latitude: facility.latitude,
+            longitude: facility.longitude,
+            tags: facility.tags,
+            distanceFromHotspot: distKm
+        });
+    }
+
+    // Sort facilities by distance (nearest first)
+    processedFacilities.sort((a, b) => a.distanceFromHotspot - b.distanceFromHotspot);
+
+    // Identify nearest facility
+    const nearestFacility = processedFacilities.length > 0 ? processedFacilities[0] : null;
+    let proximityLevel = "unknown";
+    
+    if (nearestFacility) {
+        proximityLevel = determineProximityLevel(nearestFacility.distanceFromHotspot);
+    }
+
+    // Return the clean, processed context object
+    return {
+        hotspotId: hotspot.id || "unknown",
+        facilities: processedFacilities,
+        nearestFacility: nearestFacility,
+        nearestDistanceKm: nearestFacility ? nearestFacility.distanceFromHotspot : null,
+        proximityLevel: proximityLevel
+    };
+}
+
+
+// ============================================================================
 // EXPOSE API FOR OTHER ROLES
 // ============================================================================
 
@@ -499,6 +591,10 @@ window.ThermalXProcessing = {
     groupNearbyDetections,
     buildThermalEvent,
     processHistoricalDetections,
+    
+    // Day 4 Industrial Processing
+    determineProximityLevel,
+    processIndustrialProximity,
     
     processingStats,
     TEST_RAW_HOTSPOTS

@@ -323,17 +323,40 @@ function showHotspotDetails(hotspot) {
             
             // Call Role 3's API function
             fetchNearbyIndustrialFacilities(hotspot.latitude, hotspot.longitude)
-                .then(facilities => {
+                .then(rawFacilities => {
+                    let processedContext = { facilities: [] };
+                    
+                    // ==========================================
+                    // DAY 4 ROLE 4: Process Industrial Proximity
+                    // ==========================================
+                    if (window.ThermalXProcessing && typeof window.ThermalXProcessing.processIndustrialProximity === 'function') {
+                        // Enriches facilities with distance (km) and identifies the nearest one
+                        processedContext = window.ThermalXProcessing.processIndustrialProximity(hotspot, rawFacilities);
+                    } else {
+                        // Fallback if Role 4 is not available
+                        processedContext.facilities = rawFacilities;
+                    }
+
                     if (window.MapModule && typeof window.MapModule.renderIndustrialFacilities === 'function') {
-                        // Pass facilities to Role 2 to render on map
-                        window.MapModule.renderIndustrialFacilities(facilities);
+                        // Pass the ENRICHED facilities to Role 2 (Map) so it can display distances in popups
+                        window.MapModule.renderIndustrialFacilities(processedContext.facilities);
                     }
                     
-                    // Simple UI update (proper UI will be done by Role 1, but we need basic fallback)
-                    if (facilities && facilities.length > 0) {
-                        setElementText('event-facility', `${facilities.length} nearby facilities found.`);
+                    // Update UI with the nearest facility data
+                    if (processedContext.nearestFacility) {
+                        const nearest = processedContext.nearestFacility;
+                        const distText = nearest.distanceFromHotspot !== undefined 
+                            ? `${nearest.distanceFromHotspot.toFixed(2)} km` 
+                            : "Distance unknown";
+                        
+                        setElementText('event-facility', `${nearest.name} (${nearest.type})`);
+                        setElementText('event-distance', distText);
+                    } else if (processedContext.facilities && processedContext.facilities.length > 0) {
+                        setElementText('event-facility', `${processedContext.facilities.length} nearby facilities found.`);
+                        setElementText('event-distance', "Not available");
                     } else {
                         setElementText('event-facility', "No nearby industrial facilities.");
+                        setElementText('event-distance', "—");
                     }
                 })
                 .catch(err => {
