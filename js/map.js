@@ -11,6 +11,7 @@ window.MapModule = (function() {
     let map = null;
     let markersLayer = null;
     let historicalLayer = null; // Day 3: Separate layer for event history
+    let industrialLayer = null; // Day 4: Separate layer for OSM industrial context
 
     /**
      * Initializes the Leaflet map and base layers.
@@ -62,9 +63,17 @@ window.MapModule = (function() {
         // ----------------------------------------------------
         historicalLayer = L.featureGroup().addTo(map);
 
+        // ----------------------------------------------------
+        // INDUSTRIAL FACILITY LAYER (Day 4)
+        // WHY: We keep industrial context separate from fires,
+        // allowing the user to toggle them on/off easily.
+        // ----------------------------------------------------
+        industrialLayer = L.featureGroup().addTo(map);
+
         const overlayMaps = {
             "Current Hotspots": markersLayer,
-            "Historical Detections": historicalLayer
+            "Historical Detections": historicalLayer,
+            "Industrial Facilities": industrialLayer
         };
 
         L.control.layers(baseMaps, overlayMaps).addTo(map);
@@ -309,6 +318,98 @@ window.MapModule = (function() {
         }
     }
 
+    // ====================================================
+    // 6. INDUSTRIAL CONTEXT (Day 4 Role 2)
+    // ====================================================
+
+    /**
+     * Removes the previously displayed industrial markers
+     * before rendering a refreshed facility dataset.
+     */
+    function clearIndustrialLayer() {
+        if (industrialLayer) {
+            industrialLayer.clearLayers();
+        }
+    }
+
+    /**
+     * Generates HTML for an industrial facility popup.
+     */
+    function createIndustrialPopupContent(facility) {
+        // Fallback for missing type
+        const typeText = facility.type || 'Industrial Facility';
+        // Fallback for missing operator
+        const opText = (facility.tags && facility.tags.operator) ? facility.tags.operator : 'N/A';
+        // Distance info from Role 4 if present
+        const distText = (facility.distanceFromHotspot !== undefined) ? `${facility.distanceFromHotspot.toFixed(2)} km away` : '';
+
+        // Pick an emoji representing the type
+        let emoji = '🏭';
+        if (typeText.toLowerCase().includes('power')) emoji = '⚡';
+        else if (typeText.toLowerCase().includes('refinery')) emoji = '🛢';
+        else if (typeText.toLowerCase().includes('mine')) emoji = '⛏';
+
+        return `
+            <div style="font-family: var(--tx-font-primary, sans-serif); min-width: 200px; font-size: 13px;">
+                <div style="color: #60a5fa; font-weight: bold; border-bottom: 1px solid #334155; padding-bottom: 5px; margin-bottom: 5px;">
+                    ${emoji} ${facility.name}
+                </div>
+                <strong>Type:</strong> ${typeText}<br>
+                <strong>Operator:</strong> ${opText}<br>
+                <strong>Source:</strong> OpenStreetMap<br>
+                ${distText ? `<div style="margin-top: 5px; color: #fbbf24; font-weight: bold;">${distText}</div>` : ''}
+            </div>
+        `;
+    }
+
+    /**
+     * Creates Leaflet markers for industrial facilities
+     * received from the OSM/Overpass data module (Role 3).
+     */
+    function renderIndustrialFacilities(facilities) {
+        clearIndustrialLayer();
+
+        if (!Array.isArray(facilities) || facilities.length === 0) {
+            console.log("MapModule: No industrial facilities to render.");
+            return 0;
+        }
+
+        let renderedCount = 0;
+
+        facilities.forEach(facility => {
+            const lat = parseFloat(facility.latitude);
+            const lng = parseFloat(facility.longitude);
+
+            // 1. Validate coordinates so we don't crash the map
+            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                return;
+            }
+
+            // 2. Visually distinguish from fires (blue square-ish icon or distinct circle)
+            // We use a custom DivIcon to make it look professional and different from the red fire dots
+            const industrialIcon = L.divIcon({
+                className: 'tx-industrial-marker',
+                html: `<div style="background-color: #3b82f6; border: 2px solid white; border-radius: 4px; width: 12px; height: 12px; transform: rotate(45deg);"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            const marker = L.marker([lat, lng], { icon: industrialIcon });
+            
+            // 3. Attach the popup
+            const popupHTML = createIndustrialPopupContent(facility);
+            marker.bindPopup(popupHTML);
+
+            // 4. Add to the dedicated industrial layer
+            marker.addTo(industrialLayer);
+            renderedCount++;
+        });
+
+        console.log(`ThermalX Map: Rendered ${renderedCount} industrial facilities.`);
+        return renderedCount;
+    }
+
+
     // Expose public API
     return {
         initMap,
@@ -319,6 +420,8 @@ window.MapModule = (function() {
         renderHistoricalDetections,
         clearHistoricalDetections,
         fitMapToHistoricalDetections,
+        renderIndustrialFacilities,
+        clearIndustrialLayer,
         getMapInstance: () => map
     };
 })();

@@ -1,0 +1,1373 @@
+# THERMALX — DAY 4 — ROLE 5
+
+## Classification Logic Engineer — Industrial Context Scoring
+
+You are working on **ThermalX**, an SIH 2026 project.
+
+**SIH Problem Statement:** PS 26162
+**Project:** AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM & Satellite Data
+
+---
+
+# 1. YOUR ROLE
+
+You are:
+
+> **Role 5 — Classification Logic Engineer**
+
+Your responsibility for **Day 4** is to develop the **industrial-context scoring logic** that helps determine how strongly a thermal hotspot is associated with nearby industrial infrastructure.
+
+The Day 4 objective is:
+
+> **Hotspot → nearby industrial facilities → distance/proximity → industrial-context score**
+
+The project roadmap specifically defines this as:
+
+* Very close → high relevance
+* Moderately close → medium relevance
+* Far → low relevance
+
+IMPORTANT:
+
+These are **decision-support heuristics**, not proof that an industrial facility caused the hotspot.
+
+Do NOT claim causation.
+
+---
+
+# 2. IMPORTANT PROJECT ARCHITECTURE
+
+The overall ThermalX pipeline is:
+
+NASA FIRMS
+↓
+Role 3 — Data Fetching
+↓
+Raw Hotspot Data
+↓
+Role 4 — Data Processing
+↓
+Persistence / Spatial Processing
+↓
+OSM Industrial Context
+↓
+Industrial Facility + Distance
+↓
+Role 5 — Industrial Context Scoring
+↓
+Future Classification Engine
+↓
+Dashboard
+
+For Day 4, focus ONLY on the industrial-context component.
+
+---
+
+# 3. FIRST INSPECT THE EXISTING PROJECT
+
+Before writing or modifying code:
+
+1. Inspect the entire ThermalX project.
+2. Read `index.html`.
+3. Read `css/style.css`.
+4. Read `js/app.js`.
+5. Read `js/map.js`.
+6. Read `js/api.js`.
+7. Read `js/processing.js`.
+8. Read `js/classification.js`.
+9. Understand the current hotspot data structure.
+10. Understand how OSM data is being received.
+11. Understand how facility distance is being calculated.
+12. Understand how Role 4 exposes processed data.
+13. Identify whether Role 5 already has any classification functions.
+14. Reuse existing structures where possible.
+
+DO NOT blindly overwrite existing code.
+
+Before making changes, briefly identify:
+
+* Files that need modification.
+* Existing functions that can be reused.
+* Existing data structures.
+* Integration points with Role 3 and Role 4.
+
+---
+
+# 4. TECHNOLOGY RULES
+
+Use the existing ThermalX architecture:
+
+* HTML5
+* CSS3
+* Vanilla JavaScript
+* Leaflet.js
+* JavaScript objects/arrays
+* GeoJSON where necessary
+
+Do NOT introduce:
+
+* React
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* Machine-learning libraries
+
+The current MVP is intentionally JavaScript-first.
+
+---
+
+# 5. ROLE 5 RESPONSIBILITY
+
+Role 5 should:
+
+1. Receive hotspot information.
+2. Receive nearby industrial facility information.
+3. Receive distance/proximity information from the processing layer.
+4. Convert proximity into an industrial-context score.
+5. Return an explainable result.
+6. Provide a clear reason/evidence for the score.
+7. Make the result available to the UI and future classification engine.
+
+Role 5 should NOT:
+
+* Fetch OSM data directly.
+* Own the OSM API.
+* Replace Role 3.
+* Replace Role 4's distance calculations.
+* Build the Leaflet map.
+* Build the complete dashboard.
+* Train an ML model.
+
+---
+
+# 6. INPUT DATA
+
+Support an input structure similar to:
+
+```javascript id="4m2vqm"
+{
+    id: "TX-001",
+    latitude: 25.5941,
+    longitude: 85.1376,
+
+    industrialContext: {
+        facilities: [
+            {
+                id: "osm-001",
+                name: "Example Factory",
+                type: "factory",
+                distanceKm: 1.2
+            }
+        ]
+    }
+}
+```
+
+If the existing project uses a different structure, adapt to it.
+
+Do NOT unnecessarily change the shared data format.
+
+---
+
+# 7. DISTANCE OWNERSHIP
+
+IMPORTANT:
+
+**Role 4 owns distance calculations.**
+
+Role 5 should consume the distance supplied by Role 4.
+
+For example:
+
+```javascript id="zv2u6t"
+facility.distanceKm
+```
+
+Then Role 5 evaluates:
+
+```text
+distanceKm
+↓
+proximity relevance
+↓
+industrial-context score
+```
+
+Do NOT create a second competing distance-calculation system.
+
+If distance is missing:
+
+```text
+Industrial proximity = Unknown
+```
+
+Do not guess a distance.
+
+---
+
+# 8. INDUSTRIAL PROXIMITY RULE
+
+Implement a simple explainable prototype rule.
+
+Suggested interpretation:
+
+### Very Close
+
+Strong industrial-context relevance.
+
+### Moderate Distance
+
+Medium industrial-context relevance.
+
+### Far
+
+Low industrial-context relevance.
+
+### No Facility
+
+Very low or no industrial-context evidence.
+
+The exact thresholds should be configurable rather than scattered throughout the code.
+
+---
+
+# 9. CONFIGURABLE THRESHOLDS
+
+Create a central configuration object.
+
+For example:
+
+```javascript id="1wjx1c"
+const INDUSTRIAL_PROXIMITY_CONFIG = {
+    veryCloseKm: 2,
+    moderateKm: 5
+};
+```
+
+Interpretation:
+
+```text
+0–2 km
+→ Very Close
+
+>2–5 km
+→ Moderate
+
+>5 km
+→ Far
+```
+
+IMPORTANT:
+
+These values are **prototype thresholds**.
+
+Do not describe them as scientifically validated thresholds.
+
+Make them easy to modify later.
+
+---
+
+# 10. PROXIMITY SCORE
+
+Create a normalized score that can be consumed by the later classification engine.
+
+For example:
+
+```text
+Very Close → 1.0
+Moderate → 0.6
+Far → 0.2
+No facility → 0
+```
+
+The exact values should be centralized in configuration.
+
+Example:
+
+```javascript id="6kwl5a"
+const INDUSTRIAL_SCORE_CONFIG = {
+    veryCloseScore: 1.0,
+    moderateScore: 0.6,
+    farScore: 0.2,
+    noFacilityScore: 0
+};
+```
+
+Do not hard-code these numbers throughout multiple functions.
+
+---
+
+# 11. MULTIPLE INDUSTRIAL FACILITIES
+
+A hotspot may have multiple nearby industrial facilities.
+
+Example:
+
+```text
+Hotspot TX-001
+
+Factory A → 1.2 km
+Power Plant B → 3.4 km
+Mine C → 8.7 km
+```
+
+The system should identify the **nearest relevant facility**.
+
+The result should include:
+
+```javascript id="shd0if"
+{
+    nearestFacility: {
+        id: "osm-001",
+        name: "Factory A",
+        type: "factory",
+        distanceKm: 1.2
+    }
+}
+```
+
+Do not discard the other facilities if the UI or later processing needs them.
+
+---
+
+# 12. NEAREST FACILITY FUNCTION
+
+Create a reusable function similar to:
+
+```javascript id="u8e8q5"
+// Finds the industrial facility with the smallest
+// valid distance from the selected thermal hotspot.
+function findNearestIndustrialFacility(facilities) {
+    ...
+}
+```
+
+The function must:
+
+* Handle empty arrays.
+* Ignore invalid distances.
+* Handle missing facilities.
+* Return `null` when no valid facility exists.
+
+---
+
+# 13. PROXIMITY CLASSIFICATION
+
+Create a reusable function:
+
+```javascript id="c7h1v2"
+// Converts the distance from the nearest industrial
+// facility into a prototype proximity category.
+function classifyIndustrialProximity(distanceKm) {
+    ...
+}
+```
+
+Possible output:
+
+```javascript id="kg8l5f"
+{
+    category: "VERY_CLOSE",
+    score: 1.0,
+    label: "Very Close"
+}
+```
+
+Moderate:
+
+```javascript id="r3j7zc"
+{
+    category: "MODERATE",
+    score: 0.6,
+    label: "Moderate"
+}
+```
+
+Far:
+
+```javascript id="2w8g4p"
+{
+    category: "FAR",
+    score: 0.2,
+    label: "Far"
+}
+```
+
+---
+
+# 14. INDUSTRIAL CONTEXT RESULT
+
+Create a standardized result object.
+
+Example:
+
+```javascript id="6gqjqp"
+{
+    hotspotId: "TX-001",
+
+    industrialContext: {
+        category: "VERY_CLOSE",
+        label: "Very Close",
+        score: 1.0,
+
+        nearestFacility: {
+            id: "osm-001",
+            name: "Example Factory",
+            type: "factory",
+            distanceKm: 1.2
+        },
+
+        evidence: [
+            "Industrial facility detected within 1.2 km"
+        ]
+    }
+}
+```
+
+This object should be easy for:
+
+* UI
+* Map
+* Future classification engine
+* Testing
+
+to consume.
+
+---
+
+# 15. EXPLAINABILITY
+
+Every score must have an understandable reason.
+
+Example:
+
+```text
+Industrial Context: HIGH RELEVANCE
+
+Evidence:
+• Nearest industrial facility: ABC Factory
+• Distance: 1.2 km
+• Proximity category: Very Close
+• Data source: OpenStreetMap
+```
+
+Use factual wording.
+
+Do NOT say:
+
+> "The factory caused this thermal hotspot."
+
+Instead say:
+
+> "A nearby industrial facility provides industrial-context evidence."
+
+---
+
+# 16. EVIDENCE OBJECT
+
+Create a structured evidence object.
+
+Example:
+
+```javascript id="7i2l9p"
+{
+    type: "industrial_proximity",
+    category: "VERY_CLOSE",
+    score: 1.0,
+    facilityName: "Example Factory",
+    facilityType: "factory",
+    distanceKm: 1.2,
+    source: "OpenStreetMap",
+    explanation: "Industrial facility detected within the configured very-close range."
+}
+```
+
+This will later help Role 5 build the complete explainable classification engine.
+
+---
+
+# 17. NO INDUSTRIAL FACILITY CASE
+
+If there are no nearby facilities:
+
+Return something like:
+
+```javascript id="y4s9gq"
+{
+    category: "NONE",
+    label: "No Nearby Facility",
+    score: 0,
+    nearestFacility: null,
+    evidence: [
+        "No valid nearby industrial facility was provided."
+    ]
+}
+```
+
+Do not classify the hotspot as wildfire or agricultural burning based only on this information.
+
+Absence of industrial context is not proof of another source.
+
+---
+
+# 18. MISSING DISTANCE CASE
+
+If a facility exists but distance is unavailable:
+
+Return:
+
+```javascript id="h4q7sn"
+{
+    category: "UNKNOWN",
+    label: "Distance Unknown",
+    score: null,
+    nearestFacility: null,
+    evidence: [
+        "Industrial facility data is available, but distance could not be determined."
+    ]
+}
+```
+
+Do not invent a score.
+
+---
+
+# 19. INVALID DISTANCE
+
+Reject:
+
+* Negative distance.
+* `NaN`.
+* `Infinity`.
+* Strings that cannot be converted safely.
+* Missing values.
+
+Valid example:
+
+```text
+1.2
+3.5
+10
+```
+
+Invalid:
+
+```text
+-2
+NaN
+Infinity
+null
+undefined
+```
+
+---
+
+# 20. ROUNDING
+
+Display distances in a user-friendly format.
+
+Example:
+
+```text
+1.23456 km
+```
+
+should become:
+
+```text
+1.23 km
+```
+
+Use a helper function:
+
+```javascript id="y0q6nx"
+// Formats a numeric distance into a readable
+// kilometer value for the UI and evidence text.
+function formatDistance(distanceKm) {
+    ...
+}
+```
+
+Do not alter the underlying raw value unnecessarily.
+
+---
+
+# 21. INDUSTRIAL FACILITY TYPES
+
+Support types such as:
+
+* Factory
+* Power Plant
+* Refinery
+* Mine
+* Oil/Gas
+* Industrial Area
+* Industrial Facility
+* Unknown
+
+Do not infer a facility type when OSM data does not provide one.
+
+Use:
+
+```text
+Unknown
+```
+
+when necessary.
+
+---
+
+# 22. MULTIPLE FACILITIES RESULT
+
+Return both:
+
+1. Nearest facility.
+2. List of nearby facilities.
+
+Example:
+
+```javascript id="92g5um"
+{
+    nearbyFacilities: [...],
+    nearestFacility: {...},
+    proximity: {...}
+}
+```
+
+This allows the UI to show:
+
+```text
+Nearby Facilities: 3
+
+Nearest:
+ABC Factory — 1.2 km
+
+Other:
+XYZ Power Plant — 3.5 km
+DEF Mine — 7.8 km
+```
+
+---
+
+# 23. ROLE 3 INTEGRATION
+
+Role 3 is responsible for:
+
+* OSM/Overpass API.
+* Fetching facilities.
+* API requests.
+* Response parsing.
+
+Do not fetch OSM data inside the classification module.
+
+Instead, consume standardized facility data.
+
+Example:
+
+```text
+Role 3
+↓
+OSM facilities
+↓
+Role 4
+↓
+distance
+↓
+Role 5
+↓
+industrial context score
+```
+
+---
+
+# 24. ROLE 4 INTEGRATION
+
+Role 4 is responsible for:
+
+* Spatial calculations.
+* Distance calculations.
+* Hotspot-to-facility distance.
+
+Role 5 should consume that result.
+
+Example:
+
+```javascript id="k1n4ex"
+const facility = {
+    name: "ABC Factory",
+    type: "factory",
+    distanceKm: 1.2
+};
+```
+
+Then Role 5 calculates the proximity relevance.
+
+---
+
+# 25. FUTURE CLASSIFICATION COMPATIBILITY
+
+The result must be designed for Day 6.
+
+Later the classification engine will use multiple indicators:
+
+Industrial:
+
+* Persistence
+* Industrial proximity
+* FRP
+* Confidence
+
+Wildfire:
+
+* Persistence
+* Natural/forest context
+* Cluster expansion
+
+Agriculture:
+
+* Duration
+* Agricultural context
+* Seasonal pattern
+
+For Day 4, implement only:
+
+> **Industrial Proximity**
+
+Do not build the complete Day 6 classifier now.
+
+---
+
+# 26. FUTURE SCORING COMPATIBILITY
+
+The Day 6 roadmap gives an example Industrial Score:
+
+```text
+Persistence × 0.35
++
+Industrial Proximity × 0.30
++
+FRP × 0.20
++
+Confidence × 0.15
+```
+
+For Day 4, DO NOT calculate this complete score.
+
+Only produce:
+
+```text
+Industrial Proximity Score
+```
+
+The final weighted classification belongs to Day 6.
+
+---
+
+# 27. DATA SOURCE LABEL
+
+When OSM data is used, preserve the source:
+
+```text
+Source: OpenStreetMap
+```
+
+Do not imply that OSM validates the cause of a thermal hotspot.
+
+---
+
+# 28. CODE ARCHITECTURE
+
+Prefer modular functions.
+
+Possible structure:
+
+```javascript id="3v7gac"
+// Configuration for the prototype industrial
+// proximity thresholds and normalized scores.
+const INDUSTRIAL_PROXIMITY_CONFIG = {
+    ...
+};
+
+// Validates whether a distance value can
+// safely be used in proximity calculations.
+function isValidDistance(distanceKm) {
+    ...
+}
+
+// Finds the nearest valid industrial facility.
+function findNearestIndustrialFacility(facilities) {
+    ...
+}
+
+// Converts facility distance into a
+// prototype proximity category.
+function classifyIndustrialProximity(distanceKm) {
+    ...
+}
+
+// Builds the evidence explaining why the
+// industrial-context score was assigned.
+function buildIndustrialEvidence(...) {
+    ...
+}
+
+// Generates the complete industrial-context
+// result used by the rest of ThermalX.
+function calculateIndustrialContext(...) {
+    ...
+}
+```
+
+Adapt to existing architecture if these functions already exist.
+
+---
+
+# 29. IMPORTANT CODE COMMENT REQUIREMENT
+
+THIS IS A STRICT REQUIREMENT.
+
+**Every major section of code MUST contain meaningful comments.**
+
+The goal is that a student developer can open the project months later and understand what the code does.
+
+Comments must explain:
+
+* What the section does.
+* Why it exists.
+* What input it expects.
+* What output it produces.
+* How it connects with other roles.
+
+---
+
+# 30. JAVASCRIPT COMMENT EXAMPLE
+
+Use comments like:
+
+```javascript id="y4hnqz"
+// This function finds the closest valid industrial
+// facility using the distance already calculated
+// by the data-processing layer (Role 4).
+//
+// It does not calculate geographic distance itself.
+// Its job is only to identify the nearest facility.
+function findNearestIndustrialFacility(facilities) {
+    ...
+}
+```
+
+This is the required commenting style.
+
+---
+
+# 31. CONFIGURATION COMMENTS
+
+Comment configuration values.
+
+Example:
+
+```javascript id="1d8f5e"
+// Prototype thresholds used to convert facility
+// distance into an industrial-context category.
+// These values are decision-support heuristics,
+// not scientifically validated attribution rules.
+const INDUSTRIAL_PROXIMITY_CONFIG = {
+    veryCloseKm: 2,
+    moderateKm: 5
+};
+```
+
+---
+
+# 32. ERROR HANDLING COMMENTS
+
+Example:
+
+```javascript id="z1n5ku"
+// Ignore facilities with invalid distance values.
+// One bad facility should not prevent valid
+// industrial facilities from being processed.
+if (!isValidDistance(facility.distanceKm)) {
+    return;
+}
+```
+
+---
+
+# 33. DO NOT OVER-COMMENT
+
+Do not add comments to every individual line.
+
+Instead, comment:
+
+* Major sections.
+* Functions.
+* Important decisions.
+* Calculations.
+* Data transformations.
+* Integration points.
+* Error handling.
+
+Comments should make the code easier to learn, not make it cluttered.
+
+---
+
+# 34. TEST DATA
+
+If real OSM/Role 4 data is not yet available, create small demo inputs.
+
+Example:
+
+```javascript id="upx5e4"
+const demoIndustrialContext = {
+    hotspotId: "TX-DEMO-001",
+
+    facilities: [
+        {
+            id: "OSM-DEMO-001",
+            name: "Demo Factory",
+            type: "factory",
+            distanceKm: 1.2
+        },
+        {
+            id: "OSM-DEMO-002",
+            name: "Demo Power Plant",
+            type: "power_plant",
+            distanceKm: 3.8
+        },
+        {
+            id: "OSM-DEMO-003",
+            name: "Demo Mine",
+            type: "mine",
+            distanceKm: 8.5
+        }
+    ]
+};
+```
+
+Clearly mark this as:
+
+**DEMO DATA**
+
+Never represent demo facilities as real OSM observations.
+
+---
+
+# 35. TEST CASES
+
+Test at least the following.
+
+## Test 1 — Very Close
+
+Input:
+
+```text
+Distance = 1.2 km
+```
+
+Expected:
+
+```text
+Category = Very Close
+Score = configured very-close score
+```
+
+---
+
+## Test 2 — Moderate
+
+Input:
+
+```text
+Distance = 3.5 km
+```
+
+Expected:
+
+```text
+Category = Moderate
+Score = configured moderate score
+```
+
+---
+
+## Test 3 — Far
+
+Input:
+
+```text
+Distance = 8 km
+```
+
+Expected:
+
+```text
+Category = Far
+Score = configured far score
+```
+
+---
+
+## Test 4 — No Facilities
+
+Input:
+
+```text
+[]
+```
+
+Expected:
+
+```text
+Category = None
+Score = 0
+```
+
+---
+
+## Test 5 — Invalid Distance
+
+Input:
+
+```text
+distanceKm = -4
+```
+
+Expected:
+
+Facility is ignored.
+
+No crash.
+
+---
+
+## Test 6 — Missing Distance
+
+Input:
+
+```text
+distanceKm = null
+```
+
+Expected:
+
+```text
+Category = Unknown
+```
+
+or facility excluded according to the shared data contract.
+
+---
+
+## Test 7 — Multiple Facilities
+
+Input:
+
+```text
+Factory = 4 km
+Power Plant = 1.2 km
+Mine = 8 km
+```
+
+Expected:
+
+```text
+Nearest Facility = Power Plant
+Distance = 1.2 km
+```
+
+---
+
+## Test 8 — Missing Facility Name
+
+Expected:
+
+```text
+Name = Unknown Facility
+```
+
+or the project's existing fallback.
+
+---
+
+## Test 9 — Missing Facility Type
+
+Expected:
+
+```text
+Type = Unknown
+```
+
+---
+
+## Test 10 — Existing Application
+
+Verify:
+
+* Day 1 works.
+* Day 2 works.
+* Day 3 works.
+* Map works.
+* Historical event UI works.
+* New industrial-context logic does not break existing features.
+
+---
+
+# 36. OUTPUT FORMAT
+
+The final industrial-context result should be easy for other modules to consume.
+
+Example:
+
+```javascript id="7t2h4d"
+{
+    hotspotId: "TX-001",
+
+    industrialContext: {
+        category: "VERY_CLOSE",
+        label: "Very Close",
+        score: 1.0,
+
+        nearestFacility: {
+            id: "osm-001",
+            name: "ABC Factory",
+            type: "factory",
+            distanceKm: 1.2
+        },
+
+        nearbyFacilities: [
+            {
+                id: "osm-001",
+                name: "ABC Factory",
+                type: "factory",
+                distanceKm: 1.2
+            }
+        ],
+
+        evidence: [
+            {
+                type: "industrial_proximity",
+                description: "Industrial facility detected within 1.2 km.",
+                source: "OpenStreetMap"
+            }
+        ]
+    }
+}
+```
+
+---
+
+# 37. UI INTEGRATION
+
+Role 1/Role 2 may consume your result.
+
+Make it easy for them to display:
+
+```text
+INDUSTRIAL CONTEXT
+
+Relevance:
+Very Close
+
+Nearest Facility:
+ABC Factory
+
+Type:
+Factory
+
+Distance:
+1.20 km
+
+Evidence:
+Industrial facility detected within configured
+very-close range.
+
+Source:
+OpenStreetMap
+```
+
+Role 5 should provide the data.
+
+Do not unnecessarily rebuild the UI.
+
+---
+
+# 38. RESPONSIBLE LANGUAGE
+
+Always use careful wording.
+
+GOOD:
+
+* "Industrial context detected."
+* "Nearby industrial facility."
+* "Very close to industrial infrastructure."
+* "Industrial-context relevance: High."
+* "Decision-support heuristic."
+* "Requires human verification."
+
+AVOID:
+
+* "Factory caused the fire."
+* "Confirmed industrial fire."
+* "Illegal activity detected."
+* "This facility is responsible."
+* "100% industrial source."
+
+A nearby facility is **contextual evidence**, not proof of attribution.
+
+---
+
+# 39. SCIENTIFIC LIMITATION
+
+Include an appropriate developer/documentation note:
+
+> "Industrial proximity is a prototype decision-support heuristic. Geographic proximity alone does not establish the source or cause of a thermal hotspot."
+
+This is important for the SIH demonstration.
+
+---
+
+# 40. PERFORMANCE
+
+The classification functions should be lightweight.
+
+Avoid:
+
+* unnecessary API calls
+* unnecessary map operations
+* repeated calculations
+* duplicate processing
+* large external libraries
+
+Role 5 should primarily process already available data.
+
+---
+
+# 41. FINAL CHECKLIST
+
+Before finishing, verify:
+
+* [ ] Existing project inspected first.
+* [ ] Existing architecture preserved.
+* [ ] Role 3 data can be consumed.
+* [ ] Role 4 distance data can be consumed.
+* [ ] Configurable proximity thresholds created.
+* [ ] Very Close category implemented.
+* [ ] Moderate category implemented.
+* [ ] Far category implemented.
+* [ ] No Facility category implemented.
+* [ ] Unknown/missing distance handled.
+* [ ] Invalid distance handled.
+* [ ] Nearest facility identified.
+* [ ] Multiple facilities supported.
+* [ ] Industrial-context score generated.
+* [ ] Evidence generated.
+* [ ] Source information preserved.
+* [ ] No causation claims.
+* [ ] Future Day 6 classifier compatibility maintained.
+* [ ] Existing Day 1–3 functionality preserved.
+* [ ] Demo data clearly labeled.
+* [ ] Meaningful comments added to every major code section.
+* [ ] No unnecessary technologies introduced.
+
+---
+
+# 42. FINAL VALIDATION
+
+After implementation:
+
+1. Run the application.
+2. Check the browser console.
+3. Test very-close facility.
+4. Test moderate facility.
+5. Test far facility.
+6. Test multiple facilities.
+7. Test empty facilities.
+8. Test invalid distance.
+9. Test missing distance.
+10. Check generated evidence.
+11. Check output object.
+12. Check integration with existing data.
+13. Verify no existing functionality is broken.
+14. Verify code comments are present and understandable.
+
+---
+
+# 43. FINAL RESPONSE FORMAT
+
+After completing the implementation, provide:
+
+## A. Files Changed
+
+List all modified files.
+
+## B. What Was Implemented
+
+Explain:
+
+* Industrial proximity scoring.
+* Configurable thresholds.
+* Nearest facility detection.
+* Evidence generation.
+* Error handling.
+
+## C. Data Flow
+
+Explain:
+
+OSM Data
+→ Role 3
+→ Facility Data
+→ Role 4 Distance
+→ Role 5 Proximity Scoring
+→ Industrial Context Result
+
+## D. Example Result
+
+Show one example result.
+
+## E. Testing
+
+List the test cases performed.
+
+## F. Integration Notes
+
+Explain what Role 1, Role 2, Role 4 and the future Day 6 classifier need to know.
+
+## G. Student Learning Notes
+
+Explain the important functions in simple language.
+
+---
+
+# FINAL INSTRUCTION
+
+Implement **ONLY Day 4 — Role 5**.
+
+The core objective is:
+
+**Industrial Facility Distance → Proximity Category → Industrial Context Score → Explainable Evidence**
+
+Do NOT implement the complete Day 6 classification engine.
+
+Do NOT fetch OSM data yourself.
+
+Do NOT replace Role 4's distance calculations.
+
+Do NOT build the map.
+
+Do NOT introduce ML.
+
+Preserve existing functionality from Days 1–3.
+
+And most importantly:
+
+> **Add meaningful comments to every major JavaScript, HTML and CSS section you create or modify, explaining what the section does, why it exists, and how it connects to the ThermalX system.**
+
+The final implementation must be:
+
+**Simple + Explainable + Modular + Commented + Maintainable + Ready for Day 6 integration.**
