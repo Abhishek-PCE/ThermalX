@@ -1,0 +1,1111 @@
+# ANTIGRAVITY DEVELOPMENT PROMPT — THERMALX
+
+## DAY 5 — ROLE 4: DATA PROCESSING ENGINEER
+
+You are working on **ThermalX**, a JavaScript-first MVP for SIH26162.
+
+I am **Role 4 — Data Processing Engineer**.
+
+Your job today is to implement the **Day 5 requirements only**:
+
+> **Spatial clustering + temporal grouping + persistence detection + thermal event creation**
+
+The goal is to transform many individual NASA FIRMS hotspot detections into meaningful **thermal events** that can later be classified as Industrial, Wildfire, Agriculture, or Other.
+
+The project must remain simple and suitable for a **10-day MVP**.
+
+---
+
+# 1. FIRST — UNDERSTAND THE EXISTING PROJECT
+
+Before changing anything:
+
+1. Inspect the complete existing project.
+2. Identify:
+
+   * HTML files
+   * CSS files
+   * JavaScript files
+   * existing API/data-fetching code
+   * existing hotspot data structure
+   * existing Leaflet/map code
+   * existing Turf.js setup
+   * existing localStorage usage
+3. Do NOT unnecessarily rewrite existing working code.
+4. Reuse existing functions and data structures wherever possible.
+5. Maintain compatibility with the work already completed during Days 1–4.
+6. Check how Role 3 is currently passing FIRMS data into the application.
+7. Check how Role 2 currently expects hotspot/event data for the map.
+8. Check how Role 1 currently expects data for the event/details panel.
+
+Before implementing anything, understand the current data flow.
+
+---
+
+# 2. PROJECT ARCHITECTURE
+
+Follow this architecture:
+
+NASA FIRMS
+↓
+Data Fetching
+↓
+Raw Hotspot Data
+↓
+DATA PROCESSING — YOUR ROLE
+↓
+Spatial Clustering
+↓
+Temporal Grouping
+↓
+Persistence Detection
+↓
+Thermal Events
+↓
+Classification
+↓
+Map + Dashboard
+
+Do NOT build a backend database.
+
+For this MVP, data processing must happen in the browser using JavaScript.
+
+---
+
+# 3. YOUR MAIN DAY-5 OBJECTIVE
+
+Implement a reliable processing pipeline that converts individual hotspot detections into **thermal events**.
+
+The roadmap requires:
+
+* spatial clustering
+* temporal grouping
+* persistence
+* detection count
+* unique days
+* first detection
+* last detection
+* recurrence rate
+* event IDs such as `TX-001`, `TX-002`, etc.
+
+These thermal events will later be consumed by the classification engine and dashboard.
+
+---
+
+# 4. IMPORTANT DATA MODEL
+
+Use a standardized hotspot object.
+
+If the existing project already has a compatible structure, preserve it.
+
+The logical structure should contain:
+
+```javascript
+{
+    id,
+    latitude,
+    longitude,
+    date,
+    frp,
+    brightness,
+    confidence,
+    satellite
+}
+```
+
+If some properties are unavailable in the actual FIRMS response, handle them safely.
+
+DO NOT invent fake values for missing real data.
+
+---
+
+# 5. CREATE A THERMAL EVENT DATA STRUCTURE
+
+Create a clean event structure similar to:
+
+```javascript
+{
+    eventId: "TX-001",
+
+    latitude: 25.123,
+    longitude: 85.456,
+
+    detections: [],
+
+    detectionCount: 8,
+
+    uniqueDays: 5,
+
+    firstDetection: "2026-09-10",
+
+    lastDetection: "2026-09-14",
+
+    analysedDays: 5,
+
+    persistenceScore: 100,
+
+    recurrenceRate: 100,
+
+    averageFRP: 145.5,
+
+    averageBrightness: 325.4,
+
+    averageConfidence: 87
+}
+```
+
+Do NOT blindly copy this example.
+
+Calculate values dynamically from the actual data.
+
+If the project already has an event structure, improve/extend it instead of creating duplicate structures.
+
+---
+
+# 6. SPATIAL CLUSTERING
+
+Implement spatial clustering of nearby FIRMS detections.
+
+The purpose is:
+
+> Multiple nearby satellite detections should be treated as one possible thermal event rather than hundreds of unrelated points.
+
+Use **Turf.js** for geographic/spatial calculations where appropriate.
+
+Do NOT use simple latitude/longitude subtraction when Turf.js can perform the geographic calculation correctly.
+
+Consider:
+
+* latitude
+* longitude
+* geographic distance
+* proximity between detections
+
+The clustering logic must be deterministic and understandable.
+
+Do not introduce a complicated machine-learning clustering algorithm.
+
+---
+
+# 7. TEMPORAL GROUPING
+
+After identifying spatially related detections, group detections across time.
+
+The system should be able to determine whether a hotspot keeps appearing around the same location across multiple days.
+
+For each thermal event calculate:
+
+### Detection Count
+
+Number of hotspot detections belonging to the event.
+
+Example:
+
+```text
+8 detections
+```
+
+### Unique Days
+
+Number of different calendar dates on which the event was detected.
+
+Example:
+
+```text
+Detected on:
+September 10
+September 11
+September 12
+September 13
+September 14
+
+Unique days = 5
+```
+
+Do NOT count multiple detections on the same date as multiple unique days.
+
+---
+
+# 8. FIRST AND LAST DETECTION
+
+For every thermal event calculate:
+
+```text
+firstDetection
+lastDetection
+```
+
+Example:
+
+```text
+First detection: 2026-09-10
+Last detection: 2026-09-14
+```
+
+Use actual detection dates from the dataset.
+
+Do not use today's date unless it is actually the last detection date.
+
+Handle invalid/missing dates safely.
+
+---
+
+# 9. ANALYSED DAYS
+
+Determine the number of days covered by the historical dataset being analysed.
+
+Use this value when calculating persistence.
+
+The roadmap defines:
+
+> Persistence = days detected / days analysed
+
+Implement this exactly as the MVP definition.
+
+---
+
+# 10. PERSISTENCE SCORE
+
+Calculate:
+
+```text
+persistenceScore =
+(uniqueDays / analysedDays) × 100
+```
+
+Make sure:
+
+* result cannot exceed 100
+* result cannot be negative
+* division by zero is handled
+* missing dates do not crash the application
+
+Round the displayed value appropriately.
+
+For example:
+
+```text
+0–20%      → Low
+21–50%     → Moderate
+51–80%     → High
+81–100%    → Very High
+```
+
+IMPORTANT:
+
+These thresholds are **prototype rules, not scientific ground truth**.
+
+Do not describe them as scientifically validated.
+
+---
+
+# 11. RECURRENCE RATE
+
+Create a recurrence-rate value that clearly represents how repeatedly the thermal event appears over the analysed period.
+
+Keep the calculation consistent with the persistence logic.
+
+Do not create a misleading metric that contradicts the roadmap.
+
+If persistence and recurrence rate are effectively the same metric in the current MVP, structure the code clearly so that this can later be improved without rewriting the entire processing system.
+
+---
+
+# 12. EVENT IDS
+
+Every generated thermal event must receive a unique ID.
+
+Use the format:
+
+```text
+TX-001
+TX-002
+TX-003
+TX-004
+...
+```
+
+IDs must be generated consistently.
+
+Do not create random IDs for this requirement.
+
+Make sure two different events do not receive the same event ID during one processing run.
+
+If reprocessing the same dataset, avoid unnecessary duplicate event generation.
+
+---
+
+# 13. EVENT CENTROID / LOCATION
+
+For every event determine a representative latitude and longitude.
+
+Use the clustered detections to calculate a meaningful representative location.
+
+Prefer a geographic calculation using Turf.js where appropriate.
+
+The resulting event location will later be used by Role 2 to display the thermal event on the Leaflet map.
+
+Do not destroy the original detection coordinates.
+
+Keep individual detections inside the event when useful.
+
+---
+
+# 14. EVENT STATISTICS
+
+For every thermal event calculate useful aggregate values.
+
+At minimum:
+
+```text
+eventId
+latitude
+longitude
+detections
+detectionCount
+uniqueDays
+firstDetection
+lastDetection
+analysedDays
+persistenceScore
+recurrenceRate
+averageFRP
+averageBrightness
+averageConfidence
+```
+
+Calculate averages only from valid numerical values.
+
+Do not allow `NaN` to appear in the final event object.
+
+---
+
+# 15. DATA VALIDATION
+
+Before processing:
+
+1. Check that hotspot data exists.
+2. Check that the data is an array.
+3. Ignore invalid records.
+4. Ignore records with invalid coordinates.
+5. Handle missing dates.
+6. Handle missing FRP.
+7. Handle missing brightness.
+8. Handle missing confidence.
+9. Prevent duplicate processing where appropriate.
+10. Never crash the complete dashboard because one record is malformed.
+
+Use safe defaults only when appropriate.
+
+Do NOT silently replace important missing data with fake numbers.
+
+---
+
+# 16. LOCALSTORAGE / CACHING
+
+The project is intentionally client-side.
+
+Use `localStorage` only where it makes sense for storing processed/cached information.
+
+Do not turn localStorage into a complicated database.
+
+If caching thermal events:
+
+* use a clear key
+* store valid JSON
+* handle JSON parsing errors
+* handle unavailable/empty cache
+* allow fresh data to replace stale cached data
+
+Do not let stale localStorage data silently override fresh FIRMS data.
+
+---
+
+# 17. TURF.JS
+
+Use Turf.js for geographic calculations where appropriate.
+
+Before adding Turf.js:
+
+1. Check whether Turf.js is already included.
+2. If it is already included, reuse it.
+3. If it is missing, add the simplest appropriate setup.
+4. Do not introduce unnecessary dependencies.
+
+Use Turf.js for distance/coordinate/spatial calculations instead of manually approximating geographic distance.
+
+---
+
+# 18. FUNCTIONS
+
+Organize the processing logic into small, understandable functions.
+
+For example:
+
+```javascript
+validateHotspots()
+```
+
+```javascript
+clusterHotspots()
+```
+
+```javascript
+groupDetectionsByTime()
+```
+
+```javascript
+calculatePersistence()
+```
+
+```javascript
+calculateRecurrenceRate()
+```
+
+```javascript
+calculateEventStatistics()
+```
+
+```javascript
+generateEventId()
+```
+
+```javascript
+createThermalEvents()
+```
+
+You may use different function names if the existing architecture has better names.
+
+Do not create unnecessary functions.
+
+Keep the processing pipeline easy for a beginner developer to understand.
+
+---
+
+# 19. IMPORTANT — CODE COMMENTS
+
+THIS IS VERY IMPORTANT.
+
+I am learning this project and need to understand the code later.
+
+Therefore:
+
+### ADD COMMENTS TO EVERY MAJOR SECTION OF CODE.
+
+Every major function must contain comments explaining:
+
+1. What the function does.
+2. Why it is needed.
+3. What input it receives.
+4. What output it produces.
+5. Important logic used inside it.
+
+For example:
+
+```javascript
+// This function groups nearby FIRMS hotspot detections
+// so that multiple satellite points around the same location
+// can be treated as one possible thermal event.
+function clusterHotspots(hotspots) {
+    ...
+}
+```
+
+For complicated calculations, add inline comments explaining the calculation.
+
+Example:
+
+```javascript
+// Persistence represents the percentage of analysed days
+// on which this thermal event was detected.
+const persistenceScore =
+    (uniqueDays / analysedDays) * 100;
+```
+
+Do NOT write meaningless comments such as:
+
+```javascript
+// calculate score
+```
+
+Comments should actually help me understand the code.
+
+---
+
+# 20. DO NOT OVER-COMMENT EVERY SINGLE LINE
+
+Comments are required, but do not make the code unreadable.
+
+Comment:
+
+* every major section
+* every important function
+* complicated calculations
+* non-obvious logic
+* important edge-case handling
+
+Normal obvious JavaScript syntax does not require a comment on every single line.
+
+The goal is:
+
+> "I should be able to come back after several weeks and understand why this code exists."
+
+---
+
+# 21. KEEP THE CODE BEGINNER-FRIENDLY
+
+I am not an advanced developer.
+
+Prefer:
+
+* normal JavaScript
+* arrays
+* objects
+* functions
+* loops
+* Set
+* Map
+* simple filtering
+* simple sorting
+* async/await where needed
+* Turf.js for geographic calculations
+
+Avoid unnecessarily advanced:
+
+* complex design patterns
+* complicated classes
+* TypeScript
+* React
+* Node.js
+* backend servers
+* databases
+* ML libraries
+* complicated algorithms that are unnecessary for the MVP
+
+The roadmap explicitly says not to start technologies such as React, Node.js, Python, FastAPI, PostgreSQL/PostGIS, TensorFlow, PyTorch, YOLO, Kubernetes, or Docker during this MVP unless the working MVP is already complete.
+
+---
+
+# 22. DO NOT CHANGE THE CLASSIFICATION ENGINE YET
+
+Role 5 owns classification.
+
+Do NOT build the final Industrial/Wildfire/Agriculture classification engine today.
+
+Your job is to prepare clean thermal-event data that Role 5 can consume tomorrow.
+
+You may expose the event statistics needed by Role 5, such as:
+
+```text
+persistenceScore
+detectionCount
+industrialDistance
+averageFRP
+confidence
+```
+
+But do not take over Role 5's classification responsibility.
+
+---
+
+# 23. DO NOT BREAK ROLE 2'S MAP
+
+Role 2 needs thermal events for map visualization.
+
+Make sure the output can easily be consumed by Leaflet.
+
+The final event data should make it possible to display:
+
+```text
+Event ID
+Location
+Detection count
+Persistence
+First detection
+Last detection
+Average FRP
+Confidence
+```
+
+Do not modify the map unnecessarily.
+
+If changes are required, make the smallest integration change possible.
+
+---
+
+# 24. DO NOT BREAK ROLE 1'S UI
+
+Role 1 owns the event information panel.
+
+Your responsibility is the data.
+
+Do not redesign the dashboard.
+
+Provide clean event objects so the UI can consume them.
+
+If a UI change is absolutely necessary for integration, keep it minimal and explain what was changed.
+
+---
+
+# 25. EDGE CASES
+
+Test these cases:
+
+### Case 1 — Empty array
+
+```javascript
+[]
+```
+
+Expected:
+
+No crash.
+
+Return an empty event list.
+
+---
+
+### Case 2 — One hotspot
+
+One valid detection should produce one event.
+
+---
+
+### Case 3 — Multiple detections at the same location
+
+They should be grouped into one event when they satisfy the clustering criteria.
+
+---
+
+### Case 4 — Same location across multiple days
+
+The event should show:
+
+```text
+uniqueDays > 1
+```
+
+and calculate persistence correctly.
+
+---
+
+### Case 5 — Multiple detections on one day
+
+Detection count may increase.
+
+Unique days must NOT increase more than once for that date.
+
+---
+
+### Case 6 — Invalid coordinates
+
+Ignore the invalid record rather than crashing.
+
+---
+
+### Case 7 — Missing FRP
+
+The event must still be created.
+
+Average FRP should handle missing values safely.
+
+---
+
+### Case 8 — Missing confidence
+
+Do not produce `NaN`.
+
+---
+
+### Case 9 — Duplicate records
+
+Avoid allowing duplicate records to incorrectly inflate the event statistics.
+
+---
+
+### Case 10 — No historical data
+
+The application must remain functional.
+
+---
+
+# 26. TEST DATA
+
+If there is no suitable existing dataset for testing, create a small temporary test dataset.
+
+Example concept:
+
+```text
+Location A:
+Day 1
+Day 2
+Day 3
+Day 4
+
+Location B:
+Day 1 only
+
+Location C:
+Day 2
+Day 5
+```
+
+Use it only for testing.
+
+Do not confuse demo/test data with real NASA FIRMS data.
+
+Clearly label test data.
+
+---
+
+# 27. EXPECTED RESULT
+
+After your implementation, the application should be able to take hotspot detections such as:
+
+```text
+Point A — Sept 10
+Point B — Sept 10
+Point C — Sept 11
+Point D — Sept 12
+Point E — Sept 13
+```
+
+and produce something conceptually similar to:
+
+```text
+TX-001
+
+Detection count: 5
+Unique days: 4
+First detection: Sept 10
+Last detection: Sept 13
+Persistence: calculated automatically
+Recurrence rate: calculated automatically
+Average FRP: calculated automatically
+Average brightness: calculated automatically
+Average confidence: calculated automatically
+Representative location: calculated automatically
+```
+
+The exact numbers must come from the actual data.
+
+---
+
+# 28. DATA FLOW REQUIREMENT
+
+Create a clean flow:
+
+```text
+raw FIRMS hotspots
+        ↓
+validate
+        ↓
+clean
+        ↓
+spatial clustering
+        ↓
+temporal grouping
+        ↓
+calculate statistics
+        ↓
+calculate persistence
+        ↓
+generate event ID
+        ↓
+thermal events
+```
+
+The output should be accessible to the rest of the application.
+
+If the project uses a global/shared state object, follow that existing architecture.
+
+Do not create competing data stores.
+
+---
+
+# 29. PERFORMANCE
+
+The application may contain hundreds or thousands of FIRMS detections.
+
+Keep processing reasonably efficient.
+
+Avoid:
+
+* unnecessary repeated loops
+* repeated expensive Turf calculations
+* processing the same dataset multiple times unnecessarily
+* unnecessary DOM manipulation
+
+However:
+
+> Do NOT sacrifice code clarity for premature optimization.
+
+This is a 10-day MVP.
+
+---
+
+# 30. DEBUGGING
+
+Add useful `console.log()` statements only where they help development.
+
+For example:
+
+```javascript
+console.log("ThermalX: Processing FIRMS hotspots...");
+console.log("ThermalX: Thermal events created:", thermalEvents.length);
+```
+
+Do not leave excessive debugging logs everywhere.
+
+---
+
+# 31. FILE ORGANIZATION
+
+The roadmap recommends:
+
+```text
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+```
+
+Role 4's main processing logic should preferably live in:
+
+```text
+js/processing.js
+```
+
+unless the existing project has a different established structure.
+
+Do not unnecessarily reorganize the entire project.
+
+---
+
+# 32. INTEGRATION REQUIREMENT
+
+After implementing the processing logic:
+
+1. Connect it to the existing FIRMS data flow.
+2. Make sure the processing function can receive actual hotspot data.
+3. Make sure thermal events are produced.
+4. Make sure Role 2 can access the event locations.
+5. Make sure Role 1 can access the event information.
+6. Make sure existing Day 1–4 functionality still works.
+
+Do not stop after writing isolated functions.
+
+The code must actually work inside the existing ThermalX project.
+
+---
+
+# 33. VERIFY THE RESULT
+
+After coding:
+
+### Check JavaScript errors
+
+Open browser developer tools and verify there are no major errors.
+
+### Check console
+
+Verify that processing completes successfully.
+
+### Check map
+
+Verify existing map functionality is not broken.
+
+### Check events
+
+Verify thermal events are generated.
+
+### Check statistics
+
+Verify:
+
+* detectionCount
+* uniqueDays
+* firstDetection
+* lastDetection
+* persistenceScore
+* recurrenceRate
+* averageFRP
+* averageBrightness
+* averageConfidence
+
+are valid.
+
+### Check empty data
+
+Verify the application does not crash.
+
+### Check responsive UI
+
+Do not break desktop or mobile layouts.
+
+---
+
+# 34. IMPORTANT RESPONSIBLE-DATA RULE
+
+ThermalX is a decision-support system.
+
+Persistence and proximity do NOT prove that a hotspot has a particular source.
+
+Do not write statements such as:
+
+> "This is definitely an industrial fire."
+
+The system should later use responsible wording such as:
+
+> "Likely industrial thermal source."
+
+and:
+
+> "Requires human verification."
+
+The roadmap explicitly requires avoiding certainty or claims of illegal activity.
+
+---
+
+# 35. WHAT YOU MUST NOT DO TODAY
+
+Do NOT:
+
+* build a backend
+* build a database
+* build ML
+* train a model
+* build CNN
+* add TensorFlow
+* add PyTorch
+* add React
+* add Node.js
+* redesign the complete UI
+* rewrite working Day 1–4 code unnecessarily
+* create unnecessary dependencies
+* implement the complete classification engine
+* create fake NASA data and present it as live data
+
+Focus strictly on **Day 5 — Role 4**.
+
+---
+
+# 36. FINAL CHECKLIST
+
+Before finishing, verify:
+
+[ ] Existing project inspected first
+
+[ ] Existing data structure understood
+
+[ ] FIRMS hotspot data can enter processing pipeline
+
+[ ] Invalid data handled
+
+[ ] Spatial clustering implemented
+
+[ ] Turf.js used appropriately
+
+[ ] Temporal grouping implemented
+
+[ ] Detection count calculated
+
+[ ] Unique days calculated
+
+[ ] First detection calculated
+
+[ ] Last detection calculated
+
+[ ] Analysed days determined
+
+[ ] Persistence score calculated
+
+[ ] Persistence category available
+
+[ ] Recurrence rate calculated
+
+[ ] Average FRP calculated
+
+[ ] Average brightness calculated
+
+[ ] Average confidence calculated
+
+[ ] Thermal event IDs generated as TX-001, TX-002, etc.
+
+[ ] Representative event coordinates generated
+
+[ ] Individual detections preserved where useful
+
+[ ] Data available for Role 2 map
+
+[ ] Data available for Role 1 event panel
+
+[ ] Data prepared for Role 5 classification
+
+[ ] localStorage handled safely if used
+
+[ ] Empty dataset tested
+
+[ ] Invalid data tested
+
+[ ] Duplicate data tested
+
+[ ] JavaScript errors checked
+
+[ ] Existing functionality still works
+
+[ ] Mobile responsiveness not broken
+
+[ ] Code contains meaningful comments throughout every major section
+
+---
+
+# 37. MOST IMPORTANT INSTRUCTION
+
+Do not just generate code and stop.
+
+ACT LIKE A SENIOR DEVELOPER GUIDING A BEGINNER.
+
+First inspect the project.
+
+Then understand the existing architecture.
+
+Then implement Day 5 Role 4.
+
+Then integrate it.
+
+Then test it.
+
+Then explain exactly:
+
+1. What files you changed.
+2. What you added.
+3. What each important function does.
+4. How spatial clustering works.
+5. How temporal grouping works.
+6. How persistence is calculated.
+7. How event IDs are generated.
+8. How the thermal-event object is structured.
+9. How Role 2 will consume the output.
+10. How Role 5 will consume the output.
+11. What was tested.
+12. Any remaining issues.
+
+MOST IMPORTANTLY:
+
+**ADD CLEAR COMMENTS TO EVERY MAJOR SECTION OF THE CODE SO I CAN UNDERSTAND AND LEARN FROM IT LATER.**
+
+Do not hide important logic inside overly complicated code.
+
+Keep ThermalX simple, explainable, modular, and working. c
+
+**DAY 5 ROLE 4 = TURN RAW HOTSPOT DETECTIONS INTO RELIABLE THERMAL EVENTS.**
