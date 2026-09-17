@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initUI();
 });
 
+// Track the currently selected hotspot to prevent race conditions from async API responses
+let currentHotspotContextId = null;
+
 function initUI() {
     // Mobile menu toggle
     const menuBtn = document.getElementById('mobile-menu-btn');
@@ -321,9 +324,19 @@ function showHotspotDetails(hotspot) {
             // Tell the user we are searching...
             setElementText('event-facility', "Searching OpenStreetMap...");
             
+            // Set current context tracking ID to prevent race conditions
+            const fetchContextId = hotspot.id || `${hotspot.latitude}-${hotspot.longitude}`;
+            currentHotspotContextId = fetchContextId;
+            
             // Call Role 3's API function
             fetchNearbyIndustrialFacilities(hotspot.latitude, hotspot.longitude)
                 .then(rawFacilities => {
+                    // Abort if the user selected a different hotspot while we were fetching
+                    if (currentHotspotContextId !== fetchContextId) {
+                        console.log("OSM request completed, but a different hotspot is now selected. Discarding old results.");
+                        return;
+                    }
+
                     let processedContext = { facilities: [] };
                     
                     // ==========================================
@@ -611,6 +624,9 @@ function renderIndustrialFacilitiesUI(facilities) {
  */
 function clearHotspotDetails() {
     setPanelState('event-state-empty');
+    
+    // Clear the active context tracking so pending API requests don't mistakenly render
+    currentHotspotContextId = null;
 
     const elementsToClear = [
         'event-id', 'event-status', 'event-priority', 'event-classification',

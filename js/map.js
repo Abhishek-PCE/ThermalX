@@ -430,25 +430,5 @@ window.MapModule = (function() {
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize Map
     window.MapModule.initMap('map');
-
-    // 2. Add Test Hotspot Marker (Nagpur, India)
-    const testLat = 21.1458;
-    const testLng = 79.0882;
-    const popupHTML = `
-        <div style="font-family: monospace; font-size: 14px;">
-            <strong>Source:</strong> Test Hotspot<br>
-            <strong>Lat/Lng:</strong> ${testLat}, ${testLng}<br>
-            <strong>Status:</strong> Ready for FIRMS integration.<br>
-        </div>
-    `;
-    
-    window.MapModule.addTestMarker(testLat, testLng, "Test Hotspot (Nagpur)", popupHTML);
-    
-    // Optional: center map on test marker after short delay for visual effect
-    setTimeout(() => {
-        window.MapModule.centerMapOn(testLat, testLng, 6);
-    }, 1000);
-    // Note: Day 2 Role 2 removed the static test marker on load.
-    // Real FIRMS data markers will be injected via renderHotspots() called by app.js
 });
 
