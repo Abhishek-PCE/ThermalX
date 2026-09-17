@@ -1,39 +1,35 @@
 const fs = require('fs');
 global.window = {};
 global.document = {
-    getElementById: () => ({ textContent: '', style: {}, addEventListener: () => {}, classList: { add: () => {}, remove: () => {} } }),
-    querySelector: () => null,
     addEventListener: () => {}
 };
-global.L = {
-    layerGroup: () => ({ addTo: () => {}, clearLayers: () => {} }),
-    featureGroup: () => ({ addTo: () => {}, clearLayers: () => {}, getBounds: () => ({ isValid: () => true }) }),
-    circleMarker: () => ({ bindPopup: () => ({ addTo: () => {} }) }),
-    marker: () => ({ bindPopup: () => ({ addTo: () => {} }), addTo: () => {} }),
-    map: () => ({ setView: () => ({}), fitBounds: () => {} }),
-    tileLayer: () => ({ addTo: () => {} }),
+global.L = { 
+    layerGroup: () => ({ addTo: () => {}, clearLayers: () => {}, getBounds: () => ({}) }), 
+    featureGroup: () => ({ addTo: () => {}, clearLayers: () => {}, addLayer: () => {} }), 
+    divIcon: (opts) => ({ type: 'divIcon', options: opts }),
+    map: () => ({ setView: () => {}, addLayer: () => {}, fitBounds: () => {} }),
     control: { layers: () => ({ addTo: () => {} }) },
-    divIcon: () => ({})
+    tileLayer: () => ({ addTo: () => {} }),
+    marker: (coords, opts) => {
+        let _icon = opts ? opts.icon : null;
+        let _popup = "";
+        return { 
+            addTo: () => {}, 
+            bindPopup: (html) => { _popup = html; }, 
+            on: () => {},
+            setIcon: (icon) => { _icon = icon; },
+            options: { icon: _icon },
+            getPopup: () => _popup
+        };
+    },
+    circleMarker: () => ({ bindPopup: () => ({ addTo: () => {} }) })
 };
-try {
-    eval(fs.readFileSync('js/map.js', 'utf8'));
-    console.log("Modules loaded.");
-    window.MapModule.initMap('test');
-    console.log("Map initialized.");
 
-    const facilities = [
-        { id: '1', name: 'Test Factory', type: 'Factory', latitude: 10, longitude: 20 },
-        { id: '2', name: 'Test Plant', type: 'Power Plant', latitude: 11, longitude: 21, distanceFromHotspot: 1.5 },
-        { id: '3', name: 'Invalid', latitude: null, longitude: null }
-    ];
+eval(fs.readFileSync('js/map.js', 'utf8'));
 
-    const rendered = window.MapModule.renderIndustrialFacilities(facilities);
-    console.log(`Rendered ${rendered} facilities. (Expected 2)`);
-    
-    window.MapModule.clearIndustrialLayer();
-    console.log("Layer cleared.");
+const testHotspots = [
+    { eventId: "TX-001", latitude: 20.0, longitude: 80.0, detectionCount: 5, frp: 10, brightness: 300, confidence: 90, uniqueDays: 3, persistenceScore: 50, firstDetection: "2026-09-10", lastDetection: "2026-09-15" }
+];
 
-    console.log("SUCCESS");
-} catch(e) {
-    console.error(e);
-}
+window.MapModule.renderHotspots(testHotspots);
+console.log("Map rendered successfully.");
