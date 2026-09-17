@@ -1,0 +1,1100 @@
+# THERMALX — DAY 4 DEVELOPMENT TASK
+
+## ROLE 6 — INTEGRATION, TESTING & DEPLOYMENT LEAD
+
+You are working on **ThermalX**, a JavaScript-first web application for detecting, analyzing, classifying, and visualizing thermal hotspots.
+
+Today is:
+
+**DAY: 4**
+
+Your assigned role is:
+
+**ROLE 6 — Integration, Testing & Deployment Lead**
+
+Your task today is to integrate the work of the other modules and make sure the **OpenStreetMap (OSM) / Overpass industrial-context functionality works correctly with the existing ThermalX application.**
+
+---
+
+# 1. IMPORTANT PROJECT RULES
+
+Follow these rules strictly.
+
+### Technology restrictions
+
+Use only the existing MVP technology stack:
+
+* HTML
+* CSS
+* Vanilla JavaScript
+* Leaflet.js
+* OpenStreetMap
+* NASA FIRMS
+* OSM Overpass API
+* Turf.js if already being used by the project
+* JSON
+* localStorage where required
+
+DO NOT introduce:
+
+* React
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* Docker
+* Kubernetes
+* unnecessary frameworks
+
+The ThermalX roadmap specifically keeps the MVP simple and client-side. Do not replace the existing architecture with a more complicated stack.
+
+---
+
+# 2. TODAY'S MAIN OBJECTIVE
+
+The Day 4 objective is:
+
+> Select a thermal hotspot and see nearby industrial facilities, their distance from the hotspot, and their type.
+
+The expected flow is:
+
+HOTSPOT
+↓
+SELECT HOTSPOT
+↓
+GET HOTSPOT LATITUDE + LONGITUDE
+↓
+REQUEST NEARBY INDUSTRIAL FACILITIES FROM OSM/OVERPASS
+↓
+RECEIVE INDUSTRIAL FACILITIES
+↓
+PROCESS / VALIDATE DATA
+↓
+CALCULATE HOTSPOT → FACILITY DISTANCE
+↓
+DISPLAY INDUSTRIAL FACILITIES ON MAP
+↓
+DISPLAY DISTANCE + FACILITY TYPE
+↓
+SHOW INFORMATION IN UI
+↓
+TEST EVERYTHING
+
+---
+
+# 3. FIRST INSPECT THE EXISTING PROJECT
+
+Before modifying anything:
+
+1. Inspect the complete existing project.
+2. Identify all existing files.
+3. Understand the current architecture.
+4. Identify:
+
+   * `index.html`
+   * `css/style.css`
+   * `js/app.js`
+   * `js/map.js`
+   * `js/api.js`
+   * `js/processing.js`
+   * `js/classification.js`
+   * `data/`
+   * `assets/`
+5. Understand how hotspot data currently flows through the application.
+6. Understand how Leaflet markers are created.
+7. Understand how a selected hotspot is stored or passed between modules.
+8. Understand whether Turf.js is already installed/imported.
+9. DO NOT unnecessarily rewrite working code.
+10. Preserve all existing Day 1–3 functionality.
+
+The expected project structure is approximately:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+If the actual project structure differs, adapt to the existing structure rather than creating duplicate files.
+
+---
+
+# 4. ROLE 6 RESPONSIBILITY
+
+You are NOT the primary developer of the OSM API.
+
+Your responsibility is to make sure the OSM functionality created by the data-integration/map/processing modules actually works as one complete system.
+
+You must:
+
+* connect modules together
+* check data flow
+* check API responses
+* check invalid data
+* check empty results
+* check distance calculations
+* check map rendering
+* check UI integration
+* check errors
+* check loading states
+* check edge cases
+* prevent one module from breaking another
+* preserve existing FIRMS functionality
+
+---
+
+# 5. OSM / OVERPASS INTEGRATION
+
+Integrate the OSM industrial-context functionality into the existing ThermalX workflow.
+
+The application should retrieve relevant industrial facilities such as:
+
+* factories
+* power plants
+* refineries
+* mines
+* oil/gas infrastructure
+* other relevant industrial facilities
+
+IMPORTANT:
+
+Do NOT retrieve everything from OpenStreetMap.
+
+Only retrieve relevant industrial features needed for ThermalX.
+
+---
+
+# 6. SELECTED HOTSPOT FLOW
+
+When the user selects a hotspot:
+
+1. Get the hotspot latitude.
+2. Get the hotspot longitude.
+3. Validate both values.
+4. Send the coordinates to the OSM/Overpass functionality.
+5. Request nearby relevant industrial facilities.
+6. Handle the response.
+7. Normalize the facility data.
+8. Calculate distance between:
+
+   * selected hotspot
+   * each nearby industrial facility
+9. Sort facilities by distance if appropriate.
+10. Display the results.
+
+Example:
+
+Selected hotspot:
+
+Latitude: 25.5941
+Longitude: 85.1376
+
+Nearby facilities:
+
+Factory A
+Distance: 1.2 km
+Type: Industrial Facility
+
+Power Plant B
+Distance: 3.8 km
+Type: Power Plant
+
+---
+
+# 7. DATA VALIDATION
+
+Before using OSM data, validate it.
+
+Handle:
+
+* missing latitude
+* missing longitude
+* invalid latitude
+* invalid longitude
+* missing facility name
+* missing facility type
+* incomplete OSM objects
+* duplicate facilities
+* unexpected response structure
+* empty response
+* malformed response
+
+Never allow invalid data to crash the application.
+
+Use safe fallback values where appropriate.
+
+For example:
+
+Unknown Facility
+
+Unknown Type
+
+Distance unavailable
+
+But do not invent actual facility information.
+
+---
+
+# 8. DISTANCE CALCULATION
+
+The system must calculate the distance between:
+
+HOTSPOT → INDUSTRIAL FACILITY
+
+Use Turf.js if Turf.js is already part of the project.
+
+Otherwise, implement a simple reliable geographic-distance calculation without introducing unnecessary dependencies.
+
+Prefer returning distance in kilometers.
+
+Example:
+
+Distance = 1.2 km
+
+For very small distances, use an appropriate readable unit if useful.
+
+The distance calculation must:
+
+* use valid coordinates
+* return a numeric value
+* avoid NaN
+* avoid negative values
+* handle missing coordinates safely
+
+---
+
+# 9. INDUSTRIAL RELEVANCE
+
+The distance should be available to the classification system later.
+
+For now, do NOT claim:
+
+"this hotspot was caused by the factory."
+
+Instead use responsible wording such as:
+
+"Nearby industrial facility detected."
+
+or:
+
+"Industrial context detected at 1.2 km."
+
+Remember:
+
+DISTANCE IS CONTEXT, NOT PROOF OF CAUSE.
+
+The roadmap describes industrial proximity as a decision-support heuristic, not proof of attribution.
+
+---
+
+# 10. MAP INTEGRATION
+
+Industrial facilities should appear as a SEPARATE Leaflet layer.
+
+Do not mix industrial markers with thermal hotspot markers.
+
+Create/use an appropriate layer group, for example:
+
+industrialLayer
+
+The map should support:
+
+* hotspot layer
+* industrial facility layer
+* layer visibility control
+* zooming
+* popup/details
+* clear visual distinction between hotspot and facility
+
+Do not break existing hotspot markers.
+
+---
+
+# 11. INDUSTRIAL FACILITY POPUP
+
+When the user clicks an industrial facility, display useful information such as:
+
+* Facility name
+* Facility type
+* Distance from selected hotspot
+* OSM-related information if available
+
+Example:
+
+Industrial Facility
+
+Name:
+ABC Factory
+
+Type:
+Factory
+
+Distance from hotspot:
+1.2 km
+
+Source:
+OpenStreetMap
+
+Do not display fake information.
+
+---
+
+# 12. HOTSPOT INFORMATION PANEL
+
+When a hotspot is selected, the existing hotspot information panel should continue displaying the hotspot information.
+
+Add industrial context without destroying existing information.
+
+For example:
+
+THERMAL EVENT
+
+Event ID:
+TX-001
+
+Latitude:
+25.5941
+
+Longitude:
+85.1376
+
+FRP:
+245.6
+
+Confidence:
+High
+
+Date:
+2026-09-17
+
+---
+
+NEARBY INDUSTRIAL CONTEXT
+
+Nearest Facility:
+ABC Factory
+
+Type:
+Factory
+
+Distance:
+1.2 km
+
+Industrial Context:
+High relevance
+
+IMPORTANT:
+
+"High relevance" means the facility is geographically close.
+
+It does NOT mean the facility caused the thermal event.
+
+---
+
+# 13. LOADING STATE
+
+When OSM data is being requested, clearly indicate that the application is loading.
+
+Example:
+
+"Searching for nearby industrial facilities..."
+
+Do not freeze the UI.
+
+The user should understand that data is being retrieved.
+
+---
+
+# 14. EMPTY RESULT HANDLING
+
+If no nearby industrial facility is found, do not show an error such as:
+
+"Application failed."
+
+Instead show:
+
+"No relevant industrial facilities found nearby."
+
+The map and rest of the application must continue working.
+
+---
+
+# 15. API FAILURE HANDLING
+
+If Overpass/OSM fails:
+
+DO NOT crash the application.
+
+Show a friendly message such as:
+
+"Industrial context could not be loaded right now."
+
+The FIRMS hotspot map must continue functioning.
+
+The user should still be able to:
+
+* view hotspots
+* select hotspots
+* view hotspot information
+* use other dashboard functionality
+
+Only the industrial-context portion should fail gracefully.
+
+---
+
+# 16. TIMEOUT / SLOW API HANDLING
+
+Overpass may sometimes respond slowly.
+
+Implement reasonable request handling.
+
+Prevent:
+
+* infinite loading
+* duplicate requests
+* UI freezing
+* unhandled promise rejection
+
+If the request takes too long, provide a useful error/fallback message.
+
+---
+
+# 17. DUPLICATE REQUEST PREVENTION
+
+Avoid unnecessary repeated Overpass requests.
+
+For example, if the user clicks the same hotspot repeatedly:
+
+Do not continuously fire identical API requests unless necessary.
+
+Use caching if the existing architecture supports it.
+
+localStorage or in-memory caching may be used where appropriate.
+
+Do not over-engineer caching.
+
+---
+
+# 18. MODULE INTEGRATION
+
+Check that the following modules communicate correctly:
+
+### api.js
+
+Responsible for:
+
+* external API requests
+* OSM/Overpass request
+* error handling
+* response handling
+
+### processing.js
+
+Responsible for:
+
+* cleaning
+* normalizing
+* validating
+* calculating distance
+* preparing industrial-context data
+
+### map.js
+
+Responsible for:
+
+* Leaflet map
+* industrial layer
+* industrial markers
+* popups
+* layer controls
+
+### app.js
+
+Responsible for:
+
+* application flow
+* selected hotspot
+* connecting data + processing + map + UI
+
+Do not put everything into one JavaScript file.
+
+Maintain separation of responsibility.
+
+---
+
+# 19. TEST THE COMPLETE DATA FLOW
+
+Test this complete chain:
+
+User selects hotspot
+↓
+Hotspot coordinates obtained
+↓
+OSM request starts
+↓
+Loading state appears
+↓
+OSM response received
+↓
+Response validated
+↓
+Facilities normalized
+↓
+Distances calculated
+↓
+Industrial markers created
+↓
+Industrial layer displayed
+↓
+Information panel updated
+↓
+No JavaScript errors
+
+If any step fails, identify and fix the issue.
+
+---
+
+# 20. TEST CASES
+
+You MUST test at least these cases.
+
+### TEST 1 — Normal hotspot
+
+Select a hotspot with valid latitude and longitude.
+
+Expected:
+
+Nearby facilities load.
+
+---
+
+### TEST 2 — No facilities
+
+Use an area where relevant facilities may not exist.
+
+Expected:
+
+"No relevant industrial facilities found nearby."
+
+Application remains functional.
+
+---
+
+### TEST 3 — Invalid coordinates
+
+Test with invalid/missing coordinates.
+
+Expected:
+
+No crash.
+
+Show appropriate validation message.
+
+---
+
+### TEST 4 — API failure
+
+Simulate or handle an Overpass request failure.
+
+Expected:
+
+Friendly error message.
+
+FIRMS/map functionality remains available.
+
+---
+
+### TEST 5 — Duplicate facilities
+
+Check that duplicate OSM results do not create unnecessary duplicate markers.
+
+---
+
+### TEST 6 — Multiple facilities
+
+Test a hotspot near several industrial facilities.
+
+Expected:
+
+All relevant facilities appear.
+
+Distances are calculated separately.
+
+---
+
+### TEST 7 — Facility click
+
+Click an industrial marker.
+
+Expected:
+
+Facility information appears.
+
+---
+
+### TEST 8 — Hotspot switching
+
+Select Hotspot A.
+
+Then select Hotspot B.
+
+Expected:
+
+Industrial context updates correctly.
+
+Old results must not incorrectly remain associated with the new hotspot.
+
+---
+
+### TEST 9 — Map layer control
+
+Turn industrial layer ON/OFF.
+
+Expected:
+
+Industrial markers show/hide correctly.
+
+Hotspot markers remain unaffected.
+
+---
+
+### TEST 10 — Mobile/responsive UI
+
+Check the industrial information panel on:
+
+* desktop
+* laptop
+* tablet
+* mobile
+
+Do not allow horizontal overflow or broken layout.
+
+---
+
+# 21. CHECK FOR RACE CONDITIONS
+
+If the user selects:
+
+Hotspot A
+
+and immediately selects:
+
+Hotspot B
+
+make sure an older API response from Hotspot A does not overwrite the results for Hotspot B.
+
+Use a simple request ID, AbortController, or another appropriate approach if needed.
+
+Do not over-engineer.
+
+---
+
+# 22. RESPONSIBLE CLASSIFICATION SUPPORT
+
+The Day 4 output will later support classification.
+
+Prepare clean data that can eventually provide:
+
+* nearest industrial facility
+* industrial facility type
+* industrial distance
+* industrial proximity indicator
+
+Do NOT build the complete classification engine today.
+
+Role 5 handles classification.
+
+Your job is to make reliable industrial-context data available to it.
+
+---
+
+# 23. DO NOT BREAK DAY 1–3 FEATURES
+
+Before finishing, verify that existing functionality still works:
+
+### Day 1
+
+* website loads
+* navigation works
+* map loads
+* Leaflet works
+* responsive layout works
+
+### Day 2
+
+* FIRMS data loads
+* hotspots appear
+* hotspot markers work
+* popup works
+
+### Day 3
+
+* historical data works if already implemented
+* event information works
+* persistence data is preserved
+* timeline/history is not broken
+
+### Day 4
+
+* OSM integration works
+* industrial facilities appear
+* distance works
+* facility information works
+* integration works
+
+Do NOT fix one feature by breaking another.
+
+---
+
+# 24. CODE COMMENTS — VERY IMPORTANT
+
+I am a beginner and need to understand this project later.
+
+Therefore:
+
+### ADD COMMENTS THROUGHOUT THE CODE.
+
+Every meaningful section of code must have a clear beginner-friendly comment.
+
+Explain:
+
+* what the section does
+* why it is needed
+* what data it receives
+* what data it returns
+* important logic
+* API calls
+* distance calculation
+* error handling
+* map-layer creation
+* event listeners
+* integration between modules
+
+Example:
+
+```javascript
+// This function receives the selected hotspot's coordinates
+// and searches OpenStreetMap for nearby industrial facilities.
+async function findNearbyFacilities(latitude, longitude) {
+    ...
+}
+```
+
+For complicated logic, explain it step-by-step.
+
+Example:
+
+```javascript
+// Check whether the API response contains valid elements.
+// If the response is empty, we return an empty array instead
+// of allowing the rest of the application to crash.
+```
+
+Do NOT add meaningless comments such as:
+
+```javascript
+// Create variable
+const facilities = [];
+```
+
+Comments should actually help a beginner understand the code.
+
+---
+
+# 25. COMMENT EVERY MAJOR SECTION
+
+Use comments for sections such as:
+
+* imports/external libraries
+* constants
+* API configuration
+* OSM request
+* response parsing
+* validation
+* data normalization
+* distance calculation
+* caching
+* error handling
+* Leaflet layer creation
+* marker creation
+* popup creation
+* UI updates
+* event listeners
+* integration functions
+
+Keep comments simple and understandable.
+
+---
+
+# 26. CODE QUALITY RULES
+
+Write clean beginner-friendly JavaScript.
+
+Prefer:
+
+* meaningful variable names
+* small functions
+* modular code
+* async/await
+* try/catch
+* reusable functions
+* clear return values
+
+Avoid:
+
+* unnecessarily complex one-liners
+* minified code
+* unnecessary abstractions
+* huge functions
+* duplicated logic
+* unexplained magic numbers
+
+---
+
+# 27. ERROR LOGGING
+
+Use useful console messages during development.
+
+Examples:
+
+```javascript
+console.log("Fetching nearby industrial facilities...");
+console.log("OSM facilities received:", facilities);
+console.error("OSM request failed:", error);
+```
+
+Do not spam the console unnecessarily.
+
+Errors should be understandable.
+
+---
+
+# 28. DO NOT HARD-CODE FAKE LIVE DATA
+
+Do not pretend that fake industrial facilities are real OSM data.
+
+If demo data is required for testing, clearly label it as:
+
+DEMO DATA
+
+Do not mix fake data with LIVE DATA without clearly identifying it.
+
+---
+
+# 29. LIVE DATA VS DEMO DATA
+
+Keep the architecture compatible with the roadmap's later Demo Mode.
+
+LIVE MODE:
+
+NASA FIRMS + OSM/Overpass
+
+DEMO MODE:
+
+saved JSON/demo data
+
+Do not remove the possibility of adding Demo Mode later.
+
+If the current project already has Demo Mode, do not break it.
+
+---
+
+# 30. UI REQUIREMENTS
+
+The user should clearly understand:
+
+1. Which hotspot is selected.
+2. Whether nearby industrial facilities were found.
+3. How far each facility is from the hotspot.
+4. What type of facility it is.
+5. That this is contextual information, not proof of causation.
+
+Use simple readable labels.
+
+Avoid overwhelming the interface.
+
+---
+
+# 31. FINAL INTEGRATION CHECK
+
+After implementation, perform a full end-to-end test.
+
+Use this exact scenario:
+
+1. Open ThermalX.
+2. Wait for FIRMS hotspots.
+3. Click a hotspot.
+4. Read hotspot details.
+5. Start OSM industrial search.
+6. Wait for results.
+7. Show nearby facilities.
+8. Show industrial markers on map.
+9. Click an industrial facility.
+10. Show facility type.
+11. Show distance from hotspot.
+12. Confirm the hotspot information remains visible.
+13. Switch to another hotspot.
+14. Confirm industrial context updates.
+15. Toggle industrial layer.
+16. Test API failure handling.
+17. Test mobile layout.
+18. Open browser console.
+19. Confirm there are no unexpected JavaScript errors.
+
+---
+
+# 32. DO NOT OVERBUILD
+
+Today's target is NOT to create the final AI system.
+
+Do NOT add:
+
+* machine learning
+* neural networks
+* satellite image AI
+* complex backend
+* database
+* advanced analytics
+* unnecessary animations
+* unrelated features
+
+The goal is a reliable Day 4 integration.
+
+---
+
+# 33. BEFORE CHANGING CODE
+
+First explain internally/briefly:
+
+* which files need modification
+* why each file needs modification
+* what existing functionality will remain untouched
+
+Then make the changes.
+
+Do not rewrite the entire project unnecessarily.
+
+---
+
+# 34. AFTER IMPLEMENTATION
+
+Give me a concise final report containing:
+
+### Files changed
+
+List every modified/created file.
+
+### What was implemented
+
+Explain the Day 4 Role 6 work.
+
+### Integration flow
+
+Show:
+
+Hotspot
+→ OSM
+→ Industrial facilities
+→ Processing
+→ Distance
+→ Map
+→ UI
+
+### Testing performed
+
+List the test cases that were checked.
+
+### Errors fixed
+
+List important bugs/errors found and fixed.
+
+### Remaining issues
+
+Clearly mention anything that could not be tested or completed.
+
+### How to run
+
+Tell me exactly how to run the project locally.
+
+---
+
+# 35. FINAL SUCCESS CRITERIA
+
+Day 4 Role 6 is successful ONLY if:
+
+[ ] Existing ThermalX application still runs.
+
+[ ] FIRMS hotspots still work.
+
+[ ] A hotspot can be selected.
+
+[ ] Selected hotspot coordinates are correctly passed to OSM functionality.
+
+[ ] Relevant industrial facilities can be retrieved.
+
+[ ] Invalid OSM data is handled safely.
+
+[ ] Empty OSM results are handled safely.
+
+[ ] OSM/API failure does not crash the application.
+
+[ ] Industrial facilities appear as a separate map layer.
+
+[ ] Facility markers can be clicked.
+
+[ ] Facility type is displayed.
+
+[ ] Hotspot-to-facility distance is calculated.
+
+[ ] Distance is displayed in a readable format.
+
+[ ] Switching between hotspots updates industrial context correctly.
+
+[ ] Old API responses cannot overwrite newer hotspot selections.
+
+[ ] Mobile layout remains usable.
+
+[ ] No unnecessary technology/framework has been introduced.
+
+[ ] Code is modular.
+
+[ ] Code contains beginner-friendly comments throughout every major section.
+
+[ ] No fake live data is presented as real OSM data.
+
+[ ] The system uses responsible wording and does not claim that proximity proves causation.
+
+---
+
+# MOST IMPORTANT INSTRUCTION
+
+Build this as a **real working Day 4 ThermalX integration**, not as a mockup.
+
+Preserve everything already working from Days 1–3.
+
+Make the smallest necessary changes.
+
+Prioritize:
+
+**WORKING MVP > COMPLEX FEATURES**
+
+And remember:
+
+**You are Role 6 — Integration, Testing & Deployment Lead.**
+
+Your priority is to make sure the modules created by the team work together reliably, especially:
+
+**OSM/Overpass → Industrial Facilities → Distance Calculation → Map → UI**
+
+Every major section of code MUST contain clear beginner-friendly comments so I can understand and modify the project later.
