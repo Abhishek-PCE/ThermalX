@@ -3,8 +3,8 @@
  * Frontend Foundation & UI Interactions
  */
 
-// Import the fetch function from our newly created api.js module.
-import { fetchFIRMSData } from './api.js';
+// Import the fetch functions from our newly created api.js module.
+import { fetchFIRMSData, fetchNearbyIndustrialFacilities } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("ThermalX application initialized.");
@@ -310,6 +310,38 @@ function showHotspotDetails(hotspot) {
             }
         }
 
+        // ==========================================
+        // DAY 4 ROLE 2: Render Industrial Facilities
+        // ==========================================
+        if (window.MapModule && typeof window.MapModule.clearIndustrialLayer === 'function') {
+            window.MapModule.clearIndustrialLayer(); // Clear previous
+        }
+
+        if (hotspot.latitude !== undefined && hotspot.longitude !== undefined) {
+            // Tell the user we are searching...
+            setElementText('event-facility', "Searching OpenStreetMap...");
+            
+            // Call Role 3's API function
+            fetchNearbyIndustrialFacilities(hotspot.latitude, hotspot.longitude)
+                .then(facilities => {
+                    if (window.MapModule && typeof window.MapModule.renderIndustrialFacilities === 'function') {
+                        // Pass facilities to Role 2 to render on map
+                        window.MapModule.renderIndustrialFacilities(facilities);
+                    }
+                    
+                    // Simple UI update (proper UI will be done by Role 1, but we need basic fallback)
+                    if (facilities && facilities.length > 0) {
+                        setElementText('event-facility', `${facilities.length} nearby facilities found.`);
+                    } else {
+                        setElementText('event-facility', "No nearby industrial facilities.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to fetch industrial context:", err);
+                    setElementText('event-facility', "Data unavailable.");
+                });
+        }
+
     } catch (err) {
         console.error("Error in showHotspotDetails():", err);
         showError("Failed to display hotspot details. Please select another hotspot.");
@@ -446,6 +478,13 @@ function clearHotspotDetails() {
     // ==========================================
     if (window.MapModule && typeof window.MapModule.clearHistoricalDetections === 'function') {
         window.MapModule.clearHistoricalDetections();
+    }
+
+    // ==========================================
+    // DAY 4 ROLE 2: Clear Industrial Map Markers
+    // ==========================================
+    if (window.MapModule && typeof window.MapModule.clearIndustrialLayer === 'function') {
+        window.MapModule.clearIndustrialLayer();
     }
 }
 
