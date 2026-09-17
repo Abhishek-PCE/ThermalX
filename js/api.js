@@ -359,3 +359,145 @@ function normalizeHotspotData(validData) {
     });
 // Ends the normalizeHotspotData function.
 }
+
+// ============================================================================
+// DAY 4 ROLE 3: OSM OVERPASS API INTEGRATION
+// ============================================================================
+
+// Defines the Overpass API endpoint for querying OpenStreetMap data.
+// We use a reliable public instance.
+const OVERPASS_API_URL = "https://overpass-api.de/api/interpreter";
+
+// Defines the default search radius in meters around the hotspot (e.g., 5000 meters = 5km).
+const INDUSTRIAL_SEARCH_RADIUS = 5000;
+
+// Simple in-memory cache to prevent identical duplicate requests during the same session.
+const overpassCache = new Map();
+
+/**
+ * ----------------------------------------------------
+ * FUNCTION: fetchNearbyIndustrialFacilities(latitude, longitude, radius)
+ *
+ * PURPOSE:
+ * Queries the OSM Overpass API to find industrial facilities
+ * near the selected thermal hotspot.
+ *
+ * INPUT:
+ * latitude, longitude - Coordinates of the selected hotspot.
+ * radius - Search radius in meters (defaults to 5000).
+ *
+ * OUTPUT:
+ * Returns an array of standardized facility objects.
+ * ----------------------------------------------------
+ */
+export async function fetchNearbyIndustrialFacilities(latitude, longitude, radius = INDUSTRIAL_SEARCH_RADIUS) {
+    // 1. Validate the input coordinates. If they are missing or invalid, fail safely.
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        console.warn("Invalid coordinates provided to Overpass API.");
+        return [];
+    }
+
+    // 2. Generate a cache key. If we already searched this exact spot, return the cached result immediately.
+    const cacheKey = `${lat.toFixed(4)}_${lon.toFixed(4)}_${radius}`;
+    if (overpassCache.has(cacheKey)) {
+        console.log("Returning industrial facilities from cache.");
+        return overpassCache.get(cacheKey);
+    }
+
+    console.log(`Searching OSM for industrial facilities within ${radius}m of ${lat}, ${lon}...`);
+
+    // 3. Build the Overpass QL query.
+    // We search for nodes, ways, and relations that have industrial tags near the coordinate.
+    const query = `
+        [out:json][timeout:25];
+        (
+            nwr["landuse"="industrial"](around:${radius},${lat},${lon});
+            nwr["man_made"="works"](around:${radius},${lat},${lon});
+            nwr["power"="plant"](around:${radius},${lat},${lon});
+            nwr["industrial"](around:${radius},${lat},${lon});
+            nwr["amenity"="factory"](around:${radius},${lat},${lon});
+            nwr["man_made"="mineshaft"](around:${radius},${lat},${lon});
+        );
+        out center;
+    `;
+
+    try {
+        // 4. Send the request to the Overpass API using POST (safer for long queries than GET).
+        const response = await fetch(OVERPASS_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `data=${encodeURIComponent(query)}`
+        });
+
+        // 5. Handle HTTP errors gracefully.
+        if (!response.ok) {
+            throw new Error(`Overpass API returned HTTP status: ${response.status}`);
+        }
+
+        // 6. Parse the raw JSON response from OSM.
+        const rawData = await response.json();
+
+        // 7. Validate that the expected elements array exists.
+        if (!rawData || !Array.isArray(rawData.elements)) {
+            throw new Error("Overpass API returned malformed data.");
+        }
+
+        // 8. Convert raw OSM elements into our standardized ThermalX facility format.
+        const facilities = [];
+
+        rawData.elements.forEach(element => {
+            // Determine the coordinates. Ways/relations use 'center', nodes use 'lat'/'lon'.
+            const facLat = element.center ? element.center.lat : element.lat;
+            const facLon = element.center ? element.center.lon : element.lon;
+
+            // Discard records that are missing coordinates.
+            if (facLat === undefined || facLon === undefined) return;
+
+            // Safely get tags, defaulting to an empty object.
+            const tags = element.tags || {};
+
+            // Determine a human-readable type based on the OSM tags.
+            let type = "Industrial Facility";
+            if (tags.power === "plant") type = "Power Plant";
+            else if (tags.man_made === "works" || tags.amenity === "factory") type = "Factory";
+            else if (tags.man_made === "mineshaft") type = "Mine";
+            else if (tags.landuse === "industrial") type = "Industrial Area";
+
+            // Determine a safe name, providing a fallback if unnamed.
+            const name = tags.name || `Unnamed ${type}`;
+
+            // Create the standardized facility object.
+            const facility = {
+                id: `OSM-${element.type}-${element.id}`,
+                name: name,
+                type: type,
+                latitude: parseFloat(facLat),
+                longitude: parseFloat(facLon),
+                tags: tags,
+                source: "OpenStreetMap",
+                osmType: element.type,
+                osmId: element.id
+            };
+
+            facilities.push(facility);
+        });
+
+        // 9. Save the successfully parsed facilities to our in-memory cache.
+        overpassCache.set(cacheKey, facilities);
+        console.log(`Found ${facilities.length} industrial facilities.`);
+
+        // 10. Return the standard array to be used by Map/UI/Processing modules.
+        return facilities;
+
+    } catch (error) {
+        // 11. Handle network failures or parsing crashes safely.
+        // We log the error but return an empty array so the dashboard doesn't crash.
+        console.error("OSM Overpass API request failed:", error.message);
+        return [];
+    }
+}
+

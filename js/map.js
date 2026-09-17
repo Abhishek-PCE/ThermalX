@@ -11,6 +11,7 @@ window.MapModule = (function() {
     let map = null;
     let markersLayer = null;
     let historicalLayer = null; // Day 3: Separate layer for event history
+    let industrialLayer = null; // Day 4: Separate layer for OSM industrial context
 
     /**
      * Initializes the Leaflet map and base layers.
@@ -62,9 +63,17 @@ window.MapModule = (function() {
         // ----------------------------------------------------
         historicalLayer = L.featureGroup().addTo(map);
 
+        // ----------------------------------------------------
+        // INDUSTRIAL FACILITY LAYER (Day 4)
+        // WHY: We keep industrial context separate from fires,
+        // allowing the user to toggle them on/off easily.
+        // ----------------------------------------------------
+        industrialLayer = L.featureGroup().addTo(map);
+
         const overlayMaps = {
             "Current Hotspots": markersLayer,
-            "Historical Detections": historicalLayer
+            "Historical Detections": historicalLayer,
+            "Industrial Facilities": industrialLayer
         };
 
         L.control.layers(baseMaps, overlayMaps).addTo(map);
