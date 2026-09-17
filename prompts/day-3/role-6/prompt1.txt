@@ -1,0 +1,818 @@
+# THERMALX — DAY 3 DEVELOPMENT TASK
+
+## ROLE 6 — INTEGRATION, TESTING & DEPLOYMENT LEAD
+
+You are working on the **ThermalX** project, a JavaScript-first MVP for detecting and classifying thermal hotspots using NASA FIRMS data, historical detections, OpenStreetMap industrial context, and an explainable classification system.
+
+I am working on:
+
+**DAY: 3**
+**ROLE: 6 — Integration, Testing & Deployment Lead**
+
+Your job is to work ONLY on the responsibilities relevant to **Day 3 / Role 6** while preserving everything that already works in the existing project.
+
+---
+
+# 1. PROJECT GOAL
+
+ThermalX ultimately needs to:
+
+NASA FIRMS Data
+→ Hotspot Map
+→ Historical Detections
+→ Persistence
+→ Industrial Context
+→ Classification
+→ Evidence
+→ Priority Dashboard
+
+For Day 3, the main goal is:
+
+**Click a hotspot → retrieve/identify its historical detections → calculate persistence → display the result correctly.**
+
+Do NOT jump ahead into advanced ML, React, Node.js, databases, Python, FastAPI, or other upgrade technologies.
+
+The current MVP should remain:
+
+* HTML
+* CSS
+* Vanilla JavaScript
+* Leaflet.js
+* NASA FIRMS API
+* OpenStreetMap/Overpass where already implemented
+* Turf.js where required
+* localStorage where useful
+* No server-side database
+
+---
+
+# 2. FIRST — INSPECT THE EXISTING PROJECT
+
+Before changing anything:
+
+1. Inspect the complete existing project.
+2. Understand the current file structure.
+3. Identify:
+
+   * index.html
+   * css/style.css
+   * js/app.js
+   * js/map.js
+   * js/api.js
+   * js/processing.js
+   * js/classification.js
+   * data/
+   * assets/
+   * README.md
+4. Determine which files already exist.
+5. Determine which Day 1 and Day 2 features are already implemented.
+6. Do NOT recreate existing functionality unnecessarily.
+7. Do NOT replace working code just to make it look different.
+8. Reuse existing functions, variables, IDs, classes, and data structures wherever possible.
+9. Before editing any file, understand how that file connects to the rest of the application.
+
+The existing application is the source of truth.
+
+---
+
+# 3. IMPORTANT — PRESERVE EXISTING FEATURES
+
+Do NOT break existing functionality.
+
+Existing features that must continue working include, wherever already implemented:
+
+* ThermalX header
+* Dashboard
+* Navigation
+* Leaflet map
+* OpenStreetMap base map
+* Hotspot markers
+* Hotspot popup
+* FIRMS data
+* Latitude/longitude
+* Brightness
+* FRP
+* Confidence
+* Date information
+* Responsive UI
+* Existing filters
+* Existing statistics
+* Existing event information
+
+If a feature is already working, preserve it.
+
+Do not make unrelated UI redesigns.
+
+---
+
+# 4. DAY 3 MAIN OBJECTIVE
+
+Implement and/or test the historical hotspot workflow.
+
+The expected flow is:
+
+USER SELECTS HOTSPOT
+↓
+ThermalX identifies the selected hotspot/event
+↓
+Historical FIRMS detections are retrieved or accessed
+↓
+Historical records are standardized
+↓
+Nearby detections are grouped
+↓
+Persistence is calculated
+↓
+Event history is shown
+↓
+User can understand how often and when the hotspot appeared
+
+The roadmap defines the standardized historical data as:
+
+* id
+* latitude
+* longitude
+* date
+* frp
+* brightness
+* confidence
+* satellite
+
+Use these fields where applicable.
+
+---
+
+# 5. ROLE 6 RESPONSIBILITIES FOR DAY 3
+
+Your main responsibility today is:
+
+**TEST HISTORICAL RETRIEVAL AND PERSISTENCE CALCULATIONS.**
+
+You are also responsible for integration.
+
+You must verify that:
+
+1. Historical data can be retrieved or loaded.
+2. Historical data is correctly parsed.
+3. Historical records use a consistent structure.
+4. Historical records are correctly connected to the selected hotspot.
+5. Nearby detections are not incorrectly treated as completely unrelated events.
+6. Persistence calculations produce sensible results.
+7. Missing data does not crash the application.
+8. Empty historical results are handled gracefully.
+9. Duplicate records do not produce incorrect persistence.
+10. Invalid records do not crash the application.
+11. The UI receives the correct processed historical information.
+12. Existing Day 1 and Day 2 functionality still works.
+
+---
+
+# 6. HISTORICAL DATA STANDARDIZATION
+
+Historical hotspot records should follow a consistent structure similar to:
+
+{
+id,
+latitude,
+longitude,
+date,
+frp,
+brightness,
+confidence,
+satellite
+}
+
+Do not create multiple incompatible data formats for different parts of the application.
+
+If the existing project already has a hotspot object format, extend/reuse it rather than creating unnecessary duplicate structures.
+
+---
+
+# 7. PERSISTENCE CALCULATION
+
+Use the roadmap's prototype definition:
+
+Persistence = days detected / days analysed
+
+Prototype thresholds:
+
+* 0–20% = Low
+* 21–50% = Moderate
+* 51–80% = High
+* 81–100% = Very High
+
+IMPORTANT:
+
+These are **prototype rules**, NOT scientific ground truth.
+
+Do not present them as scientifically validated thresholds.
+
+The application should clearly treat the persistence value as a prototype decision-support metric.
+
+Example:
+
+If a hotspot was detected on:
+
+5 different days
+
+out of:
+
+10 analysed days
+
+then:
+
+Persistence = 5 / 10 × 100
+Persistence = 50%
+Classification = Moderate
+
+---
+
+# 8. TEST THESE PERSISTENCE CASES
+
+Create or use test data to verify at least these cases:
+
+### TEST 1 — Very Low Persistence
+
+1 detected day out of 10 analysed days.
+
+Expected:
+
+10%
+Low
+
+---
+
+### TEST 2 — Moderate Persistence
+
+4 detected days out of 10 analysed days.
+
+Expected:
+
+40%
+Moderate
+
+---
+
+### TEST 3 — High Persistence
+
+7 detected days out of 10 analysed days.
+
+Expected:
+
+70%
+High
+
+---
+
+### TEST 4 — Very High Persistence
+
+9 detected days out of 10 analysed days.
+
+Expected:
+
+90%
+Very High
+
+---
+
+### TEST 5 — 100% Persistence
+
+10 detected days out of 10 analysed days.
+
+Expected:
+
+100%
+Very High
+
+---
+
+### TEST 6 — No Detections
+
+0 detected days.
+
+Expected:
+
+0%
+Low
+
+The application must not crash.
+
+---
+
+### TEST 7 — Missing Data
+
+Historical records with missing:
+
+* date
+* latitude
+* longitude
+* FRP
+* confidence
+
+must be handled safely.
+
+Do not allow invalid data to break the entire application.
+
+---
+
+### TEST 8 — Duplicate Records
+
+If the same detection appears twice for the same event/day, make sure it does not incorrectly increase the number of unique detected days.
+
+Persistence should be based on appropriate unique detection days, not simply the raw number of duplicate records.
+
+---
+
+# 9. HISTORICAL EVENT INFORMATION
+
+When a user selects a hotspot/event, the application should be capable of showing information such as:
+
+* Event ID
+* First detection
+* Last detection
+* Number of detections
+* Number of unique detected days
+* Days analysed
+* Persistence percentage
+* Persistence level
+* Timeline/history
+
+Example:
+
+Event ID: TX-001
+
+First Detection: 10 Sept 2026
+
+Last Detection: 14 Sept 2026
+
+Detections: 8
+
+Unique Days: 5
+
+Days Analysed: 7
+
+Persistence: 71%
+
+Level: High
+
+Do not invent real historical data.
+
+If live historical data is unavailable, use clearly labelled demo/test data.
+
+---
+
+# 10. EVENT ID
+
+If the existing project already has event IDs, preserve them.
+
+If event IDs are not yet implemented, use a simple structure such as:
+
+TX-001
+TX-002
+TX-003
+
+Do not create random IDs every time the page reloads if that causes the same event to receive a different identity.
+
+---
+
+# 11. HISTORICAL RETRIEVAL FAILURE HANDLING
+
+The application must gracefully handle:
+
+* API failure
+* network failure
+* empty response
+* malformed response
+* missing fields
+* invalid coordinates
+* duplicate records
+* timeout
+* unexpected API structure
+
+Never allow a failed historical request to produce a blank/broken dashboard.
+
+Show a useful message such as:
+
+"Historical data unavailable. Please try again."
+
+If demo/cached data exists, allow the application to use it as a fallback where appropriate.
+
+---
+
+# 12. TESTING REQUIREMENT
+
+Act as the integration/testing lead.
+
+Check the entire flow:
+
+FIRMS DATA
+↓
+API
+↓
+Historical Data
+↓
+Processing
+↓
+Event Grouping
+↓
+Persistence
+↓
+UI
+
+Verify that the output from one stage is correctly accepted by the next stage.
+
+Do not test individual functions only.
+
+Perform integration testing.
+
+---
+
+# 13. CONSOLE TESTING
+
+Use clear console logs during development where useful.
+
+Examples:
+
+* Historical data fetched
+* Number of historical records
+* Number of valid records
+* Number of duplicate records removed
+* Number of unique detection days
+* Persistence percentage
+* Persistence level
+* Event ID
+
+However, do NOT flood the console with unnecessary logs.
+
+Use logs mainly for debugging.
+
+---
+
+# 14. ERROR HANDLING
+
+Use proper JavaScript error handling.
+
+For asynchronous operations use:
+
+try {
+// operation
+} catch (error) {
+// handle error
+}
+
+Use appropriate checks before accessing properties.
+
+For example, do not assume:
+
+record.latitude
+
+always exists.
+
+Validate data before processing.
+
+---
+
+# 15. CODE COMMENTING REQUIREMENT — VERY IMPORTANT
+
+EVERY SECTION OF CODE YOU CREATE OR MODIFY MUST CONTAIN CLEAR COMMENTS.
+
+I am a student and I need to understand this project later.
+
+Do NOT write unexplained code.
+
+For every major section, explain:
+
+1. What the section does.
+2. Why it is needed.
+3. What the important variables represent.
+4. What the function returns.
+5. How the function connects to the rest of ThermalX.
+
+Example:
+
+// This function calculates how persistent a hotspot event is.
+// Persistence = unique detected days / total analysed days.
+// The result is returned as a percentage for the dashboard.
+
+function calculatePersistence(detectedDays, analysedDays) {
+...
+}
+
+For another section:
+
+// This function removes duplicate detections that belong to the same
+// event and occurred on the same date.
+// This prevents duplicate API records from artificially increasing
+// the persistence score.
+
+Do this consistently throughout ALL modified code.
+
+---
+
+# 16. COMMENT QUALITY
+
+Comments must explain the logic, not simply repeat the code.
+
+BAD:
+
+// Add 1
+count = count + 1;
+
+GOOD:
+
+// Increase the detection count because this record represents
+// another valid hotspot detection for the current event.
+count++;
+
+Use beginner-friendly comments.
+
+Do not use unnecessarily complicated technical language.
+
+---
+
+# 17. DO NOT OVERCOMMENT EVERY SINGLE LINE
+
+Comments are required for every logical section.
+
+Do not write meaningless comments on every punctuation mark.
+
+Focus comments on:
+
+* functions
+* calculations
+* data transformation
+* API calls
+* validation
+* event grouping
+* persistence logic
+* error handling
+* UI integration
+* important conditions
+
+---
+
+# 18. UI INTEGRATION
+
+If the historical/persistence information is already connected to the UI:
+
+Preserve the existing design.
+
+If it is missing, add only the minimum UI required to show:
+
+* Event ID
+* First detection
+* Last detection
+* Detection count
+* Unique detected days
+* Days analysed
+* Persistence %
+* Persistence level
+* Timeline/history
+
+The UI should match the existing ThermalX design.
+
+Do not completely redesign the dashboard.
+
+---
+
+# 19. TIMELINE
+
+If a timeline already exists, integrate the historical detections into it.
+
+For example:
+
+10 Sept → Detected
+11 Sept → Detected
+12 Sept → No detection
+13 Sept → Detected
+14 Sept → Detected
+
+The timeline should make recurrence easy to understand.
+
+Keep it simple.
+
+---
+
+# 20. TURF.JS
+
+If Turf.js is already being used:
+
+Use the existing Turf.js setup.
+
+Do not install unnecessary libraries.
+
+For nearby historical detections, use appropriate spatial calculations where needed.
+
+The goal is to identify detections belonging to the same thermal event.
+
+Do not make the clustering algorithm unnecessarily complicated on Day 3.
+
+---
+
+# 21. DEMO DATA FALLBACK
+
+If live historical FIRMS data cannot reliably be retrieved because of:
+
+* API limits
+* CORS
+* network problems
+* unavailable historical endpoint
+* unexpected API response
+
+create/use a clearly labelled demo dataset.
+
+Example:
+
+data/demo-history.json
+
+The demo data must be clearly identified as:
+
+DEMO DATA
+
+Never present fake data as live NASA data.
+
+---
+
+# 22. DO NOT ADD THESE THINGS
+
+Do NOT introduce:
+
+* React
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* YOLO
+* Kubernetes
+* Docker
+* complicated ML models
+
+The roadmap explicitly says these are not required for the first working MVP.
+
+Stay with:
+
+HTML + CSS + JavaScript + Leaflet + FIRMS + existing project tools.
+
+---
+
+# 23. DO NOT MODIFY OTHER MODULES UNNECESSARILY
+
+Only modify files when necessary.
+
+If you need to modify:
+
+app.js
+map.js
+api.js
+processing.js
+classification.js
+style.css
+index.html
+
+explain why the modification is required.
+
+Do not overwrite an entire file if only a small section needs modification.
+
+Preserve existing functionality.
+
+---
+
+# 24. TESTING CHECKLIST
+
+After implementation, test:
+
+[ ] Website loads without JavaScript errors.
+
+[ ] Map loads.
+
+[ ] Existing hotspot markers still appear.
+
+[ ] Clicking a hotspot still works.
+
+[ ] Historical data can be retrieved/loaded.
+
+[ ] Historical records are standardized.
+
+[ ] Invalid records are handled.
+
+[ ] Duplicate records are handled.
+
+[ ] Unique detection days are calculated correctly.
+
+[ ] Persistence percentage is calculated correctly.
+
+[ ] Persistence level is assigned correctly.
+
+[ ] First detection is correct.
+
+[ ] Last detection is correct.
+
+[ ] Detection count is correct.
+
+[ ] Event ID is displayed correctly.
+
+[ ] Timeline/history works.
+
+[ ] Empty historical data does not crash the application.
+
+[ ] API failure does not crash the application.
+
+[ ] Demo fallback works if implemented.
+
+[ ] Existing Day 1/Day 2 features still work.
+
+[ ] Desktop layout works.
+
+[ ] Mobile/responsive layout still works.
+
+[ ] Browser console contains no unexpected errors.
+
+---
+
+# 25. IMPORTANT VALIDATION RULE
+
+Do not assume that code works simply because it was written.
+
+Actually inspect the existing code and test the complete flow.
+
+If you find an existing bug that prevents Day 3 integration from working, fix the smallest necessary part.
+
+Clearly explain:
+
+* what was broken
+* why it was broken
+* what you changed
+* how you tested it
+
+---
+
+# 26. FINAL OUTPUT AFTER CODING
+
+After completing the work, give me a concise report containing:
+
+### 1. Files changed
+
+List every file you modified.
+
+### 2. What was added
+
+Explain the Day 3 Role 6 functionality.
+
+### 3. What was tested
+
+List the important tests performed.
+
+### 4. Bugs found
+
+List any bugs discovered and fixed.
+
+### 5. Remaining issues
+
+Clearly mention anything that could not be tested or completed.
+
+### 6. How I can test it manually
+
+Give me simple student-friendly steps such as:
+
+1. Open the website.
+2. Select a hotspot.
+3. Open event details.
+4. Check historical detections.
+5. Check persistence.
+6. Test another hotspot.
+7. Check browser console.
+
+### 7. Code explanation
+
+Briefly explain the important new functions so I can understand them later.
+
+---
+
+# 27. FINAL RULES
+
+MOST IMPORTANT:
+
+1. Do not break existing functionality.
+2. Do not redesign the entire project.
+3. Do not introduce unnecessary technologies.
+4. Do not invent NASA data.
+5. Clearly distinguish LIVE DATA and DEMO DATA.
+6. Handle API failures safely.
+7. Validate historical records.
+8. Test persistence carefully.
+9. Keep the implementation beginner-friendly.
+10. Add clear comments to EVERY major section of code.
+11. Explain modified code in simple language.
+12. Follow the ThermalX Day 3 roadmap.
+13. Focus on integration and testing because this is ROLE 6.
+14. Keep the MVP simple and demonstrable.
+15. Never sacrifice the working MVP for unnecessary sophistication.
+
+The final result should make this flow reliable:
+
+**Hotspot → Historical Detections → Event History → Persistence → UI**
+
+and it must remain compatible with the rest of ThermalX.
