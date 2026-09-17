@@ -673,3 +673,77 @@
     color: var(--tx-text-primary);
 }
 
+
+/* ============================================================
+   DAY 4 ROLE 1: INDUSTRIAL FACILITY CARDS
+   Styles the individual facility information cards shown
+   inside the industrial context panel.
+   ============================================================ */
+.tx-facility-card {
+    background-color: var(--tx-bg-surface);
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius-sm);
+    padding: 10px;
+    margin-bottom: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.tx-facility-card:hover {
+    background-color: var(--tx-bg-surface-elevated);
+    border-color: #3b82f6; /* Blue highlight on hover */
+}
+
+.tx-facility-card:last-child {
+    margin-bottom: 0;
+}
+
+.tx-facility-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 6px;
+}
+
+.tx-facility-icon {
+    font-size: 1.2rem;
+}
+
+.tx-facility-name {
+    font-weight: 600;
+    color: var(--tx-text-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tx-facility-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 0.8rem;
+}
+
+.tx-facility-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.tx-facility-label {
+    color: var(--tx-text-secondary);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tx-facility-value {
+    color: var(--tx-text-primary);
+    font-family: var(--tx-font-mono);
+}
+
+.tx-facility-value-highlight {
+    color: #fbbf24; /* Warning/yellow color for distance */
+    font-weight: bold;
+}

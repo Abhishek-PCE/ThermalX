@@ -342,8 +342,38 @@ function showHotspotDetails(hotspot) {
                         window.MapModule.renderIndustrialFacilities(processedContext.facilities);
                     }
                     
-                    // Update UI with the nearest facility data
-                    if (processedContext.nearestFacility) {
+                    // ==========================================
+                    // DAY 4 ROLE 5: Industrial Context Scoring
+                    // ==========================================
+                    let finalContextScore = null;
+                    if (window.ThermalXClassification && typeof window.ThermalXClassification.evaluateIndustrialContext === 'function') {
+                        // Convert proximity into an explainable heuristic score
+                        finalContextScore = window.ThermalXClassification.evaluateIndustrialContext(processedContext);
+                    }
+
+                    // Update UI with the nearest facility data and Role 5 evidence
+                    if (finalContextScore) {
+                        if (finalContextScore.nearestFacility) {
+                            const nearest = finalContextScore.nearestFacility;
+                            setElementText('event-facility', `${nearest.name} (${nearest.type})`);
+                            setElementText('event-distance', `${parseFloat(nearest.distanceFromHotspot.toFixed(2))} km`);
+                        } else {
+                            setElementText('event-facility', "No nearby industrial facilities.");
+                            setElementText('event-distance', "—");
+                        }
+                        
+                        // Append Role 5 evidence to the evidence section
+                        const existingEvidence = document.getElementById('event-evidence')?.textContent || "";
+                        if (finalContextScore.evidence && finalContextScore.evidence.length > 0) {
+                            const newEvidence = finalContextScore.evidence[0].description;
+                            if (existingEvidence === "Classification pending Role 5 analysis." || existingEvidence === "—") {
+                                setElementText('event-evidence', newEvidence);
+                            } else {
+                                setElementText('event-evidence', existingEvidence + " | " + newEvidence);
+                            }
+                        }
+                    } else if (processedContext.nearestFacility) {
+                        // Fallback UI update if Role 5 is missing
                         const nearest = processedContext.nearestFacility;
                         const distText = nearest.distanceFromHotspot !== undefined 
                             ? `${nearest.distanceFromHotspot.toFixed(2)} km` 
@@ -358,10 +388,21 @@ function showHotspotDetails(hotspot) {
                         setElementText('event-facility', "No nearby industrial facilities.");
                         setElementText('event-distance', "—");
                     }
+                    // ==========================================================
+                    // DAY 4 ROLE 1: Render Facility Cards in Dashboard
+                    // ==========================================================
+                    renderIndustrialFacilitiesUI(processedContext.facilities);
+
                 })
                 .catch(err => {
                     console.error("Failed to fetch industrial context:", err);
                     setElementText('event-facility', "Data unavailable.");
+                    
+                    // Show error state in the UI panel
+                    const container = document.getElementById('industrial-facilities-container');
+                    if (container) {
+                        container.innerHTML = '<div style="color: #ef4444; font-size: 0.85rem;">Industrial facility data is currently unavailable.</div>';
+                    }
                 });
         }
 
@@ -462,6 +503,102 @@ function renderDetectionTimeline(detections) {
     container.innerHTML = timelineHTML;
 }
 
+// ============================================================================
+// DAY 4 ROLE 1: INDUSTRIAL FACILITY UI
+// ============================================================================
+
+/**
+ * ------------------------------------------------------------
+ * FACILITY INFORMATION PANEL
+ * ------------------------------------------------------------
+ * Updates the industrial-context section of the dashboard whenever
+ * a user selects a thermal hotspot. Creates dynamic facility cards.
+ *
+ * Input:
+ * - facilities: nearby industrial facilities supplied by the
+ *   data-processing/API layer (already sorted by distance from Role 4)
+ *
+ * Output:
+ * - Updates the facility panel in the DOM.
+ * ------------------------------------------------------------
+ */
+function renderIndustrialFacilitiesUI(facilities) {
+    const container = document.getElementById('industrial-facilities-container');
+    if (!container) return; // Fail safely if the panel doesn't exist
+
+    // Empty state handling
+    if (!Array.isArray(facilities) || facilities.length === 0) {
+        container.innerHTML = '<div style="color: #888; font-size: 0.85rem; font-style: italic;">No nearby industrial facilities found.</div>';
+        return;
+    }
+
+    // Generate HTML for the facility cards
+    let html = '';
+
+    facilities.forEach(facility => {
+        // Fallbacks for missing data, ensuring we don't crash or display "undefined"
+        const name = facility.name || "Unknown Facility";
+        const type = facility.type ? facility.type.toUpperCase() : "UNKNOWN";
+        
+        // Handle distance: if missing, hide it gracefully
+        let distHTML = '';
+        if (facility.distanceFromHotspot !== undefined && facility.distanceFromHotspot !== null) {
+            // Role 4 calculates it as a number in km
+            const dist = parseFloat(facility.distanceFromHotspot).toFixed(2);
+            distHTML = `
+                <div class="tx-facility-item">
+                    <span class="tx-facility-label">Distance</span>
+                    <span class="tx-facility-value tx-facility-value-highlight">${dist} km</span>
+                </div>
+            `;
+        } else {
+            distHTML = `
+                <div class="tx-facility-item">
+                    <span class="tx-facility-label">Distance</span>
+                    <span class="tx-facility-value">Unavailable</span>
+                </div>
+            `;
+        }
+
+        // Handle coordinates safely
+        const latText = facility.latitude ? parseFloat(facility.latitude).toFixed(3) : "?";
+        const lngText = facility.longitude ? parseFloat(facility.longitude).toFixed(3) : "?";
+
+        // Assign a heuristic icon based on type string for better UX
+        let icon = '🏭';
+        const typeLower = type.toLowerCase();
+        if (typeLower.includes('power')) icon = '⚡';
+        else if (typeLower.includes('refinery') || typeLower.includes('oil') || typeLower.includes('gas')) icon = '🛢';
+        else if (typeLower.includes('mine')) icon = '⛏';
+
+        html += `
+            <div class="tx-facility-card">
+                <div class="tx-facility-header">
+                    <span class="tx-facility-icon">${icon}</span>
+                    <span class="tx-facility-name" title="${name}">${name}</span>
+                </div>
+                <div class="tx-facility-body">
+                    <div class="tx-facility-item">
+                        <span class="tx-facility-label">Type</span>
+                        <span class="tx-facility-value">${type}</span>
+                    </div>
+                    ${distHTML}
+                    <div class="tx-facility-item">
+                        <span class="tx-facility-label">Lat</span>
+                        <span class="tx-facility-value">${latText}</span>
+                    </div>
+                    <div class="tx-facility-item">
+                        <span class="tx-facility-label">Lng</span>
+                        <span class="tx-facility-value">${lngText}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
 
 /*
  * Function: clearHotspotDetails()
@@ -508,6 +645,14 @@ function clearHotspotDetails() {
     // ==========================================
     if (window.MapModule && typeof window.MapModule.clearIndustrialLayer === 'function') {
         window.MapModule.clearIndustrialLayer();
+    }
+
+    // ==========================================
+    // DAY 4 ROLE 1: Clear Industrial Facilities UI
+    // ==========================================
+    const facilitiesContainer = document.getElementById('industrial-facilities-container');
+    if (facilitiesContainer) {
+        facilitiesContainer.innerHTML = '<div style="color: #888; font-size: 0.85rem; font-style: italic;">No hotspot selected.</div>';
     }
 }
 
