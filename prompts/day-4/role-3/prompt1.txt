@@ -1,0 +1,686 @@
+You are working on the **ThermalX — SIH26162** project.
+
+## YOUR ROLE
+
+You are implementing **DAY 4 — ROLE 3: DATA INTEGRATION DEVELOPER**.
+
+According to the project roadmap, Day 4 objective is:
+
+> Select a thermal hotspot and see nearby industrial facilities, their distance, and their type.
+
+My responsibility as Role 3 is:
+
+* Connect OpenStreetMap / Overpass API.
+* Fetch relevant industrial facilities.
+* Retrieve factories, power plants, refineries, mines, oil/gas infrastructure and other relevant industrial facilities.
+* Do NOT retrieve everything from OSM.
+* Parse the OSM/Overpass response.
+* Convert it into a clean, shared JavaScript data format.
+* Handle loading, errors, empty results, invalid results and API failures.
+* Make the data available to Role 2 (map), Role 4 (distance calculations), Role 5 (classification), and Role 1 (UI).
+* Keep the project completely client-side for the MVP.
+* Do not introduce a backend/database unless absolutely necessary.
+
+The existing ThermalX architecture is:
+
+NASA FIRMS
+↓
+Role 3: Data Fetching
+↓
+Raw Hotspot Data
+↓
+Role 4: Data Processing
+↓
+Persistence / Industrial Proximity
+↓
+Role 5: Classification
+↓
+Industrial / Wildfire / Agriculture / Other
+↓
+Role 2: Leaflet Map
+↓
+Role 1: Dashboard UI
+↓
+Role 6: Integration
+
+The project structure should remain approximately:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+# IMPORTANT — FIRST INSPECT THE EXISTING PROJECT
+
+Before changing anything:
+
+1. Inspect the complete existing project.
+2. Identify all existing HTML, CSS and JavaScript files.
+3. Understand the existing NASA FIRMS data flow.
+4. Understand how hotspots are currently represented.
+5. Understand how modules communicate with each other.
+6. Do NOT overwrite working functionality.
+7. Do NOT unnecessarily restructure the project.
+8. Reuse existing functions and data structures wherever possible.
+9. Make the smallest clean changes required for Day 4.
+10. If something already exists for OSM/Overpass, improve it instead of creating duplicate functionality.
+
+The existing application must continue to work after your changes.
+
+# DAY 4 MAIN FEATURE
+
+Implement:
+
+HOTSPOT
+↓
+Get hotspot latitude + longitude
+↓
+Query OSM Overpass API
+↓
+Find relevant nearby industrial facilities
+↓
+Parse OSM response
+↓
+Convert facilities into standardized JavaScript objects
+↓
+Return facilities
+↓
+Make them available to the map/UI/processing/classification modules.
+
+# OSM / OVERPASS REQUIREMENTS
+
+Use the **OpenStreetMap Overpass API**.
+
+The application should query only relevant industrial features instead of downloading all OSM objects.
+
+Search for useful industrial categories such as:
+
+* factories
+* industrial areas
+* power plants
+* refineries
+* mines
+* oil infrastructure
+* gas infrastructure
+* industrial facilities
+* relevant energy infrastructure
+
+Use appropriate OSM tags such as:
+
+amenity
+industrial
+landuse
+man_made
+power
+industrial-related tags
+resource-related tags
+
+Do not blindly retrieve every OSM object.
+
+The query should be based around the selected hotspot's:
+
+latitude
+longitude
+
+and a reasonable search radius.
+
+Keep the radius configurable through a constant such as:
+
+INDUSTRIAL_SEARCH_RADIUS
+
+Do not hard-code the radius in multiple places.
+
+# CREATE / UPDATE API INTEGRATION
+
+Put OSM/Overpass fetching logic in:
+
+js/api.js
+
+If js/api.js already contains NASA FIRMS functions, keep them working.
+
+Create a dedicated function similar to:
+
+fetchNearbyIndustrialFacilities(latitude, longitude, radius)
+
+The exact implementation should fit the existing project architecture.
+
+The function should:
+
+1. Validate latitude.
+2. Validate longitude.
+3. Validate radius.
+4. Build the Overpass query.
+5. Send the request using fetch().
+6. Handle HTTP errors.
+7. Parse JSON.
+8. Validate the response.
+9. Convert raw OSM elements into standardized facility objects.
+10. Remove invalid facilities.
+11. Return an array.
+12. Never crash the application because OSM failed.
+
+# STANDARD FACILITY DATA FORMAT
+
+Convert every useful OSM result into a common structure similar to:
+
+{
+id: "...",
+name: "...",
+type: "...",
+latitude: 0,
+longitude: 0,
+tags: {},
+source: "OpenStreetMap"
+}
+
+If useful, also include:
+
+{
+osmType: "...",
+osmId: "...",
+distance: null
+}
+
+Do NOT calculate distance inside the API module unless the existing architecture requires it.
+
+Role 4 is responsible for distance calculations.
+
+Therefore:
+
+API module = FETCH + PARSE + STANDARDIZE
+
+Processing module = DISTANCE + SPATIAL CALCULATIONS
+
+# HANDLE OSM NODE / WAY / RELATION DATA
+
+Overpass may return different OSM element types.
+
+Handle the common cases safely:
+
+* node
+* way
+* relation
+
+For nodes:
+
+Use:
+
+element.lat
+element.lon
+
+For ways/relations:
+
+Use center coordinates when available.
+
+If coordinates cannot be obtained safely:
+
+discard the record rather than creating invalid coordinates.
+
+# FACILITY NAME HANDLING
+
+OSM data may not always contain a name.
+
+Use a safe fallback.
+
+For example:
+
+name:
+element.tags?.name || "Unnamed Industrial Facility"
+
+Do not crash when tags are missing.
+
+# FACILITY TYPE
+
+Try to determine a useful human-readable type from OSM tags.
+
+Examples:
+
+Power Plant
+Factory
+Refinery
+Mine
+Industrial Area
+Oil Infrastructure
+Gas Infrastructure
+Industrial Facility
+Unknown Industrial Facility
+
+Keep the raw OSM tags too, because later modules may need them.
+
+# ERROR HANDLING
+
+This is VERY IMPORTANT.
+
+The application must gracefully handle:
+
+* network failure
+* Overpass API unavailable
+* timeout
+* HTTP 4xx
+* HTTP 5xx
+* malformed JSON
+* empty result
+* missing elements
+* missing coordinates
+* missing tags
+* invalid latitude
+* invalid longitude
+* API rate limiting
+
+Never allow an API error to break the entire ThermalX dashboard.
+
+Use try/catch.
+
+Return a safe result such as:
+
+[]
+
+or a structured result compatible with the existing project.
+
+Use the approach that best fits the current codebase.
+
+The UI should be able to distinguish:
+
+SUCCESS
+EMPTY RESULT
+ERROR
+
+Do not silently pretend that no industrial facilities exist when the API actually failed.
+
+# LOADING STATE
+
+If the existing application has loading indicators, use them.
+
+When a hotspot is selected:
+
+Show something equivalent to:
+
+"Searching nearby industrial facilities..."
+
+After completion:
+
+"Industrial facilities found: X"
+
+If nothing is found:
+
+"No nearby industrial facilities found."
+
+If the API fails:
+
+"Industrial data temporarily unavailable."
+
+Do not expose raw technical error messages to normal users unless the project already has a developer/debug panel.
+
+# CORS / OVERPASS RELIABILITY
+
+Use a browser-compatible Overpass endpoint.
+
+Do not assume that one endpoint will always work.
+
+If the current project architecture allows it, define the endpoint as a configurable constant.
+
+For example:
+
+OVERPASS_API_URL
+
+Do not scatter the endpoint URL throughout multiple files.
+
+If a fallback endpoint is appropriate, implement it carefully without creating unnecessary complexity.
+
+Do NOT introduce a backend proxy for this MVP.
+
+# INTEGRATION WITH SELECTED HOTSPOT
+
+The existing ThermalX application allows a user to select a hotspot.
+
+When a hotspot is selected, its:
+
+latitude
+longitude
+
+should be used to search for nearby industrial facilities.
+
+Do not fetch industrial data unnecessarily for the entire world.
+
+Only query around the selected hotspot or the specific hotspots currently required by the application.
+
+# DO NOT DUPLICATE API REQUESTS
+
+Avoid repeatedly calling Overpass for the exact same:
+
+latitude
+longitude
+radius
+
+during one session.
+
+If appropriate, add a lightweight in-memory cache.
+
+Example conceptual key:
+
+lat_lon_radius
+
+The cache should only be introduced if it fits naturally into the current project.
+
+Do not create unnecessary complexity.
+
+# DATA FLOW
+
+Implement the following clean flow:
+
+Selected hotspot
+↓
+latitude + longitude
+↓
+fetchNearbyIndustrialFacilities()
+↓
+Overpass API
+↓
+raw JSON
+↓
+parse OSM elements
+↓
+standard facility objects
+↓
+return facilities
+↓
+Role 2 → map visualization
+Role 4 → distance calculation
+Role 5 → industrial-context scoring
+Role 1 → facility information panel
+
+# IMPORTANT ROLE SEPARATION
+
+Respect the roadmap responsibilities.
+
+ROLE 3:
+
+* API calls
+* request handling
+* response parsing
+* standardization
+* errors
+
+ROLE 2:
+
+* Leaflet map
+* industrial markers/layers
+* map visualization
+
+ROLE 4:
+
+* hotspot-to-facility distance
+* spatial calculations
+
+ROLE 5:
+
+* industrial relevance scoring
+* classification
+
+ROLE 1:
+
+* facility information panel/UI
+
+Do NOT put all functionality into api.js.
+
+# COMMENTS — VERY IMPORTANT
+
+I am a beginner and I will need to understand this code later.
+
+Therefore:
+
+### ADD COMMENTS IN EVERY SECTION OF CODE.
+
+Every meaningful section/function/block must have a clear beginner-friendly comment explaining:
+
+1. WHAT this section does.
+2. WHY it is needed.
+3. WHAT important values mean.
+4. WHAT the next module will receive.
+
+Do NOT add meaningless comments such as:
+
+// function
+// loop
+// API
+
+Instead write useful comments.
+
+For example:
+
+// This function sends the selected hotspot's coordinates to the
+// OpenStreetMap Overpass API and returns nearby industrial facilities.
+// Role 3 is responsible only for fetching and preparing this data;
+// distance calculations are handled later by Role 4.
+
+For important variables, explain their purpose.
+
+For complicated logic, explain the reasoning.
+
+For error handling, explain why the fallback is necessary.
+
+For OSM node/way/relation handling, explain the difference.
+
+For query construction, explain what the query is requesting.
+
+For data transformation, explain how raw OSM data becomes the ThermalX facility format.
+
+Comments should help me understand the project months later.
+
+Do NOT write comments for every single obvious line.
+
+Instead, add comments to EVERY LOGICAL SECTION.
+
+# CODE STYLE
+
+Use beginner-friendly JavaScript.
+
+Prefer:
+
+* const
+* let
+* async/await
+* try/catch
+* optional chaining where appropriate
+* clear function names
+* small reusable functions
+* descriptive variable names
+
+Avoid unnecessarily advanced JavaScript.
+
+Do not introduce TypeScript.
+
+Do not introduce React.
+
+Do not introduce Node.js.
+
+Do not introduce Python.
+
+Do not introduce a database.
+
+Do not introduce a framework.
+
+The roadmap specifically says the MVP should remain HTML + CSS + JavaScript with Leaflet, FIRMS and OSM.
+
+# DO NOT CHANGE THE TECHNOLOGY STACK
+
+Keep:
+
+HTML
+CSS
+JavaScript
+Leaflet.js
+NASA FIRMS
+OpenStreetMap
+Overpass API
+
+Do NOT suddenly migrate the project to:
+
+React
+Node.js
+Python
+FastAPI
+PostgreSQL
+PostGIS
+TensorFlow
+PyTorch
+Docker
+Kubernetes
+
+These are upgrade technologies, not Day-4 MVP requirements.
+
+# TESTING REQUIREMENTS
+
+After implementing the feature, test:
+
+1. Valid hotspot coordinates.
+2. Hotspot with nearby industrial facility.
+3. Hotspot with no nearby industrial facility.
+4. Invalid latitude.
+5. Invalid longitude.
+6. Empty Overpass response.
+7. Missing facility name.
+8. Missing tags.
+9. Missing coordinates.
+10. Network failure.
+11. API HTTP error.
+12. Multiple facilities.
+13. Node result.
+14. Way result.
+15. Relation result if returned.
+16. Repeated request for the same hotspot.
+
+Make sure the existing FIRMS hotspot functionality still works.
+
+# DO NOT FAKE LIVE DATA
+
+Do not hard-code fake industrial facilities and present them as real OSM data.
+
+If live OSM data cannot be retrieved, clearly handle the failure.
+
+If a demo fallback already exists in the project, keep it separate from LIVE MODE.
+
+The roadmap requires:
+
+LIVE DATA
+→ NASA FIRMS + OSM
+
+DEMO MODE
+→ saved JSON such as demo-data.json
+
+Do not mix demo data with live data without clearly indicating it.
+
+# RESPONSIBLE DATA INTERPRETATION
+
+Remember:
+
+Nearby industrial infrastructure does NOT prove that a hotspot came from that facility.
+
+The roadmap explicitly treats industrial proximity as a:
+
+"decision-support heuristic, not proof of attribution."
+
+Therefore, the code should only provide industrial context.
+
+Later classification logic may say something like:
+
+"Likely industrial thermal source"
+
+but must not claim:
+
+"This factory caused the fire."
+
+Do not create language that implies certainty.
+
+# EXPECTED OUTPUT
+
+After completing the implementation, provide me with:
+
+## 1. FILES CHANGED
+
+List every file you modified.
+
+Example:
+
+* js/api.js
+* js/app.js
+* js/map.js
+
+Explain briefly why each file was changed.
+
+## 2. WHAT WAS IMPLEMENTED
+
+Explain in simple beginner-friendly language:
+
+* How the Overpass API works here.
+* How the hotspot coordinates are used.
+* How industrial facilities are found.
+* How raw OSM data is converted.
+* How errors are handled.
+* How other roles can use the data.
+
+## 3. DATA FLOW
+
+Show:
+
+Hotspot
+→ Coordinates
+→ Overpass API
+→ OSM JSON
+→ Facility parser
+→ Standard facility objects
+→ Role 2 / Role 4 / Role 5 / Role 1
+
+## 4. TEST RESULTS
+
+Tell me which tests passed and which failed.
+
+Do not claim a test passed unless you actually tested it.
+
+## 5. IMPORTANT FUNCTIONS
+
+List the important new or modified functions and explain each in one or two simple sentences.
+
+## 6. HOW I CAN UNDERSTAND THE CODE
+
+Give me a short explanation of where I should start reading the code as a beginner.
+
+## 7. POTENTIAL PROBLEMS
+
+Tell me honestly if there are:
+
+* Overpass limitations
+* CORS issues
+* API rate limits
+* missing OSM data
+* performance concerns
+* anything that needs Role 4/Role 5/Role 2 integration later
+
+# FINAL RULES
+
+Before finishing:
+
+* Do not break existing ThermalX functionality.
+* Do not delete working code without a reason.
+* Do not create duplicate functions.
+* Do not introduce unnecessary libraries.
+* Do not introduce a backend.
+* Do not fake live OSM results.
+* Keep Role 3 focused on data integration.
+* Keep code modular.
+* Add beginner-friendly comments in every logical code section.
+* Test the implementation.
+* Clearly explain every modification.
+
+Most importantly:
+
+**BUILD THE DAY-4 ROLE-3 OSM/OVERPASS DATA INTEGRATION, NOT THE ENTIRE PROJECT FROM SCRATCH.**
