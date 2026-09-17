@@ -262,6 +262,84 @@
     border-color: var(--tx-border-light);
 }
 
+/* ============================================================
+   DAY 3 ROLE 1: EVENT HISTORY & TIMELINE STYLES
+   ============================================================ */
+
+/* 
+ * Persistence Card
+ * Highlights the persistence score.
+ */
+.tx-persistence-card {
+    background-color: var(--tx-bg-base);
+    border: 1px solid var(--tx-border);
+    border-radius: 4px;
+    padding: var(--tx-space-md);
+    margin-top: var(--tx-space-sm);
+    text-align: center;
+}
+
+/*
+ * Detection Timeline
+ * A visual chronological list of detections.
+ */
+.tx-timeline-container {
+    margin-top: var(--tx-space-sm);
+    padding-top: var(--tx-space-sm);
+    border-top: 1px solid var(--tx-border);
+}
+
+.tx-timeline-item {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.tx-timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+/* The vertical line for the timeline */
+.tx-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 5px;
+    bottom: -20px;
+    width: 2px;
+    background-color: var(--tx-border);
+}
+
+/* Remove line from the last item */
+.tx-timeline-item:last-child::before {
+    display: none;
+}
+
+/* The timeline dot */
+.tx-timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--tx-accent);
+    border: 2px solid var(--tx-bg-surface-elevated);
+}
+
+.tx-timeline-date {
+    font-weight: bold;
+    color: var(--tx-text-primary);
+}
+
+.tx-timeline-details {
+    color: var(--tx-text-secondary);
+    font-size: 0.75rem;
+    margin-top: 2px;
+}
+
 /* Summary Card Highlight */
 .tx-summary-card {
     border-left: 3px solid var(--tx-accent);

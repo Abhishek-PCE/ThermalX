@@ -286,11 +286,108 @@ function showHotspotDetails(hotspot) {
             setElementText('event-persistence', "1 observation");
         }
 
+        // ==========================================
+        // DAY 3 ROLE 1: Render Event History Section
+        // ==========================================
+        renderEventHistory(hotspot);
+
     } catch (err) {
         console.error("Error in showHotspotDetails():", err);
         showError("Failed to display hotspot details. Please select another hotspot.");
     }
 }
+
+// ============================================================================
+// DAY 3 ROLE 1: EVENT HISTORY & TIMELINE FUNCTIONS
+// ============================================================================
+
+/**
+ * Updates the event history panel with information from the selected thermal event.
+ * Reuses the output of Role 4's processing and Role 5's classification.
+ */
+function renderEventHistory(event) {
+    if (event.persistence && event.persistence.firstDetection) {
+        setElementText('history-first-date', formatDateString(event.persistence.firstDetection));
+        setElementText('history-last-date', formatDateString(event.persistence.lastDetection));
+    } else {
+        // Fallback if it's a raw detection without persistence metadata
+        const singleDate = formatDateString(event.date || event.acq_date);
+        setElementText('history-first-date', singleDate);
+        setElementText('history-last-date', singleDate);
+    }
+
+    renderPersistence(event);
+    renderDetectionTimeline(event.detections || [event]);
+}
+
+/**
+ * Updates the persistence card and its label using Role 5's data.
+ */
+function renderPersistence(event) {
+    let score = "0";
+    let category = "LOW";
+    let evidence = "1 observation";
+
+    // If Role 5 generated persistenceData during classification
+    if (event.persistenceData) {
+        score = event.persistenceData.persistenceScore;
+        category = event.persistenceData.persistenceCategory;
+        evidence = event.persistenceData.evidence;
+    } 
+    // Fallback if only Role 4's raw persistence metadata is available
+    else if (event.persistence && event.persistence.score !== undefined) {
+        score = event.persistence.score;
+        category = "EVALUATED";
+        evidence = `${event.persistence.uniqueDays} days detected`;
+    }
+
+    setElementText('history-persistence-score', `${score}%`);
+    setElementText('history-persistence-category', category);
+    setElementText('history-persistence-evidence', evidence);
+}
+
+/**
+ * Creates the visual detection timeline from the event's historical detections.
+ * @param {Array} detections - Array of historical detections for this event.
+ */
+function renderDetectionTimeline(detections) {
+    const container = document.getElementById('history-timeline-content');
+    if (!container) return;
+
+    if (!Array.isArray(detections) || detections.length === 0) {
+        container.innerHTML = '<div style="color: #888; font-size: 0.85rem; font-style: italic;">No historical detections available.</div>';
+        return;
+    }
+
+    // Generate timeline HTML
+    let timelineHTML = '';
+    
+    // Sort chronologically if needed (Role 4 already sorts them, but we ensure it here)
+    const sortedDetections = [...detections].sort((a, b) => {
+        const dateA = new Date(a.date || a.acq_date || 0);
+        const dateB = new Date(b.date || b.acq_date || 0);
+        return dateA - dateB;
+    });
+
+    sortedDetections.forEach(det => {
+        const dateStr = formatDateString(det.date || det.acq_date);
+        const frp = formatThermalValue(det.frp, 'MW');
+        const bright = formatThermalValue(det.brightness, 'K');
+        const sat = det.satellite || 'Unknown';
+        
+        timelineHTML += `
+            <div class="tx-timeline-item">
+                <div class="tx-timeline-date">${dateStr}</div>
+                <div class="tx-timeline-details">
+                    FRP: ${frp} | Brightness: ${bright} | Sat: ${sat}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = timelineHTML;
+}
+
 
 /*
  * Function: clearHotspotDetails()
@@ -309,12 +406,21 @@ function clearHotspotDetails() {
         'event-confidence', 'event-quality', 'event-brightness', 'event-frp',
         'event-average-frp', 'event-lat', 'event-lng', 'event-location',
         'event-facility', 'event-distance', 'event-date', 'event-time',
-        'event-satellite', 'event-persistence', 'event-evidence'
+        'event-satellite', 'event-persistence', 'event-evidence',
+        // Day 3 Role 1 fields
+        'history-first-date', 'history-last-date', 'history-persistence-score',
+        'history-persistence-category', 'history-persistence-evidence'
     ];
 
     elementsToClear.forEach(id => {
         setElementText(id, '—');
     });
+
+    // Clear the timeline container
+    const timelineContainer = document.getElementById('history-timeline-content');
+    if (timelineContainer) {
+        timelineContainer.innerHTML = '<div style="color: #888; font-size: 0.85rem; font-style: italic;">No historical detections available.</div>';
+    }
 }
 
 // Aliases for backwards compatibility with Day 1 code

@@ -443,7 +443,10 @@ function buildThermalEvent(group) {
             uniqueDays: uniqueDays,
             firstDetection: firstDetection,
             lastDetection: lastDetection
-        }
+        },
+
+        // Historical detections array for Role 1 to render timeline
+        detections: detections
     };
 }
 
