@@ -1,0 +1,777 @@
+# THERMALX — DAY 4 TASK
+
+## ROLE 1 — FRONTEND & UI DEVELOPER
+
+## TASK: INDUSTRIAL FACILITY INFORMATION PANEL
+
+You are working on **ThermalX**, a JavaScript-first MVP for detecting, analyzing, classifying, and visualizing satellite thermal hotspots.
+
+I am **Role 1 — Frontend & UI Developer**.
+
+Your job today is to implement the **Day 4 frontend task** from our development plan:
+
+> Build the **Facility Information Panel** that displays nearby industrial facilities associated with the currently selected thermal hotspot.
+
+The project must remain simple and compatible with our existing architecture.
+
+---
+
+# 1. IMPORTANT PROJECT CONTEXT
+
+ThermalX follows this architecture:
+
+NASA FIRMS
+↓
+Data Fetching
+↓
+Raw Hotspot Data
+↓
+Data Processing
+↓
+Persistence Detection + Industrial Proximity
+↓
+Classification
+↓
+Leaflet Map
+↓
+Dashboard UI
+
+The recommended project structure is:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+Do NOT introduce unnecessary technologies.
+
+Use:
+
+* HTML
+* CSS
+* Vanilla JavaScript
+* Existing Leaflet.js setup
+* Existing project modules
+* Existing data structures
+* Existing UI design
+
+Do NOT introduce:
+
+* React
+* Vue
+* Angular
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* Any unnecessary framework
+
+This is a client-side MVP.
+
+---
+
+# 2. DAY 4 REQUIREMENT
+
+The Day 4 objective is:
+
+**Select a hotspot and see nearby industrial facilities, their distance, and their type.**
+
+Role 1's specific responsibility:
+
+**Create the facility information panel.**
+
+The panel should work with industrial facility data supplied by the data/API layer.
+
+Possible facility categories include:
+
+* Factory
+* Industrial area
+* Power plant
+* Refinery
+* Mine
+* Oil/gas infrastructure
+* Other relevant industrial facility
+
+The UI should make it easy to understand:
+
+1. Which hotspot is selected
+2. Which industrial facilities are nearby
+3. What type each facility is
+4. How far each facility is from the hotspot
+5. Whether the facility is relevant as industrial context
+
+---
+
+# 3. FIRST — INSPECT THE EXISTING PROJECT
+
+Before modifying anything:
+
+1. Inspect the complete existing project structure.
+2. Read:
+
+   * index.html
+   * css/style.css
+   * js/app.js
+   * js/map.js
+   * js/api.js
+   * js/processing.js
+   * js/classification.js
+3. Understand how hotspot selection currently works.
+4. Understand how data is passed between modules.
+5. Understand the existing UI layout.
+6. Check whether Day 2 and Day 3 functionality already exists.
+7. Do NOT overwrite working functionality.
+8. Reuse existing components and functions wherever possible.
+
+If a facility-related data structure already exists, use it instead of creating a conflicting second structure.
+
+If OSM/Overpass integration is already implemented by another role, consume its output.
+
+If OSM/Overpass integration is NOT implemented yet, create the frontend in a way that accepts the expected facility data without trying to duplicate Role 3's API responsibility.
+
+---
+
+# 4. ROLE BOUNDARY
+
+You are primarily responsible for the **frontend/UI**.
+
+Do NOT take over responsibilities belonging to other roles.
+
+Role 3 owns:
+
+* OSM/Overpass API fetching
+* API requests
+* Request handling
+* Response parsing
+
+Role 4 owns:
+
+* Distance calculations
+* Data processing
+* Spatial calculations
+
+Role 2 owns:
+
+* Leaflet industrial facility layer
+* Map markers
+* Map visualization
+
+Your responsibility is to DISPLAY the processed facility information clearly.
+
+You may create small frontend helper functions when required for UI integration, but do not duplicate the underlying API, GIS, or processing logic.
+
+---
+
+# 5. FACILITY INFORMATION PANEL
+
+Create a dedicated section/panel for industrial context.
+
+Suggested structure:
+
+---
+
+## INDUSTRIAL CONTEXT
+
+Selected Hotspot
+Latitude: XX.XXXX
+Longitude: XX.XXXX
+
+Nearby Facilities
+
+[Factory]
+ABC Industrial Facility
+Distance: 1.2 km
+Type: Factory
+
+[Power Plant]
+XYZ Power Station
+Distance: 3.4 km
+Type: Power Plant
+
+[Refinery]
+Example Refinery
+Distance: 5.8 km
+Type: Refinery
+
+---
+
+The exact visual design should match the existing ThermalX dashboard.
+
+Do not blindly copy this layout if the existing application already has a better component structure.
+
+---
+
+# 6. SELECTED HOTSPOT BEHAVIOR
+
+When the user selects a thermal hotspot:
+
+1. Detect the selected hotspot.
+2. Read the nearby industrial facilities associated with that hotspot.
+3. Update the Facility Information Panel.
+4. Remove stale facility information from the previous hotspot.
+5. Show the currently selected hotspot's industrial context.
+6. If there are no nearby facilities, clearly display:
+
+"No nearby industrial facilities found."
+
+Do not leave the previous hotspot's facility information visible.
+
+---
+
+# 7. FACILITY INFORMATION TO DISPLAY
+
+For each facility, display as much of the available information as is safely supported by the data.
+
+Preferred fields:
+
+* Facility name
+* Facility type/category
+* Distance from selected hotspot
+* Latitude
+* Longitude
+* OSM identifier, if available
+* Relevant tags, if available
+
+Do not invent facility names or information.
+
+If a field is unavailable, hide it or show an appropriate fallback such as:
+
+"Name unavailable"
+
+Do NOT fabricate missing data.
+
+---
+
+# 8. DISTANCE DISPLAY
+
+Distance should be displayed in a human-friendly format.
+
+Examples:
+
+* 850 m
+* 1.2 km
+* 3.7 km
+
+If the data layer already calculates distance, use that value.
+
+Do NOT implement a second competing distance-calculation system unless absolutely necessary.
+
+The distance is contextual evidence only.
+
+Use wording such as:
+
+"Distance from hotspot"
+
+Do NOT imply:
+
+"Cause confirmed"
+
+"Fire caused by facility"
+
+"Illegal activity detected"
+
+The ThermalX system is a decision-support system, not proof of causation.
+
+---
+
+# 9. INDUSTRIAL CONTEXT EXPLANATION
+
+Add a small explanatory UI element explaining what this information means.
+
+Example:
+
+"Nearby industrial facilities are shown as contextual evidence. Proximity alone does not prove that a facility caused the thermal event."
+
+This is important because the Day 4 plan explicitly treats industrial proximity as a **decision-support heuristic, not proof of attribution**.
+
+Keep this explanation concise and visually secondary to the main information.
+
+---
+
+# 10. EMPTY / LOADING / ERROR STATES
+
+The panel must handle all important UI states.
+
+## Loading
+
+Display something such as:
+
+"Loading industrial context..."
+
+Do not freeze the entire dashboard.
+
+## No facilities
+
+Display:
+
+"No nearby industrial facilities found."
+
+## Error
+
+Display:
+
+"Industrial facility data is currently unavailable."
+
+Do not expose raw JavaScript errors to the user.
+
+## Invalid data
+
+Gracefully ignore malformed facility records.
+
+The rest of the dashboard must continue working.
+
+---
+
+# 11. FACILITY CARD DESIGN
+
+Create a reusable facility-card UI component.
+
+Each card should visually separate:
+
+* Facility name
+* Facility type
+* Distance
+* Optional location/details
+
+Example:
+
+┌──────────────────────────────┐
+│ 🏭 ABC Industrial Facility   │
+│                              │
+│ Type       Factory           │
+│ Distance   1.2 km            │
+│ Location   25.123, 85.456    │
+└──────────────────────────────┘
+
+Use icons only if the existing UI already supports them or if a lightweight icon solution is already available.
+
+Do not add unnecessary dependencies.
+
+---
+
+# 12. SORTING
+
+If multiple nearby facilities are available, display them in a logical order.
+
+Prefer nearest facilities first.
+
+If the processing/data layer already supplies a distance value, sort using that value.
+
+Do not perform duplicate spatial calculations in the UI.
+
+---
+
+# 13. RESPONSIVE DESIGN
+
+The facility panel must work on:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+Do not allow long facility names or coordinates to break the layout.
+
+Cards should stack naturally on smaller screens.
+
+The map and information panel should remain usable together.
+
+---
+
+# 14. INTEGRATION WITH EXISTING HOTSPOT PANEL
+
+If ThermalX already has an event/hotspot details panel:
+
+Integrate industrial context into the existing details experience instead of creating an unrelated second dashboard.
+
+The selected hotspot information should conceptually flow like:
+
+HOTSPOT
+↓
+Historical detections
+↓
+Persistence
+↓
+Industrial context
+↓
+Nearby facilities
+↓
+Classification
+
+Do not redesign the entire application unless the existing architecture makes integration impossible.
+
+---
+
+# 15. DATA CONTRACT
+
+Expect facility data to conceptually look similar to:
+
+{
+id: "...",
+name: "...",
+type: "...",
+latitude: 25.123,
+longitude: 85.456,
+distance: 1.2
+}
+
+However:
+
+DO NOT assume this exact structure already exists.
+
+First inspect the current codebase.
+
+Adapt the UI to the existing data structure where possible.
+
+If a small normalization/helper layer is necessary, create one rather than spreading data-format assumptions throughout the UI.
+
+---
+
+# 16. JAVASCRIPT REQUIREMENTS
+
+Use clean vanilla JavaScript.
+
+Prefer:
+
+* const
+* let
+* functions
+* event listeners
+* template literals where appropriate
+* modular functions
+* defensive checks
+* meaningful variable names
+
+Avoid:
+
+* global variables unless the existing architecture requires them
+* duplicated DOM manipulation
+* duplicated event listeners
+* inline JavaScript inside HTML
+* unnecessary complexity
+
+---
+
+# 17. VERY IMPORTANT — COMMENTS IN EVERY CODE SECTION
+
+This is a mandatory requirement.
+
+I want to understand this project easily later.
+
+Therefore:
+
+**ADD CLEAR COMMENTS TO EVERY MAJOR SECTION OF CODE.**
+
+Comments must explain:
+
+1. What the section does
+2. Why it exists
+3. What data it expects
+4. What it returns/updates
+5. How it connects to other modules when relevant
+
+For example:
+
+```javascript
+// ------------------------------------------------------------
+// FACILITY INFORMATION PANEL
+// ------------------------------------------------------------
+// This function updates the industrial-context section of the
+// dashboard whenever a user selects a thermal hotspot.
+//
+// Input:
+// - hotspot: currently selected thermal hotspot
+// - facilities: nearby industrial facilities supplied by the
+//   data-processing/API layer
+//
+// Output:
+// - Updates the facility panel in the DOM.
+// ------------------------------------------------------------
+```
+
+Use comments for major HTML sections too:
+
+```html
+<!-- =========================================================
+     INDUSTRIAL CONTEXT PANEL
+     Displays nearby industrial facilities for the selected
+     thermal hotspot.
+     ========================================================= -->
+```
+
+And CSS sections:
+
+```css
+/* ============================================================
+   INDUSTRIAL FACILITY CARDS
+   Styles the individual facility information cards shown
+   inside the industrial context panel.
+   ============================================================ */
+```
+
+Do NOT write meaningless comments such as:
+
+```javascript
+// Set x to 10
+let x = 10;
+```
+
+Comments should explain the purpose and reasoning.
+
+Do not comment every single line mechanically.
+
+Instead, provide useful comments for every logical/major section so that another team member can understand the code months later.
+
+---
+
+# 18. CODE QUALITY
+
+Follow these principles:
+
+* Keep functions small.
+* Use descriptive names.
+* Avoid deeply nested logic.
+* Avoid duplicated code.
+* Reuse existing functions.
+* Keep UI logic separate from API logic.
+* Keep data processing separate from UI logic.
+* Do not silently modify unrelated modules.
+* Do not break existing Day 1–3 functionality.
+
+---
+
+# 19. DO NOT BREAK EXISTING FEATURES
+
+Before finishing, verify that these continue to work:
+
+* Leaflet map
+* NASA FIRMS hotspots
+* Hotspot markers
+* Hotspot selection
+* Hotspot information
+* Historical information
+* Persistence information
+* Existing filters, if already implemented
+* Responsive UI
+
+The Day 4 facility panel is an addition, not a replacement.
+
+---
+
+# 20. ACCESSIBILITY
+
+Use semantic HTML where practical.
+
+Make sure:
+
+* Buttons are keyboard accessible.
+* Important information is readable.
+* Text has sufficient contrast according to the existing design.
+* Facility cards do not rely only on color.
+* Interactive elements have useful labels.
+
+Do not unnecessarily change the existing visual design.
+
+---
+
+# 21. USER EXPERIENCE
+
+When a user clicks a hotspot, the experience should be:
+
+1. User selects hotspot.
+2. Existing hotspot details appear.
+3. Industrial context loads/displays.
+4. Nearby facilities appear.
+5. Each facility shows type and distance.
+6. User can understand the industrial context without opening developer tools.
+
+The UI should feel like one coherent ThermalX application.
+
+---
+
+# 22. DEMO DATA FALLBACK
+
+If the project already supports DEMO MODE, make sure the Facility Information Panel works with demo/saved data as well.
+
+Do not make the UI completely dependent on a successful live API request.
+
+The project plan specifically requires a reliable demo fallback for later testing and presentation.
+
+If demo facility data does not yet exist, create only a minimal example structure if necessary and clearly label it as demo data.
+
+Do not mix fake demo data into LIVE mode.
+
+---
+
+# 23. TEST THESE CASES
+
+After implementation, test:
+
+### Case 1 — Hotspot with one facility
+
+Expected:
+Facility card appears with name, type and distance.
+
+### Case 2 — Hotspot with multiple facilities
+
+Expected:
+Multiple cards appear, preferably nearest first.
+
+### Case 3 — Hotspot with no facilities
+
+Expected:
+"No nearby industrial facilities found."
+
+### Case 4 — Facility missing name
+
+Expected:
+No crash. Show a safe fallback.
+
+### Case 5 — Facility missing distance
+
+Expected:
+No crash. Hide distance or show "Distance unavailable."
+
+### Case 6 — Invalid facility record
+
+Expected:
+Invalid record does not break the panel.
+
+### Case 7 — Select hotspot A, then hotspot B
+
+Expected:
+Facility information updates completely to hotspot B.
+
+### Case 8 — API/data error
+
+Expected:
+Friendly error state appears and the rest of ThermalX continues working.
+
+### Case 9 — Mobile screen
+
+Expected:
+Panel remains readable and usable.
+
+---
+
+# 24. DO NOT OVERENGINEER
+
+This is Day 4 of a 10-day MVP.
+
+Do NOT:
+
+* Build a backend
+* Build a database
+* Add machine learning
+* Add authentication
+* Add unnecessary frameworks
+* Create complex state-management architecture
+* Rewrite the application
+* Add unnecessary dependencies
+
+Keep the implementation understandable and demo-ready.
+
+---
+
+# 25. FILES TO MODIFY
+
+First determine the correct files from the existing project.
+
+Likely files:
+
+* index.html
+* css/style.css
+* js/app.js
+
+Possibly other frontend files only if required for integration.
+
+Do not modify unrelated files without a clear reason.
+
+Before changing a file, understand its existing purpose.
+
+---
+
+# 26. FINAL VERIFICATION
+
+After implementation:
+
+1. Check for JavaScript syntax errors.
+2. Check browser console errors.
+3. Check broken DOM selectors.
+4. Check event listeners.
+5. Check responsive layout.
+6. Check facility empty state.
+7. Check facility error state.
+8. Check multiple facilities.
+9. Check hotspot switching.
+10. Verify existing Day 1–3 functionality still works.
+11. Verify comments exist for every major code section.
+12. Verify comments explain WHY and HOW, not just WHAT.
+13. Remove unused code.
+14. Do not leave debugging logs unless they are intentionally part of the application.
+
+---
+
+# 27. FINAL RESPONSE AFTER CODING
+
+When you finish, report:
+
+### Files changed
+
+List every file modified.
+
+### What was implemented
+
+Briefly explain the Facility Information Panel.
+
+### Integration
+
+Explain how it receives facility data from the existing architecture.
+
+### Testing
+
+List the test cases you performed.
+
+### Existing functionality
+
+Confirm which previous functionality was preserved.
+
+### Notes
+
+Mention any assumptions or missing dependencies.
+
+Do not claim that OSM/Overpass functionality is complete if that responsibility belongs to another module/role and has not actually been implemented.
+
+---
+
+# MOST IMPORTANT RULES
+
+1. **Role 1 = Frontend/UI.**
+2. Build the **Day 4 Industrial Facility Information Panel**.
+3. Do not take over Role 3's API responsibilities.
+4. Do not take over Role 4's spatial-processing responsibilities.
+5. Do not take over Role 2's map-layer responsibilities.
+6. Preserve existing Day 1–3 functionality.
+7. Use vanilla HTML/CSS/JavaScript.
+8. Do not introduce unnecessary frameworks.
+9. Handle loading, empty, error, and invalid-data states.
+10. Make the UI responsive.
+11. **COMMENT EVERY MAJOR SECTION OF HTML, CSS, AND JAVASCRIPT.**
+12. Comments must explain the purpose, data flow, and reasoning so the code is easy to understand later.
+13. Do not fabricate facility information.
+14. Industrial proximity is contextual evidence, **not proof of causation**.
+15. Keep the implementation simple, clean, understandable, and demo-ready.
+
+Start by inspecting the existing project, then implement the Day 4 Role 1 task without breaking existing functionality.
