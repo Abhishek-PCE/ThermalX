@@ -1,0 +1,1286 @@
+# THERMALX — DAY 5 TASK
+
+## ROLE 2 — GIS & MAP DEVELOPER
+
+## TASK: THERMAL EVENT CLUSTER VISUALIZATION & MAP INTEGRATION
+
+You are working on **ThermalX**, a JavaScript-first MVP for detecting, analyzing, classifying, and visualizing satellite thermal hotspots.
+
+I am:
+
+**ROLE 2 — GIS & MAP DEVELOPER**
+
+Today is:
+
+**DAY 5 — SPATIAL CLUSTERING + THERMAL EVENTS**
+
+Your main responsibility today is to make the Leaflet map represent **thermal events/clusters instead of hundreds of individual thermal hotspot points**, while keeping the map understandable, responsive, and integrated with the existing ThermalX architecture.
+
+The Day-5 objective from the development plan is:
+
+> ThermalX identifies persistent thermal events.
+
+Role 2's responsibility:
+
+> Represent thermal events rather than hundreds of individual points.
+
+You must also support the clustering/data flow created by Role 4 and the event/evidence data created by the other roles.
+
+---
+
+# 1. IMPORTANT PROJECT CONTEXT
+
+ThermalX follows this architecture:
+
+NASA FIRMS
+↓
+Data Fetching
+↓
+Raw Hotspot Data
+↓
+Data Processing
+↓
+Persistence Detection
+↓
+Spatial Clustering
+↓
+Thermal Events
+↓
+Classification
+↓
+Leaflet Map
+↓
+Dashboard UI
+
+Recommended project structure:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+Use the existing project structure.
+
+Do NOT introduce unnecessary frameworks or technologies.
+
+Use:
+
+* HTML
+* CSS
+* Vanilla JavaScript
+* Leaflet.js
+* GeoJSON if already used/suitable
+* Turf.js only where the existing architecture already uses it for spatial processing
+
+Do NOT introduce:
+
+* React
+* Vue
+* Angular
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* Any unnecessary GIS framework
+
+This is a client-side MVP.
+
+---
+
+# 2. FIRST — INSPECT THE EXISTING PROJECT
+
+Before making changes:
+
+1. Inspect the complete project structure.
+
+2. Read all relevant existing files.
+
+3. Especially inspect:
+
+   * index.html
+   * css/style.css
+   * js/app.js
+   * js/map.js
+   * js/api.js
+   * js/processing.js
+   * js/classification.js
+
+4. Understand how the current Leaflet map is initialized.
+
+5. Understand how hotspot markers are currently created.
+
+6. Understand how hotspot selection currently works.
+
+7. Understand how processed thermal-event data is represented.
+
+8. Understand whether Role 4 has already implemented clustering.
+
+9. Reuse existing functions and data structures whenever possible.
+
+IMPORTANT:
+
+**Do not rewrite working functionality just to implement Day 5.**
+
+Build on top of the existing Day 1–4 implementation.
+
+---
+
+# 3. ROLE 2 RESPONSIBILITY
+
+Your responsibility is primarily:
+
+## GIS + MAP VISUALIZATION
+
+You own:
+
+* Thermal-event map visualization
+* Cluster/event representation
+* Leaflet layers
+* Event markers
+* Event selection on map
+* Event visual hierarchy
+* Map controls related to event visualization
+* Map interaction
+* Map performance
+
+You do NOT own:
+
+### Role 3
+
+API fetching and external data integration.
+
+### Role 4
+
+The core spatial-clustering algorithm, temporal grouping, persistence calculation, event IDs, etc.
+
+### Role 5
+
+Classification/scoring logic.
+
+### Role 1
+
+Dashboard/UI panels.
+
+However, your map must provide the events and selected-event information required by those modules.
+
+---
+
+# 4. DAY 5 CORE REQUIREMENT
+
+The map currently may contain many individual FIRMS detections.
+
+For Day 5, the map should instead emphasize:
+
+**THERMAL EVENTS**
+
+rather than displaying hundreds of independent points simultaneously.
+
+Conceptually:
+
+BEFORE:
+
+🔥 🔥 🔥 🔥 🔥
+🔥 🔥 🔥
+🔥 🔥 🔥 🔥
+🔥 🔥
+
+AFTER:
+
+```
+   🔥
+```
+
+TX-001
+
+The event marker represents a group of related detections.
+
+---
+
+# 5. IMPORTANT — DO NOT IMPLEMENT A SECOND CLUSTERING ALGORITHM
+
+If Role 4 has already implemented:
+
+* Spatial clustering
+* Temporal grouping
+* Persistence
+* Detection count
+* Unique days
+* First detection
+* Last detection
+* Event IDs
+
+then **consume that processed event data**.
+
+Do NOT create a competing clustering algorithm inside `map.js`.
+
+The map should visualize the result produced by the processing layer.
+
+If the processing layer is incomplete, create a clean temporary adapter/mock only if necessary to allow map development.
+
+Clearly isolate that temporary adapter so it can later be replaced by the real processing output.
+
+---
+
+# 6. EXPECTED THERMAL EVENT DATA
+
+The exact existing structure may differ.
+
+First inspect the code.
+
+Conceptually, an event may contain:
+
+```javascript
+{
+    id: "TX-001",
+    latitude: 25.123,
+    longitude: 85.456,
+    detectionCount: 8,
+    uniqueDays: 5,
+    firstDetection: "2026-09-10",
+    lastDetection: "2026-09-14",
+    persistenceScore: 0.65,
+    averageFRP: 42.5,
+    confidence: 87
+}
+```
+
+This is only an example.
+
+**Do not blindly impose this structure if the existing project already uses another structure.**
+
+Adapt the map layer to the existing event object.
+
+---
+
+# 7. EVENT MARKER
+
+Create a clear Leaflet representation for each thermal event.
+
+The marker should communicate:
+
+* Event exists
+* Approximate event location
+* Event ID
+* Detection count or persistence when useful
+* Classification when available
+* Priority when available
+
+Example conceptual marker:
+
+┌──────────────┐
+│ 🔥 TX-001    │
+│ 8 detections │
+│ 5 days       │
+└──────────────┘
+
+Keep the visual design consistent with the existing ThermalX UI.
+
+---
+
+# 8. EVENT POPUP
+
+When the user clicks a thermal event, display a concise Leaflet popup.
+
+The popup should preferably contain:
+
+* Event ID
+* Detection count
+* Unique days
+* Persistence
+* First detection
+* Last detection
+* Average FRP
+* Confidence
+
+If classification data is already available, also display:
+
+* Classification
+* Classification confidence
+
+Do not display fields that don't exist.
+
+Do not fabricate values.
+
+Example:
+
+```text
+TX-001
+
+Detections: 8
+Unique days: 5
+Persistence: 65%
+Average FRP: 42.5
+Confidence: 87%
+
+First detected: Sep 10
+Last detected: Sep 14
+
+Classification:
+Likely Industrial
+```
+
+---
+
+# 9. EVENT SELECTION
+
+When a user clicks an event marker:
+
+1. Highlight the selected event.
+2. Open its popup.
+3. Notify the application that this event has been selected.
+4. Allow the existing dashboard/event-information panel to update.
+
+Use the existing application event flow if one already exists.
+
+If the project has no event-selection mechanism, create a clean custom event such as:
+
+```javascript
+document.dispatchEvent(
+    new CustomEvent("thermalEventSelected", {
+        detail: event
+    })
+);
+```
+
+Only use this if it fits the existing architecture.
+
+Document the event clearly in comments.
+
+---
+
+# 10. SELECTED EVENT VISUALIZATION
+
+The selected thermal event should look visually different from other events.
+
+For example:
+
+Normal:
+
+●
+
+Selected:
+
+◉
+
+or a larger highlighted circle.
+
+Do not rely only on color.
+
+The selected event should also remain visually understandable when the map contains many events.
+
+---
+
+# 11. EVENT LAYER
+
+Create a dedicated Leaflet layer for thermal events.
+
+For example:
+
+```javascript
+const thermalEventLayer = L.layerGroup();
+```
+
+Use the existing map-layer architecture if one already exists.
+
+The event layer should be independently controllable.
+
+If the application already has layer controls, integrate the thermal-event layer there.
+
+---
+
+# 12. HISTORICAL DETECTION SUPPORT
+
+Day 3 already introduced historical/event markers.
+
+Day 5 changes the primary visualization to thermal events.
+
+Do not completely remove historical information.
+
+Instead:
+
+* Thermal events should be the primary map representation.
+* Historical detections can remain available when an event is selected.
+* If the existing application supports showing historical points, keep that capability.
+* Historical detections should not overwhelm the main event visualization.
+
+Conceptually:
+
+THERMAL EVENT
+↓
+Historical detections
+↓
+Persistence timeline
+
+The map should remain clean by default.
+
+---
+
+# 13. EVENT CENTER
+
+The event marker should use the event's representative coordinates from the processing layer.
+
+Possible values:
+
+* Cluster centroid
+* Representative hotspot coordinate
+* Event center
+
+Use whatever the processing layer provides.
+
+Do NOT calculate a second event center in `map.js` unless absolutely necessary.
+
+---
+
+# 14. EVENT BOUNDARY / EXTENT
+
+If the processed event contains enough information to represent its spatial extent, you may visualize it using:
+
+* Circle
+* Polygon
+* Bounding area
+
+But this is optional.
+
+Do not invent spatial boundaries.
+
+If no reliable boundary exists, use a marker only.
+
+The MVP should prioritize clarity over sophisticated visualization.
+
+---
+
+# 15. EVENT DENSITY / PERFORMANCE
+
+The map may eventually contain many thermal detections.
+
+Optimize for performance.
+
+Avoid:
+
+* Creating unnecessary duplicate markers
+* Re-rendering every event on every small UI update
+* Creating multiple identical layers
+* Repeatedly attaching the same event listeners
+
+Use efficient layer management.
+
+If event data changes:
+
+1. Clear/update the existing event layer.
+2. Rebuild only what is necessary.
+3. Avoid leaking old markers or listeners.
+
+---
+
+# 16. ZOOM BEHAVIOR
+
+When appropriate, allow the user to zoom to an event.
+
+If an event is selected:
+
+* Keep the event visible.
+* Do not zoom excessively.
+* Preserve user map context where possible.
+
+If an event has multiple historical detections and those coordinates are available, optionally allow a "View event area" behavior.
+
+Do not create unnecessary map movements that make the UI confusing.
+
+---
+
+# 17. MAP LEGEND
+
+If ThermalX already has a map legend, update it to explain thermal events.
+
+For example:
+
+```text
+MAP LEGEND
+
+● Thermal Event
+◉ Selected Event
+○ Historical Detection
+🏭 Industrial Facility
+```
+
+Only include symbols actually used by the application.
+
+Keep the legend simple.
+
+---
+
+# 18. CLASSIFICATION COLORS / STYLES
+
+If classification data is already available, the event visualization may use different visual indicators for:
+
+* Industrial
+* Wildfire
+* Agricultural
+* Other / Unknown
+
+However:
+
+**Do not make classification the responsibility of the map.**
+
+The classification module provides the classification.
+
+The map only visualizes it.
+
+Do not calculate classification scores in `map.js`.
+
+If classification is unavailable, use the neutral thermal-event style.
+
+Do not assume every event is industrial.
+
+---
+
+# 19. PERSISTENCE VISUALIZATION
+
+If persistence information is available, make it visible in a subtle way.
+
+For example:
+
+* Popup value
+* Small badge
+* Marker metadata
+* Optional ring/size
+
+Do not create a complicated visualization.
+
+The important information is:
+
+* Detection count
+* Unique days
+* Persistence score
+
+The persistence thresholds from the project plan are prototype rules:
+
+* 0–20% = Low
+* 21–50% = Moderate
+* 51–80% = High
+* 81–100% = Very High
+
+These are prototype rules and **not scientific ground truth**.
+
+Do not present them as scientifically validated thresholds.
+
+---
+
+# 20. INDUSTRIAL FACILITY LAYER
+
+Day 4 introduced nearby industrial facilities.
+
+Keep the industrial facility layer separate from the thermal-event layer.
+
+Conceptually:
+
+Map
+├── Thermal Events
+├── Historical Detections
+└── Industrial Facilities
+
+Do not merge these into one layer.
+
+If the facility layer already exists:
+
+* Preserve it.
+* Ensure it does not interfere with thermal-event selection.
+* Maintain existing layer controls.
+
+---
+
+# 21. MAP LAYER CONTROLS
+
+If Leaflet layer controls already exist, make sure the user can independently control:
+
+* Thermal Events
+* Historical Detections, if supported
+* Industrial Facilities
+
+Do not remove existing controls.
+
+Do not duplicate layer controls.
+
+---
+
+# 22. EMPTY EVENT DATA
+
+If there are no processed thermal events:
+
+Show a safe UI state.
+
+The map should remain functional.
+
+Do not crash.
+
+Possible message:
+
+"No thermal events available for the current data."
+
+Do not display fake events in LIVE mode.
+
+---
+
+# 23. INVALID EVENT DATA
+
+If an event is missing:
+
+* latitude
+* longitude
+* event ID
+
+or contains invalid coordinates:
+
+skip that event safely.
+
+Do not crash the entire map.
+
+Optionally log a developer-facing warning if the existing project uses controlled logging.
+
+Do not expose raw errors to normal users.
+
+---
+
+# 24. LIVE MODE + DEMO MODE
+
+ThermalX will eventually support:
+
+LIVE DATA
+and
+DEMO MODE
+
+The event map visualization must work with both.
+
+LIVE MODE:
+
+FIRMS → Processing → Thermal Events → Map
+
+DEMO MODE:
+
+Saved JSON → Processing/Adapter → Thermal Events → Map
+
+Do not hard-code the visualization to one data source.
+
+The map should consume standardized event data.
+
+---
+
+# 25. COMMUNICATION WITH OTHER MODULES
+
+Maintain clean module boundaries.
+
+Recommended flow:
+
+`processing.js`
+
+produces:
+
+```text
+thermalEvents
+```
+
+`map.js`
+
+receives:
+
+```text
+thermalEvents
+```
+
+and visualizes them.
+
+`app.js`
+
+coordinates:
+
+```text
+data → processing → map → UI
+```
+
+If the existing architecture differs, follow the existing architecture rather than blindly following this example.
+
+---
+
+# 26. JAVASCRIPT FUNCTIONS
+
+Use small reusable functions.
+
+Possible structure:
+
+```javascript
+initializeThermalEventLayer()
+renderThermalEvents(events)
+createThermalEventMarker(event)
+buildThermalEventPopup(event)
+handleThermalEventSelection(event)
+clearThermalEventLayer()
+highlightSelectedEvent(event)
+```
+
+These are suggestions.
+
+Use the existing project architecture where possible.
+
+---
+
+# 27. MANDATORY CODE COMMENTS
+
+This is a VERY IMPORTANT requirement.
+
+I need to understand this code easily later.
+
+Therefore:
+
+## ADD CLEAR COMMENTS TO EVERY MAJOR SECTION OF CODE.
+
+Every major section of:
+
+* JavaScript
+* HTML
+* CSS
+
+must have useful explanatory comments.
+
+Comments must explain:
+
+1. What the section does
+2. Why it exists
+3. What data it expects
+4. What it produces/updates
+5. How it connects to another module
+6. Any important GIS/map reasoning
+
+For example:
+
+```javascript
+// ============================================================
+// THERMAL EVENT MAP LAYER
+// ============================================================
+// This layer contains the processed thermal events generated
+// by the data-processing module.
+//
+// IMPORTANT:
+// The map does NOT calculate spatial clusters itself.
+// Role 4 is responsible for clustering and persistence logic.
+// This module only visualizes the resulting thermal events.
+//
+// Input:
+// - Array of processed thermal-event objects
+//
+// Output:
+// - Leaflet markers displayed on the thermal-event layer.
+// ============================================================
+```
+
+For event selection:
+
+```javascript
+// ============================================================
+// THERMAL EVENT SELECTION
+// ============================================================
+// Called when the user clicks a thermal-event marker.
+//
+// This function:
+// 1. Highlights the selected event.
+// 2. Opens its popup.
+// 3. Sends the selected event to the rest of the application.
+//
+// Keeping this logic separate makes it easier for app.js and
+// the dashboard UI to respond to map selections.
+// ============================================================
+```
+
+For HTML:
+
+```html
+<!-- =========================================================
+     THERMAL EVENT MAP
+     The Leaflet map is the primary geographic visualization
+     area of ThermalX.
+     ========================================================= -->
+```
+
+For CSS:
+
+```css
+/* ============================================================
+   THERMAL EVENT MARKERS
+   Styles the visual representation of processed thermal
+   events on the Leaflet map.
+   ============================================================ */
+```
+
+Do NOT add useless comments such as:
+
+```javascript
+// Create marker
+const marker = ...
+```
+
+Comments must help a future developer understand the system.
+
+Do not mechanically comment every individual line.
+
+Instead, comment **every logical/major section** thoroughly.
+
+---
+
+# 28. COMMENT DATA FLOW
+
+For important integration points, explain the data flow.
+
+Example:
+
+```javascript
+// FIRMS detections are processed by processing.js first.
+// This map module receives the resulting thermalEvents array.
+// Therefore, this function intentionally does not perform
+// clustering or persistence calculations.
+```
+
+This is especially important because multiple team members are working on different modules.
+
+---
+
+# 29. CSS ORGANIZATION
+
+Organize CSS into clearly labeled sections.
+
+Example:
+
+```css
+/* ============================================================
+   THERMAL EVENT MARKER
+   ============================================================ */
+
+/* ============================================================
+   SELECTED THERMAL EVENT
+   ============================================================ */
+
+/* ============================================================
+   EVENT POPUP
+   ============================================================ */
+
+/* ============================================================
+   MAP LEGEND
+   ============================================================ */
+
+/* ============================================================
+   RESPONSIVE MAP STYLES
+   ============================================================ */
+```
+
+Keep the existing stylesheet organization if one already exists.
+
+Do not duplicate existing styles unnecessarily.
+
+---
+
+# 30. HTML ORGANIZATION
+
+If HTML changes are required, organize them into clearly commented sections.
+
+For example:
+
+```html
+<!-- =========================================================
+     MAP CONTAINER
+     Main Leaflet visualization area.
+     ========================================================= -->
+
+<!-- =========================================================
+     MAP LEGEND
+     Explains thermal-event and facility symbols.
+     ========================================================= -->
+```
+
+---
+
+# 31. ACCESSIBILITY
+
+Make map-related UI understandable.
+
+Where applicable:
+
+* Use descriptive labels.
+* Do not rely only on color.
+* Ensure controls have accessible labels.
+* Make popup information readable.
+* Make buttons keyboard accessible where applicable.
+
+Do not compromise the map experience.
+
+---
+
+# 32. DO NOT BREAK DAY 1–4 FEATURES
+
+Before finishing, verify that these continue to work:
+
+* Leaflet map
+* OpenStreetMap base layer
+* FIRMS hotspot data
+* Hotspot markers
+* Hotspot selection
+* Historical data
+* Persistence data
+* Industrial facilities
+* Facility layer
+* Facility information
+* Existing dashboard
+* Existing filters
+* Responsive layout
+
+Day 5 is an enhancement.
+
+It must not destroy previous functionality.
+
+---
+
+# 33. TESTING REQUIREMENTS
+
+After implementation, test at least these cases.
+
+## TEST 1 — Multiple detections in one event
+
+Input:
+
+Several detections belonging to one event.
+
+Expected:
+
+One primary thermal-event representation rather than many duplicate primary markers.
+
+---
+
+## TEST 2 — Multiple thermal events
+
+Input:
+
+Several separate events.
+
+Expected:
+
+Each event appears independently on the map.
+
+---
+
+## TEST 3 — Event selection
+
+Click an event.
+
+Expected:
+
+* Event becomes selected/highlighted.
+* Popup appears.
+* Application receives selected-event information.
+
+---
+
+## TEST 4 — Event switching
+
+Click:
+
+TX-001
+
+then:
+
+TX-002
+
+Expected:
+
+TX-001 returns to normal style.
+
+TX-002 becomes selected.
+
+No stale selection remains.
+
+---
+
+## TEST 5 — Empty event list
+
+Expected:
+
+Map remains functional.
+
+No JavaScript crash.
+
+---
+
+## TEST 6 — Invalid coordinates
+
+Expected:
+
+Invalid event is skipped.
+
+Other events remain visible.
+
+---
+
+## TEST 7 — Missing optional fields
+
+For example:
+
+No average FRP.
+
+Expected:
+
+Popup still works.
+
+Missing field is safely omitted or shown as unavailable.
+
+---
+
+## TEST 8 — Industrial facility layer
+
+Expected:
+
+Industrial facilities remain separate from thermal events.
+
+Layer controls continue working.
+
+---
+
+## TEST 9 — Historical detections
+
+Expected:
+
+Historical detection functionality remains available where supported.
+
+The main map remains focused on thermal events.
+
+---
+
+## TEST 10 — Mobile/responsive
+
+Check:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+Map must remain usable.
+
+---
+
+# 34. PERFORMANCE CHECK
+
+Check that:
+
+* No duplicate markers are created.
+* No duplicate layers are created.
+* No duplicate event listeners are attached.
+* Switching between datasets does not leave old markers behind.
+* Clearing/re-rendering events works correctly.
+* Large event sets do not unnecessarily freeze the UI.
+
+Keep the implementation lightweight.
+
+---
+
+# 35. ERROR HANDLING
+
+Never allow a bad event record to crash the entire map.
+
+Use defensive checks.
+
+For example:
+
+```javascript
+if (
+    !event ||
+    !Number.isFinite(event.latitude) ||
+    !Number.isFinite(event.longitude)
+) {
+    return;
+}
+```
+
+Adapt this to the actual project data structure.
+
+---
+
+# 36. SECURITY / DATA SAFETY
+
+Do not inject untrusted external data directly into HTML using unsafe patterns.
+
+If external OSM/FIRMS values are inserted into popups or DOM elements, use safe DOM APIs or properly escaped content where appropriate.
+
+Do not assume external API data is always valid.
+
+---
+
+# 37. NO FAKE LIVE DATA
+
+Do not create fake thermal events and present them as NASA/FIRMS live data.
+
+If demo data is required:
+
+Clearly distinguish:
+
+**DEMO MODE**
+
+from:
+
+**LIVE DATA**
+
+---
+
+# 38. DO NOT OVERENGINEER
+
+This is Day 5 of a 10-day MVP.
+
+Do NOT:
+
+* Build a backend
+* Build a database
+* Add ML
+* Add advanced satellite imagery analysis
+* Add a complicated GIS engine
+* Rewrite the entire map system
+* Introduce React
+* Introduce unnecessary dependencies
+
+The goal is:
+
+**A clear, reliable thermal-event visualization on the Leaflet map.**
+
+---
+
+# 39. FILES TO MODIFY
+
+First inspect the existing project.
+
+Likely:
+
+* js/map.js
+* js/app.js
+* index.html
+* css/style.css
+
+Only modify files that are genuinely required.
+
+Do not modify API or processing logic unless a small integration change is absolutely necessary.
+
+If another role owns a file/function, avoid changing its internal logic.
+
+---
+
+# 40. FINAL VERIFICATION
+
+Before finishing:
+
+1. Check JavaScript syntax.
+2. Check browser console.
+3. Check Leaflet initialization.
+4. Check thermal-event layer.
+5. Check event markers.
+6. Check event popup.
+7. Check event selection.
+8. Check selected-event highlighting.
+9. Check event switching.
+10. Check empty event state.
+11. Check invalid event handling.
+12. Check historical detection compatibility.
+13. Check industrial facility compatibility.
+14. Check layer controls.
+15. Check responsive behavior.
+16. Check for duplicate markers.
+17. Check for duplicate event listeners.
+18. Check that old Day 1–4 functionality still works.
+19. Check that every major code section has explanatory comments.
+20. Remove unnecessary/debugging code.
+
+---
+
+# 41. FINAL RESPONSE AFTER CODING
+
+After completing the implementation, report:
+
+## Files Changed
+
+List every modified file.
+
+## Day-5 Implementation
+
+Explain how thermal events are now represented on the map.
+
+## Data Flow
+
+Explain:
+
+Processing Layer
+→ Thermal Events
+→ Map Layer
+→ User Selection
+
+## Map Features
+
+List:
+
+* Event markers
+* Event popups
+* Selection
+* Highlighting
+* Layer controls
+* Historical support
+* Industrial facility compatibility
+
+## Testing
+
+List the test cases completed.
+
+## Existing Features Preserved
+
+Explain which Day 1–4 features remain functional.
+
+## Assumptions
+
+Clearly identify any assumptions.
+
+## Remaining Dependencies
+
+Mention if Role 4's clustering output or another module is still required.
+
+Do not claim functionality is complete if the required upstream module has not actually been implemented.
+
+---
+
+# FINAL NON-NEGOTIABLE RULES
+
+1. **I AM ROLE 2 — GIS & MAP DEVELOPER.**
+2. This is **DAY 5**.
+3. Main task = **THERMAL EVENT / CLUSTER MAP VISUALIZATION**.
+4. Represent thermal events rather than hundreds of individual points.
+5. Consume Role 4's clustering/persistence output.
+6. Do NOT create a competing clustering algorithm inside the map module.
+7. Keep thermal events separate from industrial facilities.
+8. Keep historical detections available where appropriate.
+9. Use Leaflet.js.
+10. Use existing project architecture.
+11. Do not introduce unnecessary frameworks.
+12. Do not break Day 1–4 functionality.
+13. Handle empty, invalid, and missing data safely.
+14. Optimize marker/layer management.
+15. **ADD CLEAR COMMENTS TO EVERY MAJOR SECTION OF HTML, CSS, AND JAVASCRIPT.**
+16. Comments must explain purpose, data flow, reasoning, inputs, and outputs.
+17. Do not fabricate live thermal-event data.
+18. Do not treat prototype persistence thresholds as scientific ground truth.
+19. Keep the implementation simple and demo-ready.
+20. Inspect the existing code before modifying anything.
+
+Start by inspecting the existing ThermalX project and understanding the current map/data architecture.
+
+Then implement the **Day 5 — Role 2 thermal-event visualization** carefully without breaking existing functionality.
