@@ -291,6 +291,190 @@ const TEST_RAW_HOTSPOTS = [
 ];
 
 // ============================================================================
+// DAY 3: SPATIAL & TEMPORAL PROCESSING (Role 4)
+// ============================================================================
+
+// A prototype heuristic radius (in kilometers) for grouping detections.
+// Not scientifically validated, just for MVP demonstration.
+const DEFAULT_GROUPING_RADIUS_KM = 2.0;
+
+/**
+ * ------------------------------------------------------------
+ * Calculate geographic distance between two FIRMS detections.
+ *
+ * WHY:
+ * Satellite detections of the same source may have slightly
+ * different coordinates on different days.
+ *
+ * HOW:
+ * Turf.js calculates the real geographic distance between
+ * the two longitude/latitude points.
+ * 
+ * IMPORTANT:
+ * Turf/GeoJSON uses [longitude, latitude].
+ * Do not reverse this order.
+ * ------------------------------------------------------------
+ * @param {Object} hotspotA 
+ * @param {Object} hotspotB 
+ * @returns {number} distance in kilometers
+ */
+function calculateDistanceKm(hotspotA, hotspotB) {
+    if (typeof window.turf === 'undefined') {
+        console.warn("Turf.js not found. Using fallback zero distance.");
+        return 0; // Fallback if Turf fails to load
+    }
+    
+    const pointA = turf.point([hotspotA.longitude, hotspotA.latitude]);
+    const pointB = turf.point([hotspotB.longitude, hotspotB.latitude]);
+    
+    return turf.distance(pointA, pointB, { units: "kilometers" });
+}
+
+/**
+ * ------------------------------------------------------------
+ * Generate a consistent date string for unique day counting.
+ * 
+ * WHY:
+ * We need to count calendar days, not just raw timestamps,
+ * to prevent multiple satellite passes on the same day from
+ * inflating the persistence score.
+ * ------------------------------------------------------------
+ */
+function getDateKey(dateString) {
+    if (!dateString) return "unknown";
+    return String(dateString).split('T')[0]; // Extract YYYY-MM-DD
+}
+
+/**
+ * ------------------------------------------------------------
+ * Group nearby historical detections into persistent Thermal Events.
+ * 
+ * WHAT:
+ * Takes an array of clean historical detections and groups them
+ * into "Events" based on spatial proximity (radius).
+ * 
+ * HOW:
+ * 1. Sort detections chronologically.
+ * 2. Loop through detections. For each one, see if it falls within
+ *    the radius of an existing event group.
+ * 3. If yes, add it to the group. If no, start a new group.
+ * ------------------------------------------------------------
+ */
+function groupNearbyDetections(detections, radiusKm = DEFAULT_GROUPING_RADIUS_KM) {
+    if (!detections || detections.length === 0) return [];
+
+    // 1. Sort chronologically
+    // We sort the array so the oldest detections are processed first.
+    // This allows us to properly calculate firstDetection and lastDetection.
+    const sortedDetections = [...detections].sort((a, b) => {
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    const groups = [];
+
+    // 2. Spatial grouping
+    for (const detection of sortedDetections) {
+        let addedToGroup = false;
+
+        // Try to match with an existing group
+        for (const group of groups) {
+            // Compare against the group's "center" (the first detection)
+            const dist = calculateDistanceKm(detection, group.detections[0]);
+            
+            if (dist <= radiusKm) {
+                group.detections.push(detection);
+                addedToGroup = true;
+                break;
+            }
+        }
+
+        // 3. Create a new group if no match
+        if (!addedToGroup) {
+            groups.push({
+                eventId: `TX-EV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+                detections: [detection]
+            });
+        }
+    }
+
+    return groups;
+}
+
+/**
+ * ------------------------------------------------------------
+ * Build final metadata for a thermal event group.
+ * 
+ * WHAT:
+ * Calculates unique days, detection counts, and dates.
+ * This information will be consumed by Role 5 (Classification).
+ * ------------------------------------------------------------
+ */
+function buildThermalEvent(group) {
+    const detections = group.detections;
+    
+    // Arrays were sorted chronologically in the previous step
+    const firstDetection = detections[0].date;
+    const lastDetection = detections[detections.length - 1].date;
+    const detectionCount = detections.length;
+
+    // Calculate unique calendar days using a Set
+    const uniqueDaysSet = new Set();
+    for (const d of detections) {
+        uniqueDaysSet.add(getDateKey(d.date));
+    }
+    const uniqueDays = uniqueDaysSet.size;
+
+    // Use the latest detection as the representative state for UI
+    const latest = detections[detections.length - 1];
+
+    return {
+        id: group.eventId,
+        latitude: latest.latitude,
+        longitude: latest.longitude,
+        brightness: latest.brightness,
+        frp: latest.frp,
+        confidence: latest.confidence,
+        date: latest.date,
+        satellite: latest.satellite,
+        
+        // Persistence metadata added for Role 5 to use later
+        persistence: {
+            detectionCount: detectionCount,
+            uniqueDays: uniqueDays,
+            firstDetection: firstDetection,
+            lastDetection: lastDetection
+        }
+    };
+}
+
+/**
+ * ------------------------------------------------------------
+ * MAIN PIPELINE FOR DAY 3 HISTORICAL PROCESSING
+ * 
+ * WHAT:
+ * Orchestrates the entire Day 3 workflow.
+ * Cleans -> Sorts -> Groups Spatially -> Builds Event Metadata
+ * ------------------------------------------------------------
+ */
+function processHistoricalDetections(rawHistoricalDetections) {
+    if (!rawHistoricalDetections || rawHistoricalDetections.length === 0) return [];
+
+    // 1. Clean the raw data using Day 2 logic
+    const cleanDetections = processHotspotData(rawHistoricalDetections);
+    
+    // 2. Group spatially
+    const grouped = groupNearbyDetections(cleanDetections, DEFAULT_GROUPING_RADIUS_KM);
+    
+    // 3. Build final thermal events with persistence metadata
+    const thermalEvents = grouped.map(group => buildThermalEvent(group));
+    
+    console.log(`[Day 3] Processed ${cleanDetections.length} detections into ${thermalEvents.length} persistent thermal events.`);
+    
+    return thermalEvents;
+}
+
+
+// ============================================================================
 // EXPOSE API FOR OTHER ROLES
 // ============================================================================
 
@@ -304,6 +488,15 @@ window.ThermalXProcessing = {
     processHotspotData,
     saveHotspots,
     loadHotspots,
+    
+    // Day 3 Spatial/Temporal Exports
+    DEFAULT_GROUPING_RADIUS_KM,
+    calculateDistanceKm,
+    getDateKey,
+    groupNearbyDetections,
+    buildThermalEvent,
+    processHistoricalDetections,
+    
     processingStats,
     TEST_RAW_HOTSPOTS
 };

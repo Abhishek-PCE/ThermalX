@@ -530,7 +530,10 @@ if (btnTestFetch) {
             
             // Pass the API data through Role 4 Data Processing pipeline (Integration)
             let cleanHotspots = [];
-            if (window.ThermalXProcessing && typeof window.ThermalXProcessing.processHotspotData === 'function') {
+            if (window.ThermalXProcessing && typeof window.ThermalXProcessing.processHistoricalDetections === 'function') {
+                // Day 3: Group historical detections into persistent events
+                cleanHotspots = window.ThermalXProcessing.processHistoricalDetections(apiHotspots);
+            } else if (window.ThermalXProcessing && typeof window.ThermalXProcessing.processHotspotData === 'function') {
                 cleanHotspots = window.ThermalXProcessing.processHotspotData(apiHotspots);
             } else {
                 console.warn("[Integration] Role 4 Processing module missing. Using raw API data directly.");
@@ -540,6 +543,7 @@ if (btnTestFetch) {
             if (cleanHotspots.length === 0) {
                 throw new Error("No valid thermal hotspots were found after processing.");
             }
+
             
             // Update the status text to tell the user the data loaded successfully, including the count.
             testStatusMessage.textContent = `Success! Loaded ${cleanHotspots.length} records. Check the console.`;
