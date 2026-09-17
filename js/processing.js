@@ -402,42 +402,141 @@ function groupNearbyDetections(detections, radiusKm = DEFAULT_GROUPING_RADIUS_KM
 
 /**
  * ------------------------------------------------------------
+ * Generate a unique event ID securely.
+ * ------------------------------------------------------------
+ */
+let eventCounter = 1;
+function generateEventId() {
+    const paddedNum = String(eventCounter++).padStart(3, '0');
+    return `TX-${paddedNum}`;
+}
+
+/**
+ * ------------------------------------------------------------
+ * Calculates dataset wide analysed days.
+ * ------------------------------------------------------------
+ */
+function calculateAnalysedDays(detections) {
+    if (!detections || detections.length === 0) return 1;
+    
+    let minTime = Infinity;
+    let maxTime = -Infinity;
+    
+    for (const d of detections) {
+        const t = new Date(d.date).getTime();
+        if (t < minTime) minTime = t;
+        if (t > maxTime) maxTime = t;
+    }
+    
+    if (minTime === Infinity || maxTime === -Infinity) return 1;
+    
+    // Add 1 to ensure same-day counts as 1 day, not 0
+    const diffDays = Math.floor((maxTime - minTime) / (1000 * 60 * 60 * 24)) + 1;
+    return diffDays;
+}
+
+/**
+ * ------------------------------------------------------------
  * Build final metadata for a thermal event group.
  * 
  * WHAT:
- * Calculates unique days, detection counts, and dates.
- * This information will be consumed by Role 5 (Classification).
+ * Calculates unique days, detection counts, dates, averages,
+ * and assigns standard formatting for Role 5.
  * ------------------------------------------------------------
  */
-function buildThermalEvent(group) {
+function buildThermalEvent(group, analysedDays) {
     const detections = group.detections;
     
-    // Arrays were sorted chronologically in the previous step
+    // Arrays were sorted chronologically in the grouping step
     const firstDetection = detections[0].date;
     const lastDetection = detections[detections.length - 1].date;
     const detectionCount = detections.length;
 
-    // Calculate unique calendar days using a Set
+    // Calculate unique calendar days using a Set to avoid duplicates
     const uniqueDaysSet = new Set();
+    
+    // Calculate averages (ignore null/undefined/NaN values)
+    let totalFRP = 0, countFRP = 0;
+    let totalBrightness = 0, countBrightness = 0;
+    
     for (const d of detections) {
         uniqueDaysSet.add(getDateKey(d.date));
+        
+        const frp = parseFloat(d.frp);
+        if (!isNaN(frp)) {
+            totalFRP += frp;
+            countFRP++;
+        }
+        
+        const brightness = parseFloat(d.brightness);
+        if (!isNaN(brightness)) {
+            totalBrightness += brightness;
+            countBrightness++;
+        }
     }
+    
     const uniqueDays = uniqueDaysSet.size;
+    const averageFRP = countFRP > 0 ? (totalFRP / countFRP) : 0;
+    const averageBrightness = countBrightness > 0 ? (totalBrightness / countBrightness) : 0;
+    
+    // Simplistic confidence mapping (nominal/high mapping fallback)
+    const confidenceScore = detections.reduce((acc, curr) => {
+        let conf = curr.confidence;
+        if (typeof conf === 'number') return acc + conf;
+        if (conf === 'high' || conf === 'h') return acc + 100;
+        if (conf === 'nominal' || conf === 'n') return acc + 50;
+        return acc + 0;
+    }, 0);
+    const averageConfidence = detectionCount > 0 ? (confidenceScore / detectionCount) : 0;
+    
+    // Day 5 Persistence Score Calculation
+    // formula: (unique days / days analysed) * 100
+    // Prevent division by zero and cap at 100
+    let persistenceScore = 0;
+    if (analysedDays > 0) {
+        persistenceScore = (uniqueDays / analysedDays) * 100;
+        if (persistenceScore > 100) persistenceScore = 100;
+    }
+    
+    // Recurrence Rate (same as persistence for MVP)
+    const recurrenceRate = persistenceScore;
+    
+    // Find representative coordinates (Centroid). Average is fine for MVP small distances.
+    let sumLat = 0, sumLon = 0;
+    for (const d of detections) {
+        sumLat += parseFloat(d.latitude);
+        sumLon += parseFloat(d.longitude);
+    }
+    const centroidLat = sumLat / detectionCount;
+    const centroidLon = sumLon / detectionCount;
 
-    // Use the latest detection as the representative state for UI
+    // Use the latest detection as the representative state for UI attributes (satellite etc)
     const latest = detections[detections.length - 1];
 
+    // Build the finalized Thermal Event structure
     return {
-        id: group.eventId,
-        latitude: latest.latitude,
-        longitude: latest.longitude,
-        brightness: latest.brightness,
-        frp: latest.frp,
-        confidence: latest.confidence,
+        eventId: generateEventId(),          // Day 5 standard ID
+        id: group.eventId,                   // Legacy ID for backwards compatibility
+        latitude: centroidLat,
+        longitude: centroidLon,
+        brightness: averageBrightness,
+        frp: averageFRP,
+        confidence: averageConfidence,
         date: latest.date,
         satellite: latest.satellite,
         
-        // Persistence metadata added for Role 5 to use later
+        // Count metadata
+        detectionCount: detectionCount,
+        uniqueDays: uniqueDays,
+        firstDetection: firstDetection,
+        lastDetection: lastDetection,
+        analysedDays: analysedDays,
+        
+        // Scores
+        persistenceScore: Math.round(persistenceScore),
+        recurrenceRate: Math.round(recurrenceRate),
+        
+        // Persistence metadata added for Role 5 to use later (Legacy struct for Day 3 code)
         persistence: {
             detectionCount: detectionCount,
             uniqueDays: uniqueDays,
@@ -452,11 +551,11 @@ function buildThermalEvent(group) {
 
 /**
  * ------------------------------------------------------------
- * MAIN PIPELINE FOR DAY 3 HISTORICAL PROCESSING
+ * MAIN PIPELINE FOR DAY 5 EVENT PROCESSING
  * 
  * WHAT:
- * Orchestrates the entire Day 3 workflow.
- * Cleans -> Sorts -> Groups Spatially -> Builds Event Metadata
+ * Orchestrates the entire workflow.
+ * Cleans -> Analyzes Time -> Groups Spatially -> Builds Event Metadata
  * ------------------------------------------------------------
  */
 function processHistoricalDetections(rawHistoricalDetections) {
@@ -465,13 +564,17 @@ function processHistoricalDetections(rawHistoricalDetections) {
     // 1. Clean the raw data using Day 2 logic
     const cleanDetections = processHotspotData(rawHistoricalDetections);
     
-    // 2. Group spatially
+    // 2. Find temporal span of entire dataset
+    const analysedDays = calculateAnalysedDays(cleanDetections);
+    
+    // 3. Group spatially
+    // Detections within 2km are considered the same hotspot event.
     const grouped = groupNearbyDetections(cleanDetections, DEFAULT_GROUPING_RADIUS_KM);
     
-    // 3. Build final thermal events with persistence metadata
-    const thermalEvents = grouped.map(group => buildThermalEvent(group));
+    // 4. Build final thermal events with persistence metadata and Day 5 standard structure
+    const thermalEvents = grouped.map(group => buildThermalEvent(group, analysedDays));
     
-    console.log(`[Day 3] Processed ${cleanDetections.length} detections into ${thermalEvents.length} persistent thermal events.`);
+    console.log(`[Day 5] Processed ${cleanDetections.length} detections into ${thermalEvents.length} persistent thermal events over ${analysedDays} days.`);
     
     return thermalEvents;
 }
