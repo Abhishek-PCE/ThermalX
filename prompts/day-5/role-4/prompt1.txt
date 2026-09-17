@@ -1106,6 +1106,6 @@ MOST IMPORTANTLY:
 
 Do not hide important logic inside overly complicated code.
 
-Keep ThermalX simple, explainable, modular, and working.
+Keep ThermalX simple, explainable, modular, and working. c
 
 **DAY 5 ROLE 4 = TURN RAW HOTSPOT DETECTIONS INTO RELIABLE THERMAL EVENTS.**
