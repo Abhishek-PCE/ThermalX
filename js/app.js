@@ -291,6 +291,25 @@ function showHotspotDetails(hotspot) {
         // ==========================================
         renderEventHistory(hotspot);
 
+        // ==========================================
+        // DAY 3 ROLE 2: Render Historical Map Markers
+        // ==========================================
+        if (window.MapModule && typeof window.MapModule.renderHistoricalDetections === 'function') {
+            if (hotspot.detections && hotspot.detections.length > 0) {
+                window.MapModule.renderHistoricalDetections(hotspot.detections);
+                
+                // Optionally fit the map to show all historical markers
+                if (typeof window.MapModule.fitMapToHistoricalDetections === 'function') {
+                    window.MapModule.fitMapToHistoricalDetections();
+                }
+            } else {
+                // If there are no historical detections (e.g. standard day 1 point), clear any existing ones
+                if (typeof window.MapModule.clearHistoricalDetections === 'function') {
+                    window.MapModule.clearHistoricalDetections();
+                }
+            }
+        }
+
     } catch (err) {
         console.error("Error in showHotspotDetails():", err);
         showError("Failed to display hotspot details. Please select another hotspot.");
@@ -420,6 +439,13 @@ function clearHotspotDetails() {
     const timelineContainer = document.getElementById('history-timeline-content');
     if (timelineContainer) {
         timelineContainer.innerHTML = '<div style="color: #888; font-size: 0.85rem; font-style: italic;">No historical detections available.</div>';
+    }
+
+    // ==========================================
+    // DAY 3 ROLE 2: Clear Historical Map Markers
+    // ==========================================
+    if (window.MapModule && typeof window.MapModule.clearHistoricalDetections === 'function') {
+        window.MapModule.clearHistoricalDetections();
     }
 }
 
