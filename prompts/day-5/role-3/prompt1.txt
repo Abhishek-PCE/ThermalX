@@ -1,0 +1,998 @@
+# THERMALX — DAY 5 — ROLE 3
+
+## Data Integration Developer: Thermal Event Clustering Data Flow
+
+You are working on the **ThermalX** project.
+
+Your task is specifically for:
+
+* **Day:** 5
+* **Role:** Role 3 — Data Integration Developer
+* **Focus:** Support the data flow required for Thermal Event Clustering and Persistence Detection
+* **Project:** ThermalX — Thermal Hotspot Detection, Classification & Visualization
+
+---
+
+# 1. IMPORTANT — READ THE EXISTING PROJECT FIRST
+
+Before modifying anything:
+
+1. Inspect the complete existing ThermalX project.
+2. Understand the current:
+
+   * `index.html`
+   * `css/style.css`
+   * `js/app.js`
+   * `js/map.js`
+   * `js/api.js`
+   * `js/processing.js`
+   * `js/classification.js`
+   * `data/`
+   * `assets/`
+3. Understand how Day-2 FIRMS hotspot data currently enters the application.
+4. Understand how Day-3 historical hotspot/persistence data is currently represented.
+5. Understand how Day-4 OSM industrial facility data flows through the application.
+6. Identify existing functions, variables, data structures, events, and APIs before creating new ones.
+
+**Do NOT blindly overwrite existing code.**
+
+Reuse the existing architecture wherever possible.
+
+---
+
+# 2. DAY-5 PROJECT OBJECTIVE
+
+The Day-5 objective is:
+
+> ThermalX should identify persistent thermal events rather than treating every satellite detection as a completely separate event.
+
+The overall Day-5 architecture is:
+
+```text
+NASA FIRMS Hotspot Data
+        ↓
+Role 3 — Data Integration
+        ↓
+Raw / Historical Hotspot Data
+        ↓
+Role 4 — Processing
+        ↓
+Spatial Clustering + Temporal Grouping
+        ↓
+Persistent Thermal Events
+        ↓
+Role 5 — Evidence / Classification
+        ↓
+Role 2 — Map Visualization
+        ↓
+Role 1 — Event Panel / Dashboard
+```
+
+Your responsibility is to make sure the **data required by Role 4 is correctly available and consistently structured**.
+
+---
+
+# 3. YOUR ROLE BOUNDARY
+
+You are **Role 3 — Data Integration Developer**.
+
+Your main responsibility is:
+
+* Support the data flow into Day-5 processing.
+* Make historical FIRMS detections available to Role 4.
+* Normalize the input data where required.
+* Ensure the data format is consistent.
+* Provide clean interfaces/functions for Role 4.
+* Support clustered-event data flow to other modules when required.
+
+### VERY IMPORTANT
+
+Do **NOT** take ownership of Role 4's main algorithm.
+
+Role 4 owns:
+
+* Spatial clustering
+* Temporal grouping
+* Persistence calculation
+* Detection counting
+* Unique-day calculation
+* First/last detection
+* Recurrence rate
+* Event ID generation such as `TX-001`
+
+You should provide the clean input/output data flow required by those operations.
+
+---
+
+# 4. FIRST — UNDERSTAND THE EXISTING DATA FLOW
+
+Trace the current data flow from:
+
+```text
+NASA FIRMS
+    ↓
+API
+    ↓
+Raw hotspot data
+    ↓
+Processing
+    ↓
+Map / Dashboard
+```
+
+Determine:
+
+* Where FIRMS data is fetched.
+* Where it is stored.
+* How historical detections are represented.
+* Which fields are currently available.
+* How dates are represented.
+* How latitude/longitude are represented.
+* How FRP is represented.
+* How confidence is represented.
+* How satellite information is represented.
+* Whether data is already stored in memory or localStorage.
+* Whether demo/fallback data already exists.
+
+Do not create duplicate data pipelines if an existing pipeline can be reused.
+
+---
+
+# 5. STANDARD HOTSPOT DATA FORMAT
+
+Ensure that the data passed toward Day-5 processing can consistently represent the important hotspot fields.
+
+The common hotspot structure should support fields such as:
+
+```javascript
+{
+    id,
+    latitude,
+    longitude,
+    date,
+    frp,
+    brightness,
+    confidence,
+    satellite
+}
+```
+
+If the existing project uses slightly different property names, **adapt to the existing project instead of unnecessarily breaking it**.
+
+If normalization is necessary, create a clear normalization layer.
+
+For example:
+
+```javascript
+{
+    id: "hotspot-001",
+    latitude: 25.1234,
+    longitude: 85.5678,
+    date: "2026-01-15",
+    frp: 125.4,
+    brightness: 340.2,
+    confidence: 87,
+    satellite: "VIIRS"
+}
+```
+
+Do not invent scientific fields that are not already supported by the project or source data.
+
+---
+
+# 6. HISTORICAL DATA SUPPORT
+
+Day-5 requires multiple detections over time.
+
+Make sure the application can provide Role 4 with historical hotspot records containing:
+
+* hotspot ID
+* latitude
+* longitude
+* date
+* FRP
+* brightness
+* confidence
+* satellite
+
+The important requirement is that the data must allow Role 4 to determine:
+
+```text
+How many detections occurred?
+How many unique days were detected?
+Where did detections occur?
+When was the first detection?
+When was the last detection?
+How frequently did the hotspot recur?
+```
+
+Do not calculate these metrics yourself unless a small transformation is required for data integration.
+
+---
+
+# 7. PROVIDE A CLEAN PROCESSING INPUT INTERFACE
+
+Create or improve a clear interface between Role 3 and Role 4.
+
+For example, if appropriate for the existing architecture:
+
+```javascript
+getHistoricalHotspots()
+```
+
+or:
+
+```javascript
+getHotspotsForClustering()
+```
+
+or another appropriately named function matching the existing code style.
+
+The function should:
+
+1. Obtain available hotspot records.
+2. Validate that the data is usable.
+3. Normalize required fields if necessary.
+4. Return a predictable array of hotspot objects.
+5. Handle empty data safely.
+6. Handle malformed data safely.
+7. Avoid crashing the dashboard.
+
+Example conceptual output:
+
+```javascript
+[
+    {
+        id: "hotspot-001",
+        latitude: 25.1234,
+        longitude: 85.5678,
+        date: "2026-01-15",
+        frp: 125.4,
+        brightness: 340.2,
+        confidence: 87,
+        satellite: "VIIRS"
+    },
+    {
+        id: "hotspot-002",
+        latitude: 25.1241,
+        longitude: 85.5680,
+        date: "2026-01-16",
+        frp: 140.2,
+        brightness: 342.1,
+        confidence: 91,
+        satellite: "VIIRS"
+    }
+]
+```
+
+This is an example structure. Follow the actual project's existing data conventions wherever possible.
+
+---
+
+# 8. SUPPORT ROLE 4 WITHOUT DUPLICATING ROLE 4
+
+Role 4 will consume the data and perform:
+
+```text
+Hotspot records
+      ↓
+Spatial clustering
+      ↓
+Temporal grouping
+      ↓
+Persistence
+      ↓
+Thermal event
+```
+
+Your job is to make sure the input is clean and reliable.
+
+Do NOT create a second clustering algorithm inside:
+
+```text
+api.js
+app.js
+```
+
+or another Role-3 file.
+
+Avoid duplicated logic such as:
+
+```text
+Role 3 clustering
++
+Role 4 clustering
+```
+
+There must be one clear source of truth for clustering.
+
+---
+
+# 9. SUPPORT CLUSTERING DATA FLOW
+
+If the current application architecture requires a function/event/data object to pass processed cluster information between modules, implement the cleanest integration mechanism.
+
+Possible architecture:
+
+```text
+api.js
+   ↓
+historical hotspot dataset
+   ↓
+processing.js
+   ↓
+thermal event clusters
+   ↓
+app.js / map.js / classification.js
+```
+
+The exact implementation should follow the existing project architecture.
+
+Do not force a completely new framework or architecture.
+
+---
+
+# 10. THERMAL EVENT DATA CONTRACT
+
+Prepare the system so Role 4 can produce thermal-event objects.
+
+A Day-5 thermal event may conceptually contain:
+
+```javascript
+{
+    eventId: "TX-001",
+
+    latitude: 25.1234,
+    longitude: 85.5678,
+
+    firstDetection: "2026-01-10",
+    lastDetection: "2026-01-15",
+
+    detectionCount: 12,
+    uniqueDays: 6,
+
+    recurrenceRate: 1.0,
+
+    persistenceScore: 75
+}
+```
+
+This is an example of the expected conceptual structure.
+
+**Do not invent or hard-code these values.**
+
+Role 4 should calculate them from actual hotspot data.
+
+Your task is to ensure the data flow can support this structure.
+
+---
+
+# 11. EVENT ID COMPATIBILITY
+
+Day-5 uses event identifiers such as:
+
+```text
+TX-001
+TX-002
+TX-003
+```
+
+Make sure your integration layer does not destroy or overwrite event IDs generated by Role 4.
+
+If event IDs do not yet exist because Role 4 has not implemented them, do not create a competing event-ID system in Role 3.
+
+Instead, preserve the field when it becomes available.
+
+---
+
+# 12. LOCALSTORAGE / DATA PERSISTENCE
+
+Inspect whether the existing ThermalX project uses:
+
+```javascript
+localStorage
+```
+
+for hotspot history or demo data.
+
+If appropriate, make sure historical hotspot data can survive page refreshes.
+
+Possible flow:
+
+```text
+FIRMS data
+    ↓
+Normalize
+    ↓
+Store / cache
+    ↓
+Retrieve historical data
+    ↓
+Role 4 clustering
+```
+
+Do not introduce unnecessary storage complexity.
+
+If the current application already has a storage strategy, reuse it.
+
+---
+
+# 13. DEMO / FALLBACK COMPATIBILITY
+
+ThermalX needs to remain usable even when live APIs are unavailable.
+
+Do not break existing fallback/demo data.
+
+If the project already contains something like:
+
+```text
+data/demo-data.json
+```
+
+or another fallback dataset, make sure the Day-5 data pipeline can consume it where appropriate.
+
+The system should be able to support:
+
+```text
+LIVE MODE
+    ↓
+NASA FIRMS
+    ↓
+Processing
+
+OR
+
+DEMO MODE
+    ↓
+Saved JSON / fallback dataset
+    ↓
+Processing
+```
+
+This is especially important for testing and demonstrations.
+
+---
+
+# 14. ERROR HANDLING
+
+Implement robust handling for:
+
+### API failure
+
+```text
+FIRMS request fails
+        ↓
+Do not crash application
+        ↓
+Return meaningful error/state
+        ↓
+Allow fallback/demo data if supported
+```
+
+### Empty dataset
+
+```text
+[]
+```
+
+should be handled safely.
+
+### Missing fields
+
+For example:
+
+```javascript
+{
+    latitude: null
+}
+```
+
+should not crash the application.
+
+### Invalid coordinates
+
+Reject or safely handle invalid latitude/longitude.
+
+### Invalid dates
+
+Do not silently create incorrect historical records.
+
+### Duplicate records
+
+Do not unnecessarily duplicate historical detections during repeated data loading.
+
+---
+
+# 15. DO NOT BREAK DAY-4 INDUSTRIAL DATA
+
+Day-5 integration must remain compatible with Day-4.
+
+Thermal hotspot data and industrial facility data are different datasets.
+
+Keep them separate:
+
+```text
+Hotspot Data
+    ↓
+Thermal Event Processing
+
+Industrial Facility Data
+    ↓
+Industrial Context
+```
+
+Do not merge unrelated objects into one confusing structure.
+
+Role 4 may later combine:
+
+```text
+Thermal Event
++
+Industrial Proximity
+```
+
+for classification.
+
+Your job is to preserve both datasets cleanly.
+
+---
+
+# 16. API.JS RESPONSIBILITY
+
+If `js/api.js` is the existing API integration file, inspect it carefully.
+
+Use it for appropriate external-data operations such as:
+
+```text
+NASA FIRMS
+OSM / Overpass
+```
+
+where already applicable.
+
+For Day-5:
+
+* Reuse existing FIRMS fetching logic.
+* Reuse existing normalization where possible.
+* Add only the integration needed for historical/clustering data.
+* Keep API-specific logic separate from processing logic.
+
+Do not put clustering calculations inside `api.js`.
+
+---
+
+# 17. PROCESSING.JS RESPONSIBILITY
+
+If `js/processing.js` is responsible for processing, make sure Role 3 provides the data to it cleanly.
+
+Do not duplicate Role 4's responsibilities.
+
+The conceptual separation should remain:
+
+```text
+api.js
+→ fetching / integration
+
+processing.js
+→ cleaning / clustering / persistence
+
+classification.js
+→ classification / scoring
+
+map.js
+→ map visualization
+
+app.js
+→ application orchestration
+```
+
+Adapt this to the existing project if the current implementation has a slightly different structure.
+
+---
+
+# 18. DATA VALIDATION
+
+Create lightweight validation where needed.
+
+For every hotspot record, check critical fields such as:
+
+```text
+latitude
+longitude
+date
+```
+
+and safely handle optional analytical fields:
+
+```text
+frp
+brightness
+confidence
+satellite
+```
+
+Avoid destroying records unnecessarily just because optional fields are missing.
+
+Use clear validation rules and document them.
+
+---
+
+# 19. PERFORMANCE
+
+Day-5 may involve many historical FIRMS detections.
+
+Avoid:
+
+* unnecessary API requests
+* repeated parsing
+* repeated conversion of the same dataset
+* duplicate storage
+* unnecessary deep copies
+* excessive DOM manipulation
+
+Prefer:
+
+```text
+Fetch once
+    ↓
+Normalize once
+    ↓
+Reuse normalized dataset
+    ↓
+Pass to processing
+```
+
+Do not optimize prematurely with complex architecture.
+
+Keep the implementation understandable.
+
+---
+
+# 20. COMMENTS ARE MANDATORY
+
+## VERY IMPORTANT REQUIREMENT
+
+**Add clear comments in EVERY MAJOR SECTION of the code.**
+
+The purpose is that another developer should be able to understand the code easily later.
+
+Do NOT add meaningless comments like:
+
+```javascript
+// function
+function getData() {}
+```
+
+Instead explain:
+
+* What the section does.
+* Why it exists.
+* What data it receives.
+* What data it returns.
+* How it interacts with other ThermalX roles.
+* Important assumptions.
+* Important error-handling decisions.
+
+For example:
+
+```javascript
+// ------------------------------------------------------------
+// HISTORICAL HOTSPOT DATA ACCESS
+// ------------------------------------------------------------
+// This function provides the historical FIRMS hotspot records
+// required by Role 4 for spatial clustering and persistence
+// analysis.
+//
+// Role 3 responsibility:
+// - Retrieve and normalize hotspot data.
+//
+// Role 4 responsibility:
+// - Cluster the detections.
+// - Calculate persistence and recurrence.
+//
+// Keeping these responsibilities separate prevents duplicate
+// processing logic across the ThermalX modules.
+// ------------------------------------------------------------
+```
+
+Use this level of clarity throughout the implementation.
+
+### Add comments to major sections of:
+
+* JavaScript
+* HTML
+* CSS
+* API integration
+* Data transformation
+* Validation
+* Error handling
+* Storage/cache logic
+* Event/data-flow logic
+
+The code should be understandable months later by someone who did not originally write it.
+
+---
+
+# 21. DOCUMENT DATA FLOW
+
+Add a clear comment/documentation section explaining:
+
+```text
+Where hotspot data comes from
+        ↓
+How it is normalized
+        ↓
+Where historical data is stored
+        ↓
+How Role 4 receives it
+        ↓
+How clustered events return to the application
+```
+
+If appropriate, update `README.md` with a short **Day-5 Data Flow** section.
+
+Keep documentation concise but useful.
+
+---
+
+# 22. TESTING REQUIREMENTS
+
+After implementation, test at least these scenarios:
+
+### Test 1 — Normal historical data
+
+Input:
+
+```text
+Multiple hotspot detections
+Multiple dates
+Nearby coordinates
+```
+
+Expected:
+
+```text
+Data reaches Role 4 correctly.
+```
+
+### Test 2 — Empty historical data
+
+Input:
+
+```javascript
+[]
+```
+
+Expected:
+
+```text
+No crash.
+Meaningful empty state.
+```
+
+### Test 3 — Missing optional fields
+
+Input:
+
+```text
+Missing FRP
+Missing confidence
+```
+
+Expected:
+
+```text
+Application continues safely.
+```
+
+### Test 4 — Invalid coordinates
+
+Expected:
+
+```text
+Invalid records are safely handled.
+```
+
+### Test 5 — Duplicate loading
+
+Load the same historical data twice.
+
+Expected:
+
+```text
+No unnecessary duplicate records.
+```
+
+### Test 6 — API failure
+
+Simulate FIRMS failure.
+
+Expected:
+
+```text
+Application does not crash.
+Fallback/demo mechanism works if already supported.
+```
+
+### Test 7 — Role 4 compatibility
+
+Confirm that Role 4 can consume the dataset without requiring manual changes to every record.
+
+---
+
+# 23. DO NOT IMPLEMENT DAY-6 CLASSIFICATION
+
+Do NOT turn this task into the Day-6 classification engine.
+
+Do not implement:
+
+```text
+Industrial Score
+Wildfire Score
+Agriculture Score
+Weighted classification
+AI/ML model
+```
+
+Those belong to the Day-6 classification work.
+
+Your task is to prepare and support the data flow.
+
+---
+
+# 24. DO NOT USE MACHINE LEARNING
+
+Do not introduce:
+
+* TensorFlow
+* PyTorch
+* Random Forest
+* XGBoost
+* neural networks
+* external AI APIs
+* model training
+
+Day-5 is a data integration and event-processing support task.
+
+Keep it simple and explainable.
+
+---
+
+# 25. FINAL INTEGRATION CHECK
+
+Before finishing, verify that the overall flow is approximately:
+
+```text
+NASA FIRMS
+     ↓
+Role 3
+Data Fetch / Normalize / Historical Data
+     ↓
+Role 4
+Spatial Clustering + Temporal Grouping
+     ↓
+Thermal Events
+     ↓
+Role 5
+Evidence Object
+     ↓
+Role 2
+Event Visualization
+     ↓
+Role 1
+Event Panel / Dashboard
+```
+
+Role 3 should not become responsible for all of these stages.
+
+---
+
+# 26. CODE QUALITY REQUIREMENTS
+
+Use:
+
+* clear variable names
+* clear function names
+* small reusable functions
+* consistent formatting
+* defensive error handling
+* minimal duplication
+* existing project conventions
+
+Avoid:
+
+* unnecessary libraries
+* unnecessary frameworks
+* duplicated APIs
+* duplicated clustering logic
+* hard-coded fake production results
+* unexplained magic numbers
+* breaking existing functionality
+
+If a threshold or configuration value is required, make it easy to identify and explain it in comments.
+
+---
+
+# 27. BEFORE FINISHING
+
+Perform the following:
+
+1. Inspect all changed files.
+2. Check for syntax errors.
+3. Check browser-console errors.
+4. Check that existing Day-2 functionality still works.
+5. Check that existing Day-3 historical functionality still works.
+6. Check that existing Day-4 industrial context functionality still works.
+7. Check that Role 4 can receive the required hotspot dataset.
+8. Check empty/error/fallback scenarios.
+9. Check that comments exist in every major code section.
+10. Remove unnecessary duplicate code.
+
+---
+
+# 28. FINAL RESPONSE FORMAT
+
+After completing the implementation, give me a concise report containing:
+
+### Files Changed
+
+List every modified/created file.
+
+### What Was Implemented
+
+Explain the Day-5 Role-3 work.
+
+### Data Flow
+
+Show:
+
+```text
+FIRMS → Role 3 → Role 4 → Thermal Events
+```
+
+### Integration Points
+
+Explain how Role 3 connects with:
+
+* Role 2
+* Role 4
+* Role 5
+* Role 1
+
+### Error Handling
+
+List the handled failure/empty-data cases.
+
+### Testing
+
+List the tests performed and their results.
+
+### Comments Added
+
+Confirm that major sections of the code contain explanatory comments.
+
+### Important Notes
+
+Mention any assumptions, limitations, or areas that Role 4 needs to handle next.
+
+---
+
+# FINAL INSTRUCTION
+
+Work directly on the existing ThermalX project.
+
+**Do not rebuild the project from scratch.**
+
+**Do not replace working functionality unnecessarily.**
+
+**Do not implement Role 4's clustering algorithm yourself.**
+
+**Do not implement Day-6 classification.**
+
+Your primary goal is:
+
+> **Build a clean, reliable, well-documented Day-5 data integration layer that supplies historical FIRMS hotspot data to Role 4 for spatial clustering, temporal grouping, and persistence detection, while preserving compatibility with the rest of ThermalX.**
+
+And remember:
+
+> **COMMENT EVERY MAJOR SECTION OF CODE CLEARLY SO THE CODE CAN BE UNDERSTOOD EASILY LATER.**
