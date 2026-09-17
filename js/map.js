@@ -128,56 +128,135 @@ window.MapModule = (function() {
     }
 
     /**
-     * Renders an array of hotspot objects as markers on the map.
-     * @param {Array} hotspots - Array of normalized hotspot objects.
+     * Renders an array of hotspot objects or Day 5 Thermal Events as markers on the map.
+     * @param {Array} hotspots - Array of normalized hotspot objects or Thermal Events.
      */
     function renderHotspots(hotspots) {
         if (!map || !markersLayer) return;
 
         // Clear existing markers before rendering new ones
         clearMapMarkers();
+        
+        // Track the currently selected marker so we can revert its style
+        let activeMarker = null;
 
-        // Loop through each hotspot and create a marker
+        // Loop through each hotspot/event and create a marker
         hotspots.forEach(hotspot => {
-            // Create a basic marker at the hotspot's coordinates
-            const marker = L.marker([hotspot.latitude, hotspot.longitude]);
+            // Check if this is a Day 5 Thermal Event (has an eventId)
+            const isThermalEvent = hotspot.eventId !== undefined;
             
             // ============================================================
-            // LEAFLET POPUP & SELECTION INTEGRATION (Role 1 & Role 2)
-            // What this does:
-            // 1. Formats the popup HTML using Role 1's UI generator.
-            // 2. Binds a click event so selecting a marker updates the sidebar panel.
+            // THERMAL EVENT MARKER (Day 5)
             // ============================================================
-            let popupHTML = "";
-            if (window.ThermalXUI && typeof window.ThermalXUI.createHotspotPopupHTML === 'function') {
-                popupHTML = window.ThermalXUI.createHotspotPopupHTML(hotspot);
+            // Creates a distinct visual cluster marker rather than a standard pin.
+            let marker;
+            const defaultEventHtml = `
+                <div class="tx-event-marker" style="
+                    background-color: #ef4444; 
+                    color: white; 
+                    border: 2px solid white; 
+                    border-radius: 50%; 
+                    width: 32px; 
+                    height: 32px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    font-weight: bold; 
+                    font-family: monospace; 
+                    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+                ">${hotspot.detectionCount || 1}</div>
+            `;
+            
+            const selectedEventHtml = `
+                <div class="tx-event-marker-selected" style="
+                    background-color: #f59e0b; 
+                    color: white; 
+                    border: 3px solid white; 
+                    border-radius: 50%; 
+                    width: 38px; 
+                    height: 38px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    font-weight: bold; 
+                    font-family: monospace; 
+                    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+                    z-index: 1000;
+                ">${hotspot.detectionCount || 1}</div>
+            `;
+
+            if (isThermalEvent) {
+                const eventIcon = L.divIcon({
+                    className: 'custom-event-icon',
+                    html: defaultEventHtml,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+                marker = L.marker([hotspot.latitude, hotspot.longitude], { icon: eventIcon });
             } else {
-                // Fallback popup if UI module is still loading
-                popupHTML = `
-                    <div style="font-family: monospace; font-size: 14px; min-width: 200px;">
-                        <strong style="color: #e53935;">🔥 Thermal Hotspot</strong><br>
-                        <hr style="border: 0; border-top: 1px solid #ccc; margin: 5px 0;">
-                        <strong>Lat/Lng:</strong> ${hotspot.latitude.toFixed(4)}, ${hotspot.longitude.toFixed(4)}<br>
-                        <strong>FRP:</strong> ${hotspot.frp} MW<br>
-                        <strong>Brightness:</strong> ${hotspot.brightness} K<br>
-                        <strong>Confidence:</strong> ${hotspot.confidence}%<br>
-                        <strong>Date:</strong> ${hotspot.date}<br>
-                        <strong>Satellite:</strong> ${hotspot.satellite}
-                    </div>
-                `;
+                marker = L.marker([hotspot.latitude, hotspot.longitude]);
             }
             
-            // Bind the popup to the marker
+            // ============================================================
+            // THERMAL EVENT POPUP (Day 5)
+            // ============================================================
+            let popupHTML = "";
+            if (isThermalEvent) {
+                const pScore = hotspot.persistenceScore !== undefined ? hotspot.persistenceScore + '%' : 'N/A';
+                popupHTML = `
+                    <div style="font-family: monospace; font-size: 13px; min-width: 200px;">
+                        <strong style="color: #ef4444; font-size: 15px;">🔥 ${hotspot.eventId}</strong><br>
+                        <hr style="border: 0; border-top: 1px solid #ccc; margin: 6px 0;">
+                        <strong>Detections:</strong> ${hotspot.detectionCount}<br>
+                        <strong>Unique Days:</strong> ${hotspot.uniqueDays}<br>
+                        <strong>Persistence:</strong> ${pScore}<br>
+                        <strong>Avg FRP:</strong> ${hotspot.frp.toFixed(1)} MW<br>
+                        <strong>Avg Confidence:</strong> ${Math.round(hotspot.confidence)}%<br>
+                        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 6px 0;">
+                        <strong>First:</strong> ${hotspot.firstDetection}<br>
+                        <strong>Last:</strong> ${hotspot.lastDetection}<br>
+                    </div>
+                `;
+            } else {
+                if (window.ThermalXUI && typeof window.ThermalXUI.createHotspotPopupHTML === 'function') {
+                    popupHTML = window.ThermalXUI.createHotspotPopupHTML(hotspot);
+                } else {
+                    popupHTML = `<div><strong>Lat/Lng:</strong> ${hotspot.latitude}, ${hotspot.longitude}</div>`;
+                }
+            }
+            
             marker.bindPopup(popupHTML);
             
-            // When user clicks the marker, display full details in the sidebar panel
+            // ============================================================
+            // THERMAL EVENT SELECTION (Day 5)
+            // ============================================================
+            // 1. Highlights the selected event visually.
+            // 2. Dispatches update to app.js dashboard UI.
             marker.on('click', () => {
+                // Revert previous marker to default styling if it was a Day 5 Event
+                if (activeMarker && activeMarker.options.icon && activeMarker.options.icon.options.className === 'custom-event-icon') {
+                    activeMarker.setIcon(L.divIcon({
+                        className: 'custom-event-icon',
+                        html: activeMarker._defaultHtml, // Stored safely on the marker object
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    }));
+                }
+
+                // Highlight the newly clicked marker if it's a Day 5 Event
+                if (isThermalEvent) {
+                    marker._defaultHtml = defaultEventHtml; // Store for later reversion
+                    marker.setIcon(L.divIcon({
+                        className: 'custom-event-icon',
+                        html: selectedEventHtml,
+                        iconSize: [38, 38],
+                        iconAnchor: [19, 19]
+                    }));
+                    activeMarker = marker;
+                }
+
                 if (typeof window.showHotspotDetails === 'function') {
                     window.showHotspotDetails(hotspot);
-                } else if (window.ThermalXUI && typeof window.ThermalXUI.showHotspotDetails === 'function') {
-                    window.ThermalXUI.showHotspotDetails(hotspot);
-                } else if (window.ThermalXUI && typeof window.ThermalXUI.displayEvent === 'function') {
-                    window.ThermalXUI.displayEvent(hotspot);
                 }
             });
             

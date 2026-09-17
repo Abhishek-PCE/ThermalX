@@ -1,0 +1,1165 @@
+# THERMALX — DAY 5 — ROLE 6
+
+## Integration, Testing & Deployment Lead
+
+### Complete Antigravity Coding Prompt
+
+You are working on **ThermalX**, an SIH26162 MVP.
+
+Today is:
+
+**DAY 5**
+
+Your assigned role is:
+
+**ROLE 6 — Integration, Testing & Deployment Lead**
+
+Your task is NOT to redesign the whole project or introduce new technologies.
+
+Your task is to make sure that today's **Day 5 Spatial Clustering + Persistence functionality** works correctly with the existing ThermalX modules.
+
+---
+
+# 1. PROJECT CONTEXT
+
+ThermalX is a JavaScript-first web application that:
+
+1. Fetches thermal hotspot data from NASA FIRMS.
+2. Displays hotspots on a Leaflet map.
+3. Retrieves historical detections.
+4. Groups detections into thermal events.
+5. Calculates persistence and recurrence.
+6. Finds nearby industrial facilities using OSM.
+7. Classifies thermal events later using explainable rule-based logic.
+8. Displays evidence, confidence and priority in the dashboard.
+
+The overall MVP flow is:
+
+NASA FIRMS
+→ Data Fetching
+→ Raw Hotspot Data
+→ Data Processing
+→ Persistence Detection
+→ Industrial Proximity
+→ Classification
+→ Leaflet Map
+→ Dashboard UI
+→ Integration
+
+Do NOT change this architecture unnecessarily.
+
+---
+
+# 2. TODAY'S DAY 5 OBJECTIVE
+
+The Day 5 objective is:
+
+**ThermalX should correctly identify persistent thermal events.**
+
+The main Day 5 processing includes:
+
+* Spatial clustering
+* Temporal grouping
+* Persistence calculation
+* Detection count
+* Unique detected days
+* First detection
+* Last detection
+* Recurrence rate
+* Event IDs such as TX-001, TX-002, etc.
+
+Your responsibility as Role 6 is to make sure all of these components work together without breaking existing functionality.
+
+---
+
+# 3. FIRST — INSPECT THE EXISTING PROJECT
+
+Before writing or modifying code:
+
+1. Inspect the complete project structure.
+2. Open and understand:
+
+   * `index.html`
+   * `css/style.css`
+   * `js/app.js`
+   * `js/map.js`
+   * `js/api.js`
+   * `js/processing.js`
+   * `js/classification.js`
+3. Check whether the actual filenames differ from the recommended structure.
+4. Do NOT create duplicate files if equivalent files already exist.
+5. Understand how data currently flows between modules.
+6. Identify existing functions related to:
+
+   * hotspot loading
+   * map markers
+   * historical data
+   * processing
+   * event creation
+   * UI rendering
+7. Preserve working functionality.
+
+If a function already performs the required job correctly, reuse it instead of creating another version.
+
+---
+
+# 4. IMPORTANT — DO NOT OVERENGINEER
+
+This is a 10-day MVP.
+
+Do NOT introduce:
+
+* React
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* Docker
+* Kubernetes
+* complicated ML
+* unnecessary frameworks
+
+Use the existing:
+
+* HTML
+* CSS
+* JavaScript
+* Leaflet.js
+* Turf.js if already included/required
+* NASA FIRMS
+* OSM/Overpass
+* localStorage where appropriate
+
+Keep the implementation simple and understandable.
+
+---
+
+# 5. DAY 5 INTEGRATION RESPONSIBILITY
+
+Integrate the following pipeline:
+
+FIRMS DATA
+↓
+RAW HOTSPOTS
+↓
+DATA PROCESSING
+↓
+SPATIAL CLUSTERING
+↓
+TEMPORAL GROUPING
+↓
+THERMAL EVENTS
+↓
+PERSISTENCE CALCULATION
+↓
+EVENT OBJECT
+↓
+MAP
+↓
+EVENT DETAILS PANEL
+
+Make sure the output of one module is compatible with the input expected by the next module.
+
+---
+
+# 6. THERMAL EVENT DATA FORMAT
+
+Ensure that each generated thermal event has a consistent structure.
+
+A thermal event should contain information such as:
+
+```javascript
+{
+    id: "TX-001",
+    latitude: 25.123,
+    longitude: 85.456,
+    detectionCount: 8,
+    uniqueDays: 5,
+    firstDetection: "2026-09-10",
+    lastDetection: "2026-09-14",
+    persistenceRate: 71.43,
+    persistenceScore: 71.43,
+    averageFRP: 125.5,
+    detections: []
+}
+```
+
+Adapt this structure to the existing project if necessary.
+
+Do not blindly duplicate fields if the project already uses equivalent names.
+
+Maintain one consistent event format across the application.
+
+---
+
+# 7. EVENT ID GENERATION
+
+Ensure thermal events receive readable IDs:
+
+* `TX-001`
+* `TX-002`
+* `TX-003`
+* etc.
+
+IDs must be:
+
+* unique within the current processed dataset
+* stable during one processing run
+* easy to display in the UI
+* easy to debug
+
+Do not use unnecessarily complicated ID-generation systems.
+
+---
+
+# 8. TEST SPATIAL CLUSTERING
+
+Verify that detections located very close to each other can be grouped into the same thermal event.
+
+Example:
+
+Detection A:
+Latitude = 25.100
+Longitude = 85.100
+
+Detection B:
+Latitude = 25.101
+Longitude = 85.101
+
+These may belong to the same event depending on the project's clustering threshold.
+
+Also test detections that are sufficiently far apart.
+
+They should become separate events.
+
+Do NOT assume that every nearby coordinate is automatically the same event.
+
+Use the existing clustering logic and threshold defined by the project.
+
+---
+
+# 9. TEST TEMPORAL GROUPING
+
+Check whether detections occurring on different dates but at approximately the same location are correctly associated with the same persistent event.
+
+Example:
+
+Day 1 → hotspot detected
+Day 2 → hotspot detected
+Day 3 → hotspot detected
+Day 4 → hotspot detected
+Day 5 → hotspot detected
+
+This should be capable of becoming one persistent event when the spatial conditions are satisfied.
+
+---
+
+# 10. TEST PERSISTENCE CALCULATION
+
+The roadmap defines the prototype persistence calculation as:
+
+Persistence =
+days detected / days analysed
+
+Use the project's actual analysis period.
+
+Prototype thresholds are:
+
+* 0–20% → Low
+* 21–50% → Moderate
+* 51–80% → High
+* 81–100% → Very High
+
+IMPORTANT:
+
+These are prototype rules.
+
+Do NOT present them as scientific ground truth.
+
+---
+
+# 11. TEST DETECTION COUNT
+
+Verify that:
+
+```text
+detectionCount
+```
+
+equals the number of individual hotspot detections belonging to the event.
+
+Example:
+
+If 8 FIRMS detections belong to one event:
+
+```text
+detectionCount = 8
+```
+
+Check for:
+
+* missing detections
+* duplicated detections
+* accidental double counting
+* incorrect grouping
+
+---
+
+# 12. TEST UNIQUE DAYS
+
+If multiple detections occur on the same day, they should not incorrectly increase the number of unique detected days.
+
+Example:
+
+June 1:
+3 detections
+
+June 2:
+2 detections
+
+June 3:
+1 detection
+
+Then:
+
+```text
+detectionCount = 6
+uniqueDays = 3
+```
+
+NOT:
+
+```text
+uniqueDays = 6
+```
+
+---
+
+# 13. TEST FIRST AND LAST DETECTION
+
+For every thermal event:
+
+```text
+firstDetection
+```
+
+must represent the earliest detection date.
+
+```text
+lastDetection
+```
+
+must represent the latest detection date.
+
+Test:
+
+* chronological data
+* reverse chronological data
+* unordered data
+* missing dates
+
+The processing logic should not depend on the input data already being sorted.
+
+---
+
+# 14. TEST RECURRENCE RATE
+
+Verify that recurrence/persistence calculations are based on unique detection days rather than blindly counting raw records.
+
+Avoid calculations that produce impossible values.
+
+The final percentage should not normally be:
+
+* below 0%
+* above 100%
+
+unless there is a deliberate reason in the implementation.
+
+---
+
+# 15. TEST INVALID DATA
+
+Create test cases containing:
+
+* missing latitude
+* missing longitude
+* invalid latitude
+* invalid longitude
+* missing date
+* missing FRP
+* missing brightness
+* null values
+* undefined values
+* duplicate records
+
+Verify that invalid records do not crash the application.
+
+Where possible, invalid records should be filtered or safely handled before clustering.
+
+---
+
+# 16. TEST EMPTY DATA
+
+Test what happens when there are:
+
+```javascript
+[]
+```
+
+hotspots.
+
+The application should NOT crash.
+
+Instead, it should show an appropriate empty state such as:
+
+```text
+No thermal events found.
+```
+
+or whatever message already exists in the UI.
+
+Do not create unnecessary UI if an existing empty-state system is already present.
+
+---
+
+# 17. TEST SINGLE DETECTION
+
+Test an event containing only one detection.
+
+Expected behavior:
+
+* event should still be valid
+* detectionCount = 1
+* uniqueDays = 1
+* firstDetection = lastDetection
+* persistence should be calculated safely
+* no JavaScript error
+
+---
+
+# 18. TEST MULTIPLE DETECTIONS ON SAME DAY
+
+Example:
+
+Day 1:
+5 detections around the same area.
+
+Expected:
+
+```text
+detectionCount = 5
+uniqueDays = 1
+```
+
+Make sure persistence does not incorrectly become 500% or another impossible value.
+
+---
+
+# 19. TEST SEPARATE EVENTS
+
+Create test data containing two geographically separate hotspot groups.
+
+Example:
+
+Group A:
+Several detections around location A.
+
+Group B:
+Several detections around location B.
+
+Verify that the processing system creates:
+
+```text
+TX-001
+TX-002
+```
+
+instead of incorrectly merging everything into one event.
+
+---
+
+# 20. TEST MAP INTEGRATION
+
+After events are generated:
+
+1. Verify events can be passed to the map module.
+2. Verify event markers appear correctly.
+3. Verify markers have valid coordinates.
+4. Verify clicking an event does not throw an error.
+5. Verify the event ID can be retrieved.
+6. Verify the event details panel receives the correct event object.
+
+Do not break the existing individual hotspot visualization unless today's implementation intentionally replaces it with event-based visualization.
+
+---
+
+# 21. TEST EVENT PANEL INTEGRATION
+
+When the user selects an event, the UI should be capable of displaying:
+
+* Event ID
+* First detection
+* Last detection
+* Detection count
+* Unique days
+* Persistence
+* Recurrence/persistence rate
+* Average FRP if available
+* Event location
+
+The event panel should use the processed thermal-event object rather than independently recalculating the same values.
+
+Avoid duplicate calculations across different files.
+
+---
+
+# 22. CHECK MODULE COMMUNICATION
+
+Inspect how these files communicate:
+
+```text
+api.js
+   ↓
+processing.js
+   ↓
+app.js
+   ↓
+map.js
+```
+
+If `classification.js` already consumes processed events, make sure today's event format does not break it.
+
+Do not rewrite classification logic today unless necessary for compatibility.
+
+---
+
+# 23. ERROR HANDLING
+
+Add safe error handling around integration points.
+
+The application should handle:
+
+* API failure
+* malformed data
+* empty data
+* invalid records
+* processing failure
+* map rendering failure
+
+Use meaningful console errors.
+
+Example:
+
+```javascript
+console.error("Failed to process thermal events:", error);
+```
+
+Do not silently swallow important errors.
+
+---
+
+# 24. TESTING STRATEGY
+
+Create a simple testing approach using JavaScript.
+
+Prefer lightweight testing that can be understood by beginners.
+
+If the project does not already use a testing framework, DO NOT add a complicated testing framework just for Day 5.
+
+You may create a simple test file such as:
+
+```text
+js/test-processing.js
+```
+
+only if it fits the existing project.
+
+Alternatively, create clearly separated test functions inside the appropriate development/debugging area.
+
+---
+
+# 25. REQUIRED TEST CASES
+
+Test at least these cases:
+
+### Test 1
+
+Empty hotspot array.
+
+### Test 2
+
+One valid hotspot.
+
+### Test 3
+
+Multiple detections at the same location.
+
+### Test 4
+
+Same location across multiple days.
+
+### Test 5
+
+Two geographically separate events.
+
+### Test 6
+
+Multiple detections on one day.
+
+### Test 7
+
+Missing coordinates.
+
+### Test 8
+
+Duplicate records.
+
+### Test 9
+
+Unsorted detection dates.
+
+### Test 10
+
+Large number of hotspot records.
+
+The application must remain stable.
+
+---
+
+# 26. PERFORMANCE CHECK
+
+Do a basic performance review.
+
+Do not prematurely optimize everything.
+
+Check for obvious problems such as:
+
+* nested loops processing huge datasets unnecessarily
+* repeated calculations
+* repeated DOM updates
+* unnecessary map marker recreation
+* processing the same dataset multiple times
+
+If you find a clear performance issue, fix it with simple JavaScript improvements.
+
+Do not introduce a complex architecture.
+
+---
+
+# 27. DEBUGGING REQUIREMENT
+
+Use meaningful debugging logs during development.
+
+For example:
+
+```javascript
+console.log("Total hotspots:", hotspots.length);
+console.log("Thermal events created:", events.length);
+console.log("Event:", event);
+```
+
+However, avoid flooding the console in the final production build.
+
+If debug logging is temporary, clearly mark it so it can be removed later.
+
+---
+
+# 28. VERY IMPORTANT — CODE COMMENTS
+
+I am a beginner and I need to understand this project later.
+
+Therefore:
+
+## ADD COMMENTS TO EVERY IMPORTANT SECTION OF CODE.
+
+Every major section, function, calculation, API interaction, data transformation, event handler and integration step must have a simple explanatory comment.
+
+Comments must explain:
+
+1. WHAT the code does.
+2. WHY it is needed.
+3. WHAT input it expects.
+4. WHAT output it produces when useful.
+
+Example:
+
+```javascript
+// This function groups nearby FIRMS detections into one thermal event.
+// We do this because the same real-world heat source can be detected
+// multiple times by the satellite.
+function clusterHotspots(hotspots) {
+    ...
+}
+```
+
+For calculations:
+
+```javascript
+// Persistence tells us how regularly this thermal event was detected
+// during the selected analysis period.
+const persistenceRate = (uniqueDays / daysAnalysed) * 100;
+```
+
+For integration:
+
+```javascript
+// Send the processed thermal events to the map module so that
+// the user can see one marker for each thermal event.
+displayThermalEvents(events);
+```
+
+DO NOT add useless comments such as:
+
+```javascript
+// Set x to 5
+x = 5;
+```
+
+Comments should help a beginner understand the project.
+
+---
+
+# 29. COMMENT EVERY SECTION, NOT EVERY LINE
+
+Do NOT write excessive comments on every single line.
+
+Instead, divide the code into logical sections.
+
+For example:
+
+```javascript
+// ========================================
+// 1. DATA VALIDATION
+// ========================================
+
+// ========================================
+// 2. SPATIAL CLUSTERING
+// ========================================
+
+// ========================================
+// 3. TEMPORAL GROUPING
+// ========================================
+
+// ========================================
+// 4. PERSISTENCE CALCULATION
+// ========================================
+
+// ========================================
+// 5. EVENT ID GENERATION
+// ========================================
+
+// ========================================
+// 6. MAP/UI INTEGRATION
+// ========================================
+```
+
+---
+
+# 30. FINAL DELIVERABLES
+
+By the end of this task, the Day 5 implementation should be able to:
+
+1. Load thermal hotspot data without crashing.
+2. Cluster nearby detections into a single thermal event when appropriate.
+3. Keep separate detections as separate events when geographically distinct.
+4. Group detections across multiple dates when the event remains spatially persistent.
+5. Compute detectionCount, uniqueDays, firstDetection, and lastDetection correctly.
+6. Compute persistence/recurrence using unique days rather than raw records.
+7. Generate clean event IDs like `TX-001`, `TX-002`, etc.
+8. Pass processed thermal events into the map and UI modules without breaking the application.
+9. Handle empty, invalid, duplicate, and malformed input safely.
+10. Keep performance stable for moderate-to-large hotspot datasets.
+
+The result should be a working prototype of persistent thermal-event detection that is ready for later Day 6 classification work.
+
+---
+
+# 31. SUCCESS CRITERIA
+
+Your Day 5 work is considered successful only if:
+
+* the app does not crash on empty or invalid input
+* nearby detections cluster correctly
+* same-location detections across different dates are grouped into one event when appropriate
+* spatially separate events remain separate
+* event IDs are stable and readable
+* detectionCount and uniqueDays are accurate
+* firstDetection and lastDetection are correct
+* persistence/recurrence values are realistic and within valid ranges
+* events can be rendered on the map and inspected in the UI
+* the integration points between API → processing → app → map still work
+
+---
+
+# 32. ROLE BOUNDARY REMINDER
+
+This is not a full classification engine task.
+This is not a rewrite of the project architecture.
+This is not a redesign of the map or dashboard.
+
+This task is specifically about integration, validation, and making sure the Day 5 persistence + clustering pipeline works end-to-end.
+
+That means:
+
+* validate the existing modules
+* fix compatibility issues
+* test edge cases
+* preserve working features
+* keep the implementation simple and beginner-friendly
+* leave a reliable foundation for Day 6 classification
+
+---
+
+# 33. FINAL INSTRUCTION
+
+Do not add unnecessary complexity.
+Do not create duplicate versions of functions that already exist.
+Do not break other roles' work.
+Do not silently ignore malformed data.
+Do not overengineer the MVP.
+
+Your goal is to make the Day 5 thermal event persistence pipeline reliable, understandable, and ready for the next stage of the ThermalX roadmap.
+
+If the existing project already has a working method, reuse it.
+If a function is missing, add only the code necessary to complete the required Day 5 behavior.
+If an issue occurs, debug it, explain it in comments, and fix the root cause rather than patching around symptoms.
+
+
+Use this style wherever appropriate.
+
+---
+
+# 30. DO NOT HIDE THE LOGIC
+
+Do not create extremely compressed JavaScript.
+
+Avoid:
+
+```javascript
+const x=a.filter(b=>b.lat&&b.lon).map(c=>({...c}));
+```
+
+when a beginner-friendly implementation would be clearer.
+
+Prefer readable code with meaningful variable names.
+
+Example:
+
+```javascript
+const validHotspots = hotspots.filter((hotspot) => {
+    return (
+        Number.isFinite(hotspot.latitude) &&
+        Number.isFinite(hotspot.longitude)
+    );
+});
+```
+
+The goal is that I can open the project later and understand what is happening.
+
+---
+
+# 31. PRESERVE EXISTING FUNCTIONALITY
+
+Before making changes, identify what currently works.
+
+Do NOT break:
+
+* NASA FIRMS fetching
+* Leaflet map
+* hotspot markers
+* OSM integration
+* existing dashboard
+* existing classification code
+* existing styling
+* responsive design
+
+If a change is necessary, make the smallest safe change.
+
+---
+
+# 32. DO NOT CREATE DUPLICATE LOGIC
+
+Before adding a new function, search the existing project.
+
+If a function already exists for:
+
+* validation
+* distance calculation
+* clustering
+* event creation
+* rendering
+* error handling
+
+reuse or improve it.
+
+Do not create:
+
+```text
+clusterHotspots()
+clusterThermalEvents()
+createClusters()
+makeThermalClusters()
+```
+
+if they all perform the same task.
+
+Keep one clear source of truth.
+
+---
+
+# 33. DATA FLOW DOCUMENTATION
+
+Update `README.md` if necessary.
+
+Add a short explanation of the Day 5 data flow:
+
+```text
+FIRMS detections
+       ↓
+Validation
+       ↓
+Spatial grouping
+       ↓
+Temporal grouping
+       ↓
+Thermal event creation
+       ↓
+Persistence calculation
+       ↓
+Event IDs
+       ↓
+Map + Dashboard
+```
+
+Keep the explanation beginner-friendly.
+
+---
+
+# 34. GIT SAFETY
+
+Do not delete or overwrite unrelated work from other team members.
+
+Before modifying files:
+
+* inspect existing changes
+* preserve unrelated functionality
+* make focused changes
+
+If Git is configured, prepare the changes for a clean commit.
+
+Suggested commit message:
+
+```text
+feat: integrate and test thermal event clustering
+```
+
+Do not commit secrets or API keys.
+
+---
+
+# 35. API KEY SAFETY
+
+Never hard-code private API keys into source code.
+
+If the existing NASA FIRMS implementation requires an API key, preserve the project's current safe approach.
+
+Never expose:
+
+* passwords
+* tokens
+* private credentials
+* secret keys
+
+in GitHub.
+
+If a public/demo key is intentionally used by the project, do not assume it is private.
+
+---
+
+# 36. FINAL VALIDATION
+
+After implementation, perform a complete integration test.
+
+Verify:
+
+### Data
+
+* FIRMS data loads.
+* Invalid records are handled.
+* Duplicate data is handled.
+
+### Processing
+
+* Spatial clustering works.
+* Temporal grouping works.
+* Events are generated.
+* Event IDs are generated.
+* Detection count is correct.
+* Unique days are correct.
+* First detection is correct.
+* Last detection is correct.
+* Persistence is correct.
+
+### Map
+
+* Thermal events appear.
+* Coordinates are valid.
+* Event selection works.
+
+### UI
+
+* Event details display correctly.
+* No undefined values appear unexpectedly.
+* Empty states work.
+
+### Stability
+
+* No major JavaScript errors.
+* No broken existing functionality.
+* No obvious console errors.
+* No broken responsive behavior.
+
+---
+
+# 37. EDGE CASE CHECKLIST
+
+Before declaring the task complete, explicitly check:
+
+[ ] Empty dataset
+
+[ ] One detection
+
+[ ] Multiple detections
+
+[ ] Same location across multiple days
+
+[ ] Multiple detections on the same day
+
+[ ] Two separate geographical clusters
+
+[ ] Invalid coordinates
+
+[ ] Missing date
+
+[ ] Duplicate detections
+
+[ ] Unsorted dates
+
+[ ] Missing FRP
+
+[ ] Large dataset
+
+[ ] Map event selection
+
+[ ] Event panel
+
+[ ] Existing classification compatibility
+
+---
+
+# 38. DO NOT CLAIM SCIENTIFIC CERTAINTY
+
+ThermalX is an MVP.
+
+Persistence and spatial clustering are decision-support features.
+
+Do not describe a cluster as definite proof of:
+
+* industrial activity
+* wildfire
+* illegal activity
+* pollution
+* any other real-world cause
+
+The classification system later uses evidence and confidence.
+
+Keep the wording responsible.
+
+---
+
+# 39. IMPORTANT DEVELOPMENT RULE
+
+If you discover that a required Day 5 feature is already implemented:
+
+DO NOT rewrite it unnecessarily.
+
+Instead:
+
+1. inspect it
+2. test it
+3. identify bugs
+4. improve only what is required
+5. integrate it with the remaining modules
+
+---
+
+# 40. FINAL RESPONSE AFTER CODING
+
+After making the changes, give me a concise report containing:
+
+## Files Changed
+
+List every file modified.
+
+## What Was Added
+
+Explain the new integration/testing functionality.
+
+## Tests Performed
+
+List the test cases that were checked.
+
+## Bugs Found
+
+List important bugs discovered and fixed.
+
+## Remaining Issues
+
+Clearly state anything that could not be completed.
+
+## How Day 5 Works
+
+Explain the final data flow in simple language.
+
+## Important Functions
+
+List the important functions created or modified and explain each in one sentence.
+
+## Next Step
+
+State what Role 6 should focus on next according to the roadmap.
+
+---
+
+# 41. MOST IMPORTANT INSTRUCTION
+
+DO NOT just generate code without understanding the existing project.
+
+First inspect the existing codebase.
+
+Then integrate Day 5 functionality.
+
+Then test it.
+
+Then fix issues.
+
+Then verify that existing features still work.
+
+Keep the implementation: 
+
+* simple
+* modular
+* beginner-friendly
+* well-commented
+* reliable
+* easy to explain during the SIH presentation
+
+The final goal is NOT sophisticated code.
+
+The goal is a **working, understandable and demonstrable ThermalX MVP**.
+
+START BY INSPECTING THE EXISTING PROJECT FILES.
+THEN IMPLEMENT AND TEST DAY 5 ROLE 6 RESPONSIBILITIES.
