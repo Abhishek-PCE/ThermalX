@@ -1,0 +1,1674 @@
+# THERMALX — DAY 5 TASK
+
+## ROLE 5 — CLASSIFICATION LOGIC ENGINEER
+
+## TASK: BUILD THE CLASSIFICATION EVIDENCE OBJECT
+
+You are working on **ThermalX**, a JavaScript-first MVP for detecting, analyzing, classifying, and visualizing satellite thermal hotspots.
+
+I am:
+
+**ROLE 5 — CLASSIFICATION LOGIC ENGINEER**
+
+Today is:
+
+**DAY 5 — PERSISTENCE + SPATIAL CLUSTERING**
+
+My specific Role 5 responsibility today is:
+
+> Create an **evidence object** containing:
+>
+> * persistenceScore
+> * detectionCount
+> * industrialDistance
+> * averageFRP
+> * confidence
+
+The actual full classification engine will be developed on **Day 6**.
+
+Therefore, **DO NOT build the complete Industrial/Wildfire/Agriculture/Other classifier today unless the existing project already contains compatible code that must remain functional.**
+
+Today's goal is to prepare reliable, explainable evidence/features that Day 6 classification can consume.
+
+---
+
+# 1. IMPORTANT PROJECT CONTEXT
+
+ThermalX is designed as a simple client-side MVP.
+
+Overall flow:
+
+NASA FIRMS
+↓
+Data Fetching
+↓
+Raw Hotspot Data
+↓
+Data Processing
+↓
+Spatial Clustering
+↓
+Temporal Grouping
+↓
+Persistence
+↓
+Industrial Proximity
+↓
+Evidence Object
+↓
+Day 6 Classification
+↓
+Dashboard / Map
+
+Recommended project structure:
+
+ThermalX/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+├── data/
+├── assets/
+└── README.md
+
+Use the existing project architecture.
+
+Do NOT introduce unnecessary technologies.
+
+Use:
+
+* Vanilla JavaScript
+* Existing JavaScript modules
+* Existing FIRMS data structures
+* Existing processing functions
+* Existing Turf.js spatial calculations where already used
+
+Do NOT introduce:
+
+* React
+* Vue
+* Angular
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* Any unnecessary machine-learning framework
+
+This is a JavaScript-first MVP.
+
+---
+
+# 2. FIRST — INSPECT THE EXISTING PROJECT
+
+Before changing anything:
+
+1. Inspect the entire project.
+
+2. Read the existing files.
+
+3. Especially inspect:
+
+   * js/app.js
+   * js/processing.js
+   * js/classification.js
+   * js/api.js
+   * js/map.js
+   * index.html
+   * css/style.css
+
+4. Understand the existing hotspot object.
+
+5. Understand the existing historical data structure.
+
+6. Understand how clustering is being performed.
+
+7. Understand how persistence is being calculated.
+
+8. Understand how industrial proximity is represented.
+
+9. Understand how confidence and FRP are represented.
+
+10. Check whether any evidence object already exists.
+
+11. Reuse existing structures rather than creating duplicate systems.
+
+**Do not overwrite working code.**
+
+Build on the existing Day 1–4 implementation.
+
+---
+
+# 3. MY ROLE — ROLE 5
+
+My responsibility is:
+
+## CLASSIFICATION LOGIC + EVIDENCE FEATURES
+
+On Day 5, focus specifically on:
+
+* Evidence preparation
+* Feature normalization
+* Evidence object
+* Explainable feature values
+* Data passed to Day 6 classifier
+
+The Day 6 classification engine will later use these features to calculate:
+
+* Industrial likelihood
+* Wildfire likelihood
+* Agricultural likelihood
+* Other/Unknown likelihood
+
+But Day 5 should focus on preparing the evidence.
+
+---
+
+# 4. IMPORTANT ROLE BOUNDARIES
+
+Do not take over other team members' responsibilities.
+
+## Role 3 — Data Integration
+
+Owns:
+
+* NASA FIRMS API
+* OSM/Overpass API
+* Fetching external data
+* API error handling
+* Parsing external responses
+
+## Role 4 — Data Processing
+
+Owns:
+
+* Spatial clustering
+* Temporal grouping
+* Persistence calculation
+* Detection count
+* Unique days
+* First/last detection
+* Event IDs
+* Distance calculations
+* Data cleaning
+
+## Role 2 — GIS & Map
+
+Owns:
+
+* Leaflet map
+* Event visualization
+* Industrial facility layers
+* Map markers
+* Spatial visualization
+
+## Role 1 — Frontend/UI
+
+Owns:
+
+* Dashboard UI
+* Event details panel
+* Facility information panel
+* Charts
+* User-facing presentation
+
+## Role 5 — ME
+
+Owns:
+
+* Evidence object
+* Feature preparation
+* Classification-related feature definitions
+* Explainability inputs
+* Day 6 scoring foundation
+
+Do not duplicate Role 4's spatial calculations.
+
+If Role 4 already calculates industrial distance, consume that value.
+
+---
+
+# 5. DAY 5 OBJECTIVE
+
+Create a standardized evidence object for every processed thermal event.
+
+The evidence object should contain at minimum:
+
+```javascript
+{
+    persistenceScore,
+    detectionCount,
+    industrialDistance,
+    averageFRP,
+    confidence
+}
+```
+
+These features will later be consumed by the Day 6 rule-based classification engine.
+
+---
+
+# 6. EVIDENCE OBJECT DESIGN
+
+Create a clean standardized structure.
+
+Conceptually:
+
+```javascript
+{
+    persistenceScore: 0.65,
+    detectionCount: 8,
+    industrialDistance: 1.2,
+    averageFRP: 42.5,
+    confidence: 87
+}
+```
+
+However:
+
+**DO NOT blindly use these exact values or units.**
+
+The actual values must come from the existing processed data.
+
+---
+
+# 7. EVIDENCE OBJECT MUST BE DERIVED FROM REAL DATA
+
+Do not invent:
+
+* persistence
+* detection count
+* distance
+* FRP
+* confidence
+
+Use actual values generated by the existing pipeline.
+
+If a required feature is unavailable:
+
+* Handle it safely.
+* Do not fabricate a value.
+* Clearly document the missing value.
+* Use `null` or another consistent missing-data representation if appropriate.
+
+For example:
+
+```javascript
+industrialDistance: null
+```
+
+is preferable to inventing:
+
+```javascript
+industrialDistance: 2.5
+```
+
+---
+
+# 8. PERSISTENCE SCORE
+
+Use the persistence score generated by the existing processing module if available.
+
+The project plan defines:
+
+Persistence =
+
+days detected / days analysed
+
+Prototype thresholds:
+
+* 0–20% = Low
+* 21–50% = Moderate
+* 51–80% = High
+* 81–100% = Very High
+
+These are explicitly **prototype rules, not scientific ground truth**.
+
+Do not describe them as scientifically validated.
+
+If the processing module stores persistence as:
+
+```javascript
+0.65
+```
+
+keep that representation if the existing architecture uses normalized 0–1 values.
+
+If it stores:
+
+```javascript
+65
+```
+
+for 65%, adapt consistently.
+
+Do not create multiple incompatible representations.
+
+---
+
+# 9. DETECTION COUNT
+
+Use the number of valid thermal detections associated with the event.
+
+Example:
+
+```javascript
+detectionCount: 8
+```
+
+This should come from the processed event.
+
+Do not count markers again inside the classification module if Role 4 already provides the event detection count.
+
+---
+
+# 10. INDUSTRIAL DISTANCE
+
+Use the distance calculated by the spatial/data-processing layer.
+
+This should represent:
+
+**distance between the thermal event and the relevant nearby industrial facility.**
+
+Do not create a second GIS distance-calculation algorithm inside `classification.js` if Role 4 already supplies the distance.
+
+If multiple industrial facilities exist, follow the existing processing-layer convention, such as:
+
+* nearest industrial facility
+* nearest relevant facility
+* minimum industrial distance
+
+Do not silently change the project's definition.
+
+Document which value is being consumed.
+
+---
+
+# 11. IMPORTANT INDUSTRIAL DISTANCE RULE
+
+Industrial proximity is:
+
+**CONTEXTUAL EVIDENCE**
+
+It is NOT:
+
+**PROOF OF CAUSATION**
+
+The evidence object must not imply:
+
+"Factory caused the hotspot."
+
+Instead, it supports a later statement such as:
+
+"Thermal event occurred near industrial infrastructure."
+
+This distinction must remain clear throughout the code comments and documentation.
+
+---
+
+# 12. AVERAGE FRP
+
+FRP means Fire Radiative Power.
+
+Use the FRP values associated with the event's valid detections.
+
+Calculate the average only if the processing layer does not already provide it.
+
+Conceptually:
+
+```text
+averageFRP =
+sum(valid FRP values) /
+number of valid FRP values
+```
+
+Ignore invalid/non-numeric FRP values.
+
+Do not treat missing FRP as zero.
+
+Example:
+
+Valid values:
+
+20
+40
+60
+
+Average:
+
+40
+
+If no valid FRP values exist:
+
+```javascript
+averageFRP: null
+```
+
+Do not return `0` unless the source data actually says the FRP is zero.
+
+---
+
+# 13. CONFIDENCE
+
+Use the confidence information from the FIRMS/processed event data.
+
+If the event has multiple detections with confidence values, follow the existing project's data-processing convention.
+
+Possible conventions include:
+
+* average confidence
+* representative confidence
+* latest confidence
+* minimum confidence
+
+**Do not invent a new convention without checking the existing code.**
+
+If Role 4 already produces an event-level confidence value, consume it.
+
+---
+
+# 14. NORMALIZATION
+
+Before the evidence object reaches the classification engine, make sure the values have predictable formats.
+
+For example:
+
+```javascript
+{
+    persistenceScore: Number,
+    detectionCount: Number,
+    industrialDistance: Number | null,
+    averageFRP: Number | null,
+    confidence: Number | null
+}
+```
+
+Use the actual representation already established by the project.
+
+Avoid unnecessary conversions.
+
+---
+
+# 15. FEATURE VALIDATION
+
+Create a validation mechanism for evidence objects.
+
+Validate:
+
+### persistenceScore
+
+Should be numeric and within the expected project range.
+
+### detectionCount
+
+Should be a non-negative integer.
+
+### industrialDistance
+
+Should be:
+
+* numeric and non-negative
+* OR null if unavailable
+
+### averageFRP
+
+Should be:
+
+* numeric and non-negative
+* OR null
+
+### confidence
+
+Should be:
+
+* numeric within the source's expected range
+* OR null
+
+Invalid data should not crash the application.
+
+---
+
+# 16. DO NOT SILENTLY CONVERT BAD DATA
+
+Bad:
+
+```javascript
+Number(undefined) || 0
+```
+
+This can incorrectly turn missing data into a real zero.
+
+Prefer explicit handling.
+
+Example:
+
+```javascript
+const averageFRP =
+    validFrpValues.length > 0
+        ? calculateAverage(validFrpValues)
+        : null;
+```
+
+This preserves the difference between:
+
+**actual zero**
+
+and:
+
+**missing data**.
+
+---
+
+# 17. EVIDENCE CREATION FUNCTION
+
+Create a reusable function.
+
+Conceptually:
+
+```javascript
+createEvidenceObject(event)
+```
+
+It should:
+
+1. Receive a processed thermal event.
+2. Read available evidence features.
+3. Validate values.
+4. Normalize them if required.
+5. Return a standardized evidence object.
+
+Example:
+
+```javascript
+const evidence = createEvidenceObject(event);
+```
+
+Do not tightly couple this function to the UI.
+
+The evidence object should be usable by:
+
+* Day 6 classification
+* Dashboard
+* Map popup
+* Debugging/testing
+
+---
+
+# 18. KEEP EVIDENCE SEPARATE FROM CLASSIFICATION
+
+This is very important.
+
+Do NOT make the evidence object contain the final classification.
+
+For example, avoid:
+
+```javascript
+{
+    persistenceScore: 0.65,
+    classification: "Industrial"
+}
+```
+
+unless the classification already comes from a separate classification module.
+
+Day 5 prepares evidence.
+
+Day 6 uses the evidence to calculate classification.
+
+The architecture should remain:
+
+```text
+Thermal Event
+      ↓
+Evidence Object
+      ↓
+Classification Engine
+      ↓
+Classification Result
+```
+
+---
+
+# 19. OPTIONAL FEATURE METADATA
+
+If useful and supported by the existing architecture, the evidence object may also include additional supporting fields such as:
+
+* uniqueDays
+* firstDetection
+* lastDetection
+* representativeLatitude
+* representativeLongitude
+* facilityType
+* facilityCount
+
+However:
+
+Do not unnecessarily expand the object.
+
+The required Day-5 fields are:
+
+```text
+persistenceScore
+detectionCount
+industrialDistance
+averageFRP
+confidence
+```
+
+Keep the core object simple.
+
+---
+
+# 20. EVIDENCE EXPLANATION
+
+The system will eventually need to explain why an event was classified.
+
+Therefore, structure the evidence so that Day 6 can explain:
+
+* Event persisted across multiple days.
+* Event occurred near industrial infrastructure.
+* Event showed repeated thermal intensity.
+* FIRMS confidence was high.
+
+Do not write the final natural-language classification explanation yet if the Day 6 classifier is not implemented.
+
+Prepare the underlying evidence values.
+
+---
+
+# 21. EXAMPLE EVIDENCE
+
+For an event:
+
+```text
+5 consecutive days
+8 detections
+1.2 km from industrial facility
+average FRP = 42.5
+confidence = 87
+```
+
+The evidence object could become:
+
+```javascript
+{
+    persistenceScore: 0.65,
+    detectionCount: 8,
+    industrialDistance: 1.2,
+    averageFRP: 42.5,
+    confidence: 87
+}
+```
+
+This does NOT mean:
+
+"Industrial source confirmed."
+
+It means the event contains evidence that the Day 6 classification engine can evaluate.
+
+---
+
+# 22. DO NOT BUILD ML
+
+Do NOT train or implement:
+
+* Neural networks
+* Random Forest
+* XGBoost
+* TensorFlow
+* PyTorch
+* CNN
+* YOLO
+* Any machine-learning model
+
+The project plan specifically calls for an explainable rule-based approach for this 10-day MVP.
+
+Day 5 should prepare the evidence.
+
+Day 6 will implement the rule-based scoring engine.
+
+---
+
+# 23. FUTURE DAY 6 COMPATIBILITY
+
+Design the evidence object so that Day 6 can easily calculate something like:
+
+```text
+Industrial Score =
+Persistence × 0.35
++
+Industrial Proximity × 0.30
++
+FRP × 0.20
++
+Confidence × 0.15
+```
+
+This is an example from the project plan.
+
+Do not hard-code the Day 6 classifier into the Day 5 evidence-generation logic.
+
+Instead, expose clean feature values that the classifier can normalize and score later.
+
+---
+
+# 24. INDUSTRIAL PROXIMITY FEATURE
+
+The Day 6 classifier will eventually need to convert distance into an industrial-proximity score.
+
+For Day 5:
+
+Provide the raw industrial distance.
+
+Do NOT prematurely convert:
+
+```text
+1.2 km
+```
+
+into:
+
+```text
+0.95 proximity score
+```
+
+unless the existing architecture already requires that.
+
+Keep the raw evidence separate from scoring logic.
+
+This makes the system more explainable.
+
+---
+
+# 25. FRP FEATURE
+
+Similarly:
+
+Do not prematurely label:
+
+```text
+averageFRP = 42.5
+```
+
+as:
+
+```text
+high FRP
+```
+
+unless the project already defines a threshold.
+
+Day 5 should preserve the actual feature.
+
+Day 6 can normalize and score it.
+
+---
+
+# 26. CONFIDENCE FEATURE
+
+Preserve the original confidence meaning.
+
+Do not artificially increase or decrease confidence.
+
+Do not combine unrelated confidence values without a documented rule.
+
+If event-level confidence already exists, consume it.
+
+---
+
+# 27. EVENT-LEVEL EVIDENCE
+
+The evidence object should belong to a **thermal event**, not an individual raw hotspot detection.
+
+Conceptually:
+
+```text
+Raw FIRMS detections
+        ↓
+Spatial/temporal clustering
+        ↓
+Thermal Event TX-001
+        ↓
+Evidence for TX-001
+```
+
+This is important.
+
+Do not generate a separate classification evidence object for every raw detection if the classification system operates on thermal events.
+
+---
+
+# 28. MULTIPLE EVENTS
+
+Support multiple thermal events.
+
+Example:
+
+```javascript
+const evidenceObjects = thermalEvents.map(createEvidenceObject);
+```
+
+Each event should retain its own evidence.
+
+Do not accidentally reuse evidence from one event for another.
+
+---
+
+# 29. MISSING INDUSTRIAL FACILITY
+
+If no nearby industrial facility exists:
+
+The evidence object should safely represent this.
+
+For example:
+
+```javascript
+industrialDistance: null
+```
+
+Do not use:
+
+```javascript
+industrialDistance: 0
+```
+
+because 0 km means the facility is exactly at the event location.
+
+Missing and zero are different meanings.
+
+---
+
+# 30. MISSING FRP
+
+If all FRP values are missing:
+
+```javascript
+averageFRP: null
+```
+
+Do not assume:
+
+```javascript
+averageFRP: 0
+```
+
+---
+
+# 31. MISSING CONFIDENCE
+
+If confidence is unavailable:
+
+```javascript
+confidence: null
+```
+
+Do not fabricate a default confidence.
+
+---
+
+# 32. EVIDENCE OBJECT IMMUTABILITY
+
+Where practical, avoid mutating the original thermal-event object unexpectedly.
+
+Prefer creating a separate evidence object:
+
+```javascript
+const evidence = createEvidenceObject(event);
+```
+
+rather than permanently modifying unrelated raw data.
+
+If the existing architecture intentionally attaches evidence to events, preserve that architecture.
+
+---
+
+# 33. DATA FLOW
+
+Maintain this clear data flow:
+
+```text
+FIRMS Raw Data
+      ↓
+Data Processing
+      ↓
+Spatial/Temporal Event
+      ↓
+Persistence
+      ↓
+Industrial Distance
+      ↓
+Evidence Object
+      ↓
+Day 6 Classification
+```
+
+The evidence layer should act as a clean boundary between processing and classification.
+
+---
+
+# 34. JAVASCRIPT ARCHITECTURE
+
+Use clean, reusable functions.
+
+Possible structure:
+
+```javascript
+createEvidenceObject(event)
+validateEvidence(evidence)
+calculateAverageFRP(detections)
+normalizeEvidence(evidence)
+getEvidenceForEvent(event)
+```
+
+These are suggestions.
+
+First inspect the existing codebase and use compatible naming conventions.
+
+---
+
+# 35. MANDATORY CODE COMMENTS
+
+THIS IS A CRITICAL REQUIREMENT.
+
+I need to understand the project easily later.
+
+Therefore:
+
+# ADD CLEAR COMMENTS TO EVERY MAJOR SECTION OF CODE.
+
+This applies to:
+
+* JavaScript
+* HTML
+* CSS
+
+Comments must explain:
+
+1. What the section does.
+2. Why it exists.
+3. What input/data it expects.
+4. What it returns.
+5. How it connects to other modules.
+6. Any important classification or data-processing reasoning.
+
+Example:
+
+```javascript
+// ============================================================
+// EVIDENCE OBJECT CREATION
+// ============================================================
+// Converts a processed thermal event into a standardized set
+// of features that the Day 6 classification engine can use.
+//
+// IMPORTANT:
+// This function does NOT classify the event.
+// It only prepares evidence.
+//
+// Input:
+// - Processed thermal event containing persistence, detections,
+//   industrial-distance information, FRP and confidence.
+//
+// Output:
+// - Standardized evidence object.
+//
+// Keeping evidence generation separate from classification
+// makes the system easier to test and explain.
+// ============================================================
+```
+
+For validation:
+
+```javascript
+// ============================================================
+// EVIDENCE VALIDATION
+// ============================================================
+// Ensures that evidence values are valid before they are passed
+// to the classification engine.
+//
+// Missing values are represented explicitly instead of being
+// silently converted to zero.
+//
+// This prevents missing data from being interpreted as genuine
+// evidence of low or high activity.
+// ============================================================
+```
+
+For FRP:
+
+```javascript
+// ============================================================
+// AVERAGE FRP CALCULATION
+// ============================================================
+// Calculates the average Fire Radiative Power for all valid
+// detections belonging to the thermal event.
+//
+// Invalid or missing FRP values are ignored.
+// If no valid FRP values exist, the function returns null
+// rather than incorrectly treating missing data as zero.
+// ============================================================
+```
+
+---
+
+# 36. COMMENT EVERY LOGICAL CODE SECTION
+
+Do NOT only comment the main function.
+
+Major sections such as:
+
+* imports/dependencies
+* constants
+* helper functions
+* evidence creation
+* validation
+* normalization
+* FRP calculation
+* event processing
+* module exports
+* integration code
+
+should have explanatory comments.
+
+Do not mechanically write a comment for every single line.
+
+The goal is:
+
+**A future team member should be able to open the file months later and understand what each major section is doing and WHY.**
+
+---
+
+# 37. HTML COMMENTS
+
+If HTML must be modified, add section comments.
+
+Example:
+
+```html
+<!-- =========================================================
+     CLASSIFICATION EVIDENCE CONTAINER
+     This section is reserved for displaying evidence values
+     associated with the selected thermal event.
+     ========================================================= -->
+```
+
+Do not add unnecessary UI if Role 1 owns the dashboard.
+
+Only modify HTML when integration requires it.
+
+---
+
+# 38. CSS COMMENTS
+
+If CSS must be modified, clearly separate sections.
+
+Example:
+
+```css
+/* ============================================================
+   EVIDENCE DATA DISPLAY
+   Styles the optional presentation of event evidence values.
+   ============================================================ */
+```
+
+Do not unnecessarily redesign the application.
+
+---
+
+# 39. DOCUMENT DATA CONTRACT
+
+Add clear comments or documentation describing the evidence object.
+
+For example:
+
+```javascript
+/*
+ * ThermalX Evidence Object
+ *
+ * persistenceScore:
+ *   Event persistence across the analyzed period.
+ *
+ * detectionCount:
+ *   Number of valid detections belonging to the event.
+ *
+ * industrialDistance:
+ *   Distance from the event to the relevant industrial facility.
+ *
+ * averageFRP:
+ *   Average valid Fire Radiative Power across event detections.
+ *
+ * confidence:
+ *   FIRMS/source confidence associated with the event.
+ *
+ * IMPORTANT:
+ * These values are evidence/features.
+ * They are not proof of source attribution.
+ */
+```
+
+Adapt the wording to the actual implementation.
+
+---
+
+# 40. TESTING REQUIREMENTS
+
+After implementation, test the evidence system using realistic cases.
+
+## TEST 1 — Normal event
+
+Input:
+
+* Valid persistence
+* Multiple detections
+* Industrial distance
+* FRP
+* Confidence
+
+Expected:
+
+Complete evidence object.
+
+---
+
+## TEST 2 — No industrial facility
+
+Expected:
+
+```javascript
+industrialDistance: null
+```
+
+or the project's equivalent explicit missing value.
+
+No crash.
+
+---
+
+## TEST 3 — Missing FRP
+
+Expected:
+
+Average FRP safely handles missing values.
+
+No fake zero.
+
+---
+
+## TEST 4 — Mixed valid/invalid FRP
+
+Example:
+
+```text
+20
+40
+null
+invalid
+60
+```
+
+Expected:
+
+Average uses only valid numeric values.
+
+---
+
+## TEST 5 — Missing confidence
+
+Expected:
+
+No crash.
+
+Confidence represented as unavailable.
+
+---
+
+## TEST 6 — Invalid detection count
+
+Expected:
+
+Validation catches invalid values.
+
+No crash.
+
+---
+
+## TEST 7 — Multiple events
+
+Expected:
+
+Each thermal event gets its own independent evidence object.
+
+---
+
+## TEST 8 — Event with one detection
+
+Expected:
+
+Evidence object still works.
+
+Persistence and average calculations do not crash.
+
+---
+
+## TEST 9 — Event with zero valid FRP
+
+Expected:
+
+```javascript
+averageFRP: null
+```
+
+not zero.
+
+---
+
+## TEST 10 — Day 6 compatibility
+
+Verify that the resulting evidence object can be passed cleanly into the future classification engine.
+
+---
+
+# 41. EDGE CASES
+
+Handle:
+
+* Empty event
+* Null event
+* Missing detections
+* Empty detections
+* Invalid coordinates
+* Missing FRP
+* Negative FRP
+* Invalid confidence
+* Missing persistence
+* Missing industrial distance
+* Duplicate detections
+* Single-detection event
+* Multiple events
+
+Do not let one malformed event crash the entire application.
+
+---
+
+# 42. NO UNSUPPORTED ASSUMPTIONS
+
+If the existing code does not provide a required value:
+
+Do not invent a value.
+
+Instead:
+
+1. Detect the missing field.
+2. Represent it safely.
+3. Document it.
+4. Make the evidence object tolerant of missing data.
+
+If a decision is required about how to derive a value, inspect whether the development plan or existing code already defines the rule.
+
+Do not silently introduce arbitrary scientific thresholds.
+
+---
+
+# 43. EXPLAINABILITY
+
+The evidence object should make the later classification explainable.
+
+For example, a future result might be able to say:
+
+```text
+Evidence:
+- Persistence: 65%
+- Detections: 8
+- Industrial distance: 1.2 km
+- Average FRP: 42.5
+- FIRMS confidence: 87
+```
+
+The evidence should allow a human to understand what data influenced the later classification.
+
+---
+
+# 44. RESPONSIBLE INTERPRETATION
+
+Never encode assumptions such as:
+
+```text
+near factory = industrial fire
+```
+
+That is incorrect.
+
+Instead:
+
+```text
+near industrial facility = industrial-context evidence
+```
+
+Likewise:
+
+```text
+high persistence ≠ industrial source confirmed
+```
+
+and:
+
+```text
+high FRP ≠ industrial source confirmed
+```
+
+The later classification is a heuristic decision-support result requiring human verification.
+
+---
+
+# 45. DO NOT IMPLEMENT FINAL CLASSIFICATION TODAY
+
+Do not create final output such as:
+
+```javascript
+classification = "Industrial"
+```
+
+unless that functionality already exists and must remain intact.
+
+The main Day 5 deliverable is:
+
+```text
+Thermal Event
+↓
+Evidence Object
+```
+
+Day 6 will implement:
+
+```text
+Evidence Object
+↓
+Rule-Based Classification
+```
+
+---
+
+# 46. PRESERVE EXISTING DAY 1–4 FUNCTIONALITY
+
+Before finishing, verify that these still work:
+
+* FIRMS data
+* Hotspot map
+* Hotspot selection
+* Historical data
+* Persistence
+* Industrial facilities
+* Industrial distance
+* Facility information
+* Existing dashboard
+* Existing map
+* Existing filters
+* Responsive UI
+
+Do not break previous work.
+
+---
+
+# 47. FILES TO MODIFY
+
+First inspect the project.
+
+Likely files:
+
+* js/classification.js
+* js/processing.js only if a minimal integration change is required
+* js/app.js only if required
+* README.md for documentation if appropriate
+
+Avoid changing:
+
+* map.js
+* API logic
+* UI code
+
+unless integration genuinely requires it.
+
+Do not modify unrelated modules.
+
+---
+
+# 48. MODULE RESPONSIBILITY
+
+Keep the architecture understandable.
+
+Recommended conceptual responsibility:
+
+### processing.js
+
+Produces:
+
+```text
+thermalEvents
+```
+
+### classification.js
+
+Consumes:
+
+```text
+thermalEvent
+```
+
+and produces:
+
+```text
+evidence
+```
+
+Day 6 will extend this to:
+
+```text
+evidence
+↓
+classification result
+```
+
+Do not collapse all processing into one giant function.
+
+---
+
+# 49. CODE STYLE
+
+Use:
+
+* `const`
+* `let`
+* descriptive names
+* small functions
+* early returns
+* explicit validation
+* reusable helpers
+* clear module boundaries
+
+Avoid:
+
+* deeply nested conditions
+* duplicate calculations
+* magic numbers
+* unnecessary globals
+* hidden data transformations
+* silent error handling
+
+---
+
+# 50. MAGIC NUMBERS
+
+Do not scatter unexplained thresholds throughout the code.
+
+If a threshold is genuinely required:
+
+Create a named constant.
+
+Example:
+
+```javascript
+const PERSISTENCE_MAX = 1;
+```
+
+Add a comment explaining why it exists.
+
+Do not introduce arbitrary scientific thresholds.
+
+---
+
+# 51. DEBUGGING
+
+During implementation, you may use temporary debugging statements.
+
+Before finishing:
+
+* Remove unnecessary `console.log()` calls.
+* Keep only intentional diagnostic logging.
+* Do not expose internal data structures unnecessarily.
+
+---
+
+# 52. PERFORMANCE
+
+The evidence-generation process should be efficient.
+
+Avoid repeatedly calculating the same:
+
+* average FRP
+* detection count
+* persistence
+* industrial distance
+
+if those values already exist in the processed event.
+
+Prefer consuming precomputed values.
+
+---
+
+# 53. FINAL VERIFICATION
+
+Before completing the task:
+
+1. Check JavaScript syntax.
+2. Check browser console.
+3. Check module loading.
+4. Check evidence object creation.
+5. Check evidence validation.
+6. Check missing values.
+7. Check average FRP.
+8. Check detection count.
+9. Check persistence.
+10. Check industrial distance.
+11. Check confidence.
+12. Check multiple events.
+13. Check invalid data.
+14. Check Day 1–4 functionality.
+15. Check that no duplicate classification logic was created.
+16. Check that no ML was added.
+17. Check that evidence does not claim causation.
+18. Check all major code sections contain useful comments.
+19. Check comments explain WHY, not only WHAT.
+20. Remove unnecessary code.
+
+---
+
+# 54. FINAL RESPONSE AFTER CODING
+
+When you finish, report:
+
+## Files Changed
+
+List all files modified.
+
+## Evidence Object
+
+Show the final structure of the evidence object.
+
+## Features Implemented
+
+Explain:
+
+* persistenceScore
+* detectionCount
+* industrialDistance
+* averageFRP
+* confidence
+
+## Data Flow
+
+Explain:
+
+```text
+Thermal Event
+↓
+Evidence Generation
+↓
+Evidence Object
+↓
+Future Day 6 Classification
+```
+
+## Validation
+
+Explain how invalid/missing values are handled.
+
+## Testing
+
+List the test cases performed.
+
+## Existing Functionality
+
+Confirm which Day 1–4 functionality remains intact.
+
+## Day 6 Readiness
+
+Explain how the evidence object can be consumed by the upcoming rule-based classification engine.
+
+## Assumptions
+
+Clearly identify any assumptions made.
+
+Do not claim a feature was implemented if it was not actually implemented.
+
+---
+
+# FINAL NON-NEGOTIABLE RULES
+
+1. **I AM ROLE 5 — CLASSIFICATION LOGIC ENGINEER.**
+2. This is **DAY 5**.
+3. Main deliverable = **CLASSIFICATION EVIDENCE OBJECT**.
+4. Required evidence:
+
+   * persistenceScore
+   * detectionCount
+   * industrialDistance
+   * averageFRP
+   * confidence
+5. Consume processed data from Role 4.
+6. Do not duplicate Role 4's spatial calculations.
+7. Do not duplicate Role 3's API logic.
+8. Do not take over Role 2's map work.
+9. Do not take over Role 1's dashboard work.
+10. Do not implement machine learning.
+11. Do not implement the full Day 6 classifier prematurely.
+12. Keep evidence separate from classification.
+13. Handle missing and invalid data explicitly.
+14. Never convert missing values into fake zero values.
+15. Do not fabricate data.
+16. Industrial proximity is contextual evidence, not proof of causation.
+17. Keep the evidence object event-level rather than raw-detection-level.
+18. Maintain compatibility with the future Day 6 rule-based classifier.
+19. Preserve all existing Day 1–4 functionality.
+20. **ADD CLEAR COMMENTS TO EVERY MAJOR SECTION OF JAVASCRIPT, HTML, AND CSS.**
+21. Comments must explain purpose, data flow, reasoning, inputs, and outputs.
+22. Keep the implementation simple, readable, explainable, and demo-ready.
+
+Start by inspecting the existing ThermalX codebase.
+
+Then implement the **Day 5 — Role 5 Evidence Object** carefully and integrate it with the existing processing pipeline without breaking previous functionality.
