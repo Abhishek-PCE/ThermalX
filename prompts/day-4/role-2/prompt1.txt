@@ -1,0 +1,1283 @@
+# THERMALX — DAY 4 — ROLE 2
+
+## GIS & Map Developer — OpenStreetMap Industrial Context
+
+You are working on **ThermalX**, an SIH 2026 project.
+
+**SIH Problem Statement:** PS 26162
+**Project:** AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM & Satellite Data
+
+---
+
+# 1. YOUR ROLE
+
+You are:
+
+> **Role 2 — GIS & Map Developer**
+
+Your responsibility for **Day 4** is to integrate the **industrial geographic context** into the existing ThermalX Leaflet map.
+
+The Day 4 objective is:
+
+> **Select a hotspot → see nearby industrial facilities, their distance, and their type.**
+
+According to the project roadmap, Day 4 Role 2 is responsible for:
+
+* Displaying industrial facilities on the map.
+* Creating a separate industrial-facility map layer.
+* Adding map layer controls.
+* Supporting industrial-area visualization.
+* Working with OSM/Overpass data provided by Role 3.
+* Making the industrial context easy to understand visually.
+
+Role 4 will handle the actual hotspot-to-facility distance calculations.
+
+Role 3 will handle OSM/Overpass API data fetching.
+
+Do NOT unnecessarily take over their responsibilities.
+
+---
+
+# 2. DAY 4 TARGET
+
+By the end of this task, ThermalX should allow a user to:
+
+1. Open the ThermalX map.
+2. See existing thermal hotspots.
+3. Enable the **Industrial Facilities** layer.
+4. See nearby industrial facilities on the map.
+5. Click an industrial facility.
+6. View basic facility information.
+7. Select a hotspot.
+8. Visually understand the nearby industrial context.
+9. See the distance information if it is already supplied by Role 4.
+10. Distinguish thermal hotspots from industrial facilities.
+
+The final experience should look like a professional geospatial monitoring dashboard.
+
+---
+
+# 3. IMPORTANT PROJECT RULES
+
+Follow these rules strictly.
+
+### Technology
+
+Use:
+
+* HTML5
+* CSS3
+* Vanilla JavaScript
+* Leaflet.js
+* OpenStreetMap
+* GeoJSON where appropriate
+
+Do NOT introduce:
+
+* React
+* Node.js
+* Python
+* FastAPI
+* PostgreSQL
+* PostGIS
+* TensorFlow
+* PyTorch
+* unnecessary frameworks
+
+This is the client-side MVP.
+
+---
+
+# 4. FIRST INSPECT THE EXISTING PROJECT
+
+Before writing code:
+
+1. Inspect the entire project structure.
+2. Read `index.html`.
+3. Read `css/style.css`.
+4. Read `js/app.js`.
+5. Read `js/map.js`.
+6. Read `js/api.js`.
+7. Read `js/processing.js`.
+8. Read `js/classification.js`.
+9. Understand the current Leaflet map.
+10. Understand existing hotspot markers.
+11. Understand existing layer controls.
+12. Understand how data is passed between modules.
+13. Identify whether Role 3 has already created OSM data-fetching logic.
+14. Identify whether Role 4 has already created distance calculations.
+
+Do not overwrite working code unnecessarily.
+
+Before editing, briefly determine:
+
+* Which files need modification.
+* Which existing functions can be reused.
+* Where industrial layers should be integrated.
+
+---
+
+# 5. EXPECTED PROJECT STRUCTURE
+
+Keep the existing structure.
+
+Preferred structure:
+
+ThermalX/
+│
+├── index.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+│
+├── data/
+│
+├── assets/
+│
+└── README.md
+
+Do not create duplicate map modules.
+
+If `map.js` already exists, extend it.
+
+---
+
+# 6. DAY 4 ARCHITECTURE
+
+The intended data flow is:
+
+OSM / Overpass
+↓
+Role 3 — Data Fetching
+↓
+Industrial Facility Data
+↓
+Role 2 — Map Visualization
+↓
+Leaflet Industrial Layer
+↓
+Map
+↓
+User selects hotspot
+↓
+Nearby industrial context
+↓
+Role 4 — Distance Calculation
+↓
+Distance displayed in UI
+
+Role 2 is primarily responsible for the **visual map representation**.
+
+---
+
+# 7. INDUSTRIAL FACILITY DATA
+
+The map should support industrial facility objects similar to:
+
+```javascript
+{
+    id: "osm-12345",
+    name: "Example Power Plant",
+    type: "power_plant",
+    latitude: 25.5941,
+    longitude: 85.1376,
+    tags: {
+        operator: "Example Operator",
+        industry: "energy"
+    }
+}
+```
+
+The exact structure should follow the data produced by Role 3.
+
+Do not force a new structure if an existing shared format already exists.
+
+---
+
+# 8. SUPPORTED INDUSTRIAL TYPES
+
+The project roadmap specifically mentions relevant industrial contexts such as:
+
+* Industrial areas
+* Factories
+* Power plants
+* Refineries
+* Mines
+* Oil/gas infrastructure
+* Industrial facilities
+
+Display the facility type clearly.
+
+Example:
+
+🏭 Factory
+
+⚡ Power Plant
+
+🛢 Refinery
+
+⛏ Mine
+
+🔥 Oil/Gas Facility
+
+If a type is unknown:
+
+"Industrial Facility"
+
+---
+
+# 9. INDUSTRIAL MAP LAYER
+
+Create a dedicated Leaflet layer for industrial facilities.
+
+Example concept:
+
+```javascript
+const industrialLayer = L.layerGroup();
+```
+
+Add industrial markers to this layer.
+
+The layer must be separate from:
+
+* Thermal hotspot layer
+* Historical event layer
+* Other future layers
+
+This allows users to toggle industrial information independently.
+
+---
+
+# 10. LAYER CONTROL
+
+Add or update Leaflet layer controls.
+
+Example:
+
+```text
+MAP LAYERS
+
+☑ Thermal Hotspots
+☑ Industrial Facilities
+☐ Historical Events
+```
+
+At minimum, support:
+
+* Thermal Hotspots
+* Industrial Facilities
+
+Do not break existing map controls.
+
+---
+
+# 11. INDUSTRIAL MARKER DESIGN
+
+Industrial facilities must be visually distinguishable from thermal hotspots.
+
+Do not use the same marker design for both.
+
+Industrial facilities could use:
+
+* Factory icon
+* Building icon
+* Industrial symbol
+* Custom Leaflet `DivIcon`
+
+Thermal hotspots should retain their existing visualization.
+
+The user should immediately understand:
+
+> "This symbol represents an industrial facility, not a thermal hotspot."
+
+---
+
+# 12. FACILITY POPUP
+
+When the user clicks an industrial facility marker, show a popup.
+
+Example:
+
+```text
+Industrial Facility
+
+Name:
+ABC Power Plant
+
+Type:
+Power Plant
+
+Location:
+25.5941, 85.1376
+
+Operator:
+ABC Energy
+
+Source:
+OpenStreetMap
+```
+
+Only show fields that actually exist.
+
+If data is missing:
+
+```text
+Operator:
+N/A
+```
+
+Do not invent facility information.
+
+---
+
+# 13. FACILITY INFORMATION
+
+The popup or event panel may display:
+
+* Facility name
+* Facility type
+* Latitude
+* Longitude
+* Operator
+* Industry
+* OSM ID
+* Distance from selected hotspot, if available
+
+The UI should clearly identify:
+
+> Source: OpenStreetMap
+
+Do not claim that OSM data proves that a facility caused a thermal event.
+
+---
+
+# 14. SELECTED HOTSPOT + INDUSTRIAL CONTEXT
+
+When a hotspot is selected:
+
+1. Keep the hotspot visible.
+2. Identify nearby facilities from the supplied processed data.
+3. Highlight or visually emphasize relevant facilities if possible.
+4. Display their distance if Role 4 has supplied it.
+5. Keep the map centered appropriately.
+6. Avoid cluttering the map with unrelated facilities.
+
+Example:
+
+```text
+SELECTED HOTSPOT
+
+TX-001
+
+Nearby Industrial Facilities
+
+🏭 ABC Factory
+Distance: 1.2 km
+
+⚡ XYZ Power Plant
+Distance: 3.7 km
+```
+
+If distance calculation has not yet been implemented, do not invent it.
+
+Display:
+
+"Distance calculation pending"
+
+or use the existing Role 4 output when available.
+
+---
+
+# 15. NEARBY FACILITY HIGHLIGHTING
+
+If the data already contains proximity information, visually highlight nearby facilities.
+
+For example:
+
+Selected hotspot
+🔥
+|
+| 1.2 km
+|
+🏭
+Factory
+
+Use a simple visual connection if appropriate.
+
+Do not create misleading visual relationships.
+
+A nearby facility does NOT automatically mean it caused the hotspot.
+
+---
+
+# 16. DISTANCE VISUALIZATION
+
+If Role 4 provides a distance:
+
+Display it clearly.
+
+Examples:
+
+```text
+Distance: 1.2 km
+```
+
+or:
+
+```text
+1.2 km away
+```
+
+Do not calculate a second conflicting distance in Role 2 if Role 4 already owns this responsibility.
+
+Role 2 displays the value.
+
+Role 4 calculates the value.
+
+---
+
+# 17. OPTIONAL CONNECTION LINE
+
+If appropriate, draw a temporary line between:
+
+Selected Hotspot
+↓
+Nearest Industrial Facility
+
+Example:
+
+```text
+🔥 Hotspot ───────── 🏭 Factory
+          1.2 km
+```
+
+This should only be used when:
+
+* A hotspot is selected.
+* A facility is relevant.
+* Coordinates are valid.
+
+Remove or update the line when the selection changes.
+
+Do not permanently draw hundreds of lines.
+
+The visualization should remain clean.
+
+---
+
+# 18. GEOJSON SUPPORT
+
+If Role 3 supplies industrial facilities as GeoJSON, support it.
+
+Example:
+
+```javascript
+L.geoJSON(industrialGeoJSON, {
+    onEachFeature: function(feature, layer) {
+        // Add facility information to the map popup.
+    }
+});
+```
+
+Preserve useful GeoJSON properties.
+
+Do not unnecessarily convert GeoJSON into another complicated format.
+
+---
+
+# 19. INVALID DATA HANDLING
+
+Handle:
+
+* Missing coordinates.
+* Invalid latitude.
+* Invalid longitude.
+* Missing facility name.
+* Missing facility type.
+* Empty facility list.
+* Duplicate facilities.
+* Invalid GeoJSON.
+
+Never allow one invalid facility to crash the entire map.
+
+For invalid records:
+
+* Skip the record.
+* Log a useful developer message.
+* Continue rendering valid facilities.
+
+---
+
+# 20. COORDINATE VALIDATION
+
+Validate coordinates before creating markers.
+
+Latitude must be:
+
+```text
+-90 to +90
+```
+
+Longitude must be:
+
+```text
+-180 to +180
+```
+
+Do not create Leaflet markers using invalid coordinates.
+
+---
+
+# 21. MAP PERFORMANCE
+
+The OSM query may return many facilities.
+
+Do not create unnecessary expensive DOM operations.
+
+If the dataset becomes large:
+
+* Use Leaflet layer groups.
+* Reuse markers where possible.
+* Avoid unnecessary redraws.
+* Consider clustering only if the existing project already supports it or if clearly necessary.
+
+Do not introduce a large clustering library unnecessarily.
+
+---
+
+# 22. MAP VIEW BEHAVIOR
+
+When the user selects an industrial facility:
+
+The map may:
+
+* Open its popup.
+* Pan to the facility.
+
+When the user selects a hotspot:
+
+The map should:
+
+* Keep the hotspot visible.
+* Show relevant nearby facilities.
+* Avoid unexpectedly zooming the user too far.
+
+Do not constantly reset the map view.
+
+---
+
+# 23. INDUSTRIAL CONTEXT PANEL
+
+If the existing UI has an event information panel, integrate industrial information into it.
+
+Example:
+
+```text
+INDUSTRIAL CONTEXT
+
+Nearby Facilities: 2
+
+1. ABC Factory
+   Type: Factory
+   Distance: 1.2 km
+
+2. XYZ Power Plant
+   Type: Power Plant
+   Distance: 3.5 km
+
+Source: OpenStreetMap
+```
+
+If there are no facilities:
+
+```text
+No nearby industrial facilities found.
+```
+
+Do not interpret this as proof that the hotspot is non-industrial.
+
+---
+
+# 24. MAP LEGEND
+
+Add or update a simple legend.
+
+Example:
+
+```text
+LEGEND
+
+🔥 Thermal Hotspot
+🏭 Industrial Facility
+📍 Selected Location
+```
+
+Keep the legend compact.
+
+Do not cover important map content.
+
+---
+
+# 25. RESPONSIVE DESIGN
+
+The map must work on:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+On small screens:
+
+* Layer control must remain usable.
+* Legend must not cover the entire map.
+* Popups must fit the screen.
+* Facility information must remain readable.
+* Map controls must not overlap the dashboard.
+
+---
+
+# 26. UI DESIGN
+
+Maintain the existing ThermalX visual style.
+
+The map should look like a:
+
+> Satellite / GIS / Disaster Intelligence Monitoring Dashboard
+
+Keep the interface:
+
+* Professional
+* Technical
+* Clean
+* Modern
+* Data-focused
+
+Avoid excessive decorative effects.
+
+---
+
+# 27. IMPORTANT CODE COMMENT REQUIREMENT
+
+THIS IS A STRICT REQUIREMENT.
+
+**Every major section of code must contain meaningful comments.**
+
+The purpose is to make the code easy for the student team to understand and maintain later.
+
+---
+
+# 28. HTML COMMENTS
+
+For every major HTML section, add comments.
+
+Example:
+
+```html
+<!--
+    Industrial Map Layer Controls:
+    Allows the user to turn the industrial
+    facility layer on or off independently
+    from the thermal hotspot layer.
+-->
+```
+
+Do not write meaningless comments like:
+
+```html
+<!-- div -->
+```
+
+Comments must explain the purpose.
+
+---
+
+# 29. CSS COMMENTS
+
+Organize CSS with section comments.
+
+Example:
+
+```css
+/*
+ * INDUSTRIAL FACILITY MARKERS
+ * ----------------------------
+ * Controls the appearance of OSM industrial
+ * facility markers so they are visually different
+ * from thermal hotspot markers.
+ */
+.industrial-marker {
+    ...
+}
+```
+
+Also comment major sections such as:
+
+* Map controls
+* Industrial popup
+* Legend
+* Facility panel
+* Responsive map layout
+
+---
+
+# 30. JAVASCRIPT COMMENTS
+
+Every important function should contain a meaningful comment.
+
+Example:
+
+```javascript
+// Creates Leaflet markers for industrial facilities
+// received from the OSM/Overpass data module.
+function renderIndustrialFacilities(facilities) {
+    ...
+}
+```
+
+Another example:
+
+```javascript
+// Removes the previously displayed industrial markers
+// before rendering a refreshed facility dataset.
+function clearIndustrialLayer() {
+    ...
+}
+```
+
+Another:
+
+```javascript
+// Highlights facilities that are associated with
+// the currently selected hotspot using existing
+// proximity information from the processing layer.
+function highlightNearbyFacilities(facilities) {
+    ...
+}
+```
+
+---
+
+# 31. COMMENTING STANDARD
+
+Comments should explain:
+
+* What a section does.
+* Why a function exists.
+* What data it expects.
+* How it interacts with another module.
+* Important assumptions.
+* Error-handling behavior.
+
+Do NOT comment every single line.
+
+Use comments for:
+
+* Major sections.
+* Important functions.
+* Calculations.
+* Data transformations.
+* Leaflet layer operations.
+* Event listeners.
+* Integration points.
+* Non-obvious logic.
+
+---
+
+# 32. DO NOT DUPLICATE ROLE 3
+
+Role 3 owns:
+
+* OSM/Overpass API.
+* Fetching external data.
+* Request handling.
+* API errors.
+* Response parsing.
+
+If Role 3 has already created something such as:
+
+```javascript
+fetchIndustrialFacilities()
+```
+
+reuse it.
+
+Do not create a second OSM API implementation inside `map.js`.
+
+If Role 3's function is not ready, create a clean interface/mock input for development, but clearly mark it as an integration point.
+
+---
+
+# 33. DO NOT DUPLICATE ROLE 4
+
+Role 4 owns:
+
+* Distance calculations.
+* Spatial calculations.
+* Hotspot-to-facility distance.
+
+Role 2 should consume the output.
+
+Example:
+
+```javascript
+facility.distanceFromHotspot
+```
+
+Then display:
+
+```text
+Distance: 1.2 km
+```
+
+Do not implement a separate competing distance calculation unless explicitly required for testing.
+
+---
+
+# 34. MAP FUNCTIONS
+
+Create reusable map functions where appropriate.
+
+Possible structure:
+
+```javascript
+// Creates and returns the Leaflet layer used
+// for displaying industrial facilities.
+function createIndustrialLayer() {
+    ...
+}
+
+// Adds one industrial facility marker to the map.
+function addIndustrialFacilityMarker(facility) {
+    ...
+}
+
+// Displays facility information when a marker is clicked.
+function bindIndustrialPopup(marker, facility) {
+    ...
+}
+
+// Updates industrial facilities associated with
+// the currently selected hotspot.
+function updateIndustrialContext(event) {
+    ...
+}
+
+// Clears temporary hotspot-to-facility visualization.
+function clearIndustrialContext() {
+    ...
+}
+```
+
+Use the existing project's architecture if these responsibilities are already implemented elsewhere.
+
+---
+
+# 35. LAYER MANAGEMENT
+
+Keep layer references organized.
+
+For example:
+
+```javascript
+const mapLayers = {
+    hotspots: null,
+    industrial: null,
+    historical: null
+};
+```
+
+If the project already has a layer-management system, extend it instead of replacing it.
+
+---
+
+# 36. DATA REFRESH
+
+The map should be able to refresh industrial facilities when new OSM data arrives.
+
+Flow:
+
+New OSM Data
+↓
+Validate
+↓
+Clear old industrial layer
+↓
+Create/update industrial markers
+↓
+Add layer to map
+↓
+Update layer control
+
+Do not reload the entire webpage.
+
+---
+
+# 37. EMPTY INDUSTRIAL DATA
+
+If no industrial facilities are returned:
+
+The application should remain functional.
+
+Show:
+
+```text
+No industrial facilities found in the selected area.
+```
+
+The map itself must continue working.
+
+---
+
+# 38. ERROR STATE
+
+If OSM data fails:
+
+Show a non-blocking message such as:
+
+```text
+Industrial context temporarily unavailable.
+```
+
+Do not crash the map.
+
+Do not hide existing thermal hotspot data.
+
+---
+
+# 39. DEMO MODE COMPATIBILITY
+
+The project will later support:
+
+**LIVE DATA | DEMO MODE**
+
+LIVE MODE:
+
+NASA FIRMS + OSM
+
+DEMO MODE:
+
+Saved JSON data
+
+Your map implementation must support both.
+
+Do not hard-code the application to only one API response.
+
+---
+
+# 40. TEST DATA
+
+If OSM data is not yet available, use a small demo dataset for development.
+
+Example:
+
+```javascript
+const demoIndustrialFacilities = [
+    {
+        id: "osm-demo-001",
+        name: "Demo Factory",
+        type: "factory",
+        latitude: 25.5941,
+        longitude: 85.1376
+    },
+    {
+        id: "osm-demo-002",
+        name: "Demo Power Plant",
+        type: "power_plant",
+        latitude: 25.6000,
+        longitude: 85.1450
+    }
+];
+```
+
+Clearly label it:
+
+**DEMO DATA**
+
+Never present demo facilities as real OSM data.
+
+---
+
+# 41. TEST CASES
+
+After implementation, test:
+
+### TEST 1 — Industrial Layer
+
+Enable Industrial Facilities.
+
+Expected:
+
+Industrial markers appear.
+
+---
+
+### TEST 2 — Toggle Layer
+
+Disable Industrial Facilities.
+
+Expected:
+
+Industrial markers disappear.
+
+Thermal hotspots remain visible.
+
+---
+
+### TEST 3 — Facility Popup
+
+Click an industrial facility.
+
+Expected:
+
+Facility popup appears with available information.
+
+---
+
+### TEST 4 — Multiple Facilities
+
+Load multiple facilities.
+
+Expected:
+
+All valid facilities appear.
+
+---
+
+### TEST 5 — Invalid Coordinates
+
+Provide an invalid facility.
+
+Expected:
+
+Invalid facility is skipped without crashing the application.
+
+---
+
+### TEST 6 — Missing Name
+
+Provide a facility without a name.
+
+Expected:
+
+Display:
+
+"Industrial Facility"
+
+or another safe fallback.
+
+---
+
+### TEST 7 — Empty Dataset
+
+Provide an empty facility array.
+
+Expected:
+
+Map remains functional.
+
+---
+
+### TEST 8 — Selected Hotspot
+
+Select a hotspot.
+
+Expected:
+
+Nearby industrial context is shown if supplied by the processing layer.
+
+---
+
+### TEST 9 — Distance
+
+If Role 4 provides:
+
+```text
+distanceFromHotspot: 1.2
+```
+
+Expected:
+
+UI displays:
+
+```text
+Distance: 1.2 km
+```
+
+---
+
+### TEST 10 — Mobile
+
+Test mobile width.
+
+Expected:
+
+Map, popup, controls and legend remain usable.
+
+---
+
+# 42. DO NOT CLAIM CAUSATION
+
+This is extremely important.
+
+The presence of an industrial facility near a thermal hotspot does NOT prove:
+
+> "The facility caused the fire."
+
+The UI should use neutral language such as:
+
+* "Nearby industrial facility"
+* "Industrial context"
+* "Distance from facility"
+* "Potential industrial context"
+* "Requires human verification"
+
+Avoid statements such as:
+
+* "This factory caused the fire."
+* "Confirmed industrial fire."
+* "Illegal activity detected."
+
+Classification belongs to the later classification engine.
+
+---
+
+# 43. PERFORMANCE REQUIREMENT
+
+The map should remain responsive.
+
+Avoid:
+
+* unnecessary marker recreation
+* repeated full-map redraws
+* duplicate layers
+* duplicate event listeners
+* unnecessary API calls from the map module
+
+Keep the map module focused on visualization.
+
+---
+
+# 44. FINAL DAY 4 CHECKLIST
+
+Before finishing, verify:
+
+* [ ] Existing Leaflet map still works.
+* [ ] Existing hotspot markers still work.
+* [ ] Industrial facility layer exists.
+* [ ] Industrial markers appear correctly.
+* [ ] Industrial markers are visually different from hotspots.
+* [ ] Layer control works.
+* [ ] Facility popup works.
+* [ ] Facility type is displayed.
+* [ ] Facility name is displayed.
+* [ ] Coordinates are handled safely.
+* [ ] Invalid data does not crash the application.
+* [ ] Empty data is handled.
+* [ ] OSM source is identified.
+* [ ] Distance can be displayed when supplied by Role 4.
+* [ ] Selected hotspot can show industrial context.
+* [ ] Existing Day 1–3 functionality is not broken.
+* [ ] Responsive layout works.
+* [ ] Demo mode remains possible.
+* [ ] Code is modular.
+* [ ] Meaningful comments are added to every major code section.
+
+---
+
+# 45. FINAL VALIDATION
+
+After coding:
+
+1. Check HTML.
+2. Check CSS.
+3. Check JavaScript syntax.
+4. Check browser console.
+5. Check Leaflet map.
+6. Check hotspot markers.
+7. Check industrial markers.
+8. Check layer controls.
+9. Check facility popups.
+10. Check empty/error states.
+11. Check mobile layout.
+12. Check integration with Role 3 data.
+13. Check integration with Role 4 distance data.
+14. Confirm that no existing feature was unnecessarily removed.
+15. Confirm that comments are present in all important code sections.
+
+---
+
+# 46. FINAL RESPONSE FROM ANTIGRAVITY
+
+After completing the work, provide a concise report:
+
+## Files Changed
+
+List modified files.
+
+## Features Added
+
+Explain:
+
+* Industrial layer
+* Industrial markers
+* Facility popup
+* Layer control
+* Industrial context
+* Distance display
+* Error/empty states
+
+## Integration
+
+Explain how the map receives:
+
+OSM data from Role 3
+
+and:
+
+Distance/proximity data from Role 4.
+
+## Testing
+
+List the tests completed.
+
+## Important Assumptions
+
+Mention any demo data or missing integration.
+
+## Student Learning Notes
+
+Explain the important functions and Leaflet concepts used so the team can understand the code later.
+
+---
+
+# FINAL INSTRUCTION
+
+Build **Day 4 — Role 2 only**.
+
+The core objective is:
+
+**OSM Industrial Data → Industrial Map Layer → Facility Markers → Facility Information → Industrial Context**
+
+Do not implement the complete classification engine.
+
+Do not implement the complete distance-processing engine.
+
+Do not introduce unnecessary technologies.
+
+Preserve all existing functionality from Days 1–3.
+
+And most importantly:
+
+> **Add meaningful comments to every major HTML, CSS and JavaScript section so that a student developer can easily understand the code months later.**
+
+The final code must be:
+
+**Simple + Modular + Commented + Maintainable + Presentation-ready.**
