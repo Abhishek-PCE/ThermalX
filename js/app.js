@@ -4,7 +4,7 @@
  */
 
 // Import the fetch functions from our newly created api.js module.
-import { fetchFIRMSData, fetchNearbyIndustrialFacilities } from './api.js';
+import { fetchFIRMSData, fetchNearbyIndustrialFacilities, getHotspotsForClustering } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("ThermalX application initialized.");
@@ -896,7 +896,7 @@ if (btnTestFetch) {
         try {
             
             // Call the imported fetchFIRMSData function (Role 3) and wait for it to finish.
-            const apiHotspots = await fetchFIRMSData(true); // Using true for demo/fallback mode
+            // DAY 5 ROLE 3: Use the new clustering integration function\n            const apiHotspots = await getHotspotsForClustering(true); // Fetch and merge data for clustering
             
             // Pass the API data through Role 4 Data Processing pipeline (Integration)
             let cleanHotspots = [];
