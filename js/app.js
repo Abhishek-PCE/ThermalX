@@ -211,7 +211,7 @@ function showHotspotDetails(hotspot) {
         setPanelState('event-state-data');
 
         // 1. BASIC INFORMATION & IDENTIFIERS
-        const hotspotId = hotspot.id || (hotspot.latitude && hotspot.longitude ? `TX-${Math.abs(hotspot.latitude).toFixed(2)}-${Math.abs(hotspot.longitude).toFixed(2)}` : "TX-UNKNOWN");
+        const hotspotId = hotspot.eventId || hotspot.id || (hotspot.latitude && hotspot.longitude ? `TX-${Math.abs(hotspot.latitude).toFixed(2)}-${Math.abs(hotspot.longitude).toFixed(2)}` : "TX-UNKNOWN");
         setElementText('event-id', hotspotId);
 
         // Status badge: "Detected" by default
@@ -232,11 +232,14 @@ function showHotspotDetails(hotspot) {
 
         // 2. THERMAL INFORMATION
         // Brightness in Kelvin (e.g., 345.1 K)
-        const brightnessVal = hotspot.brightness !== undefined ? hotspot.brightness : (hotspot.bright_ti4 !== undefined ? hotspot.bright_ti4 : null);
+        const brightnessVal = hotspot.averageBrightness !== undefined ? hotspot.averageBrightness : (hotspot.brightness !== undefined ? hotspot.brightness : (hotspot.bright_ti4 !== undefined ? hotspot.bright_ti4 : null));
         setElementText('event-brightness', formatThermalValue(brightnessVal, 'K'));
+        setElementText('history-detection-count', hotspot.detectionCount !== undefined ? hotspot.detectionCount : (hotspot.detections ? hotspot.detections.length : "N/A"));
+        setElementText('history-unique-days', hotspot.uniqueDays !== undefined ? hotspot.uniqueDays : "N/A");
+        setElementText('history-recurrence-rate', hotspot.recurrenceRate !== undefined ? `${(hotspot.recurrenceRate * 100).toFixed(0)}%` : "N/A");
 
         // Fire Radiative Power (FRP) in MegaWatts (e.g., 12.4 MW)
-        const frpVal = hotspot.frp !== undefined ? hotspot.frp : null;
+        const frpVal = hotspot.averageFRP !== undefined ? hotspot.averageFRP : (hotspot.frp !== undefined ? hotspot.frp : null);
         setElementText('event-frp', formatThermalValue(frpVal, 'MW'));
         setElementText('event-average-frp', formatThermalValue(frpVal, 'MW')); // Backwards compatibility mirror
 
@@ -434,7 +437,10 @@ function showHotspotDetails(hotspot) {
  * Reuses the output of Role 4's processing and Role 5's classification.
  */
 function renderEventHistory(event) {
-    if (event.persistence && event.persistence.firstDetection) {
+    if (event.firstDetection) {
+        setElementText('history-first-date', formatDateString(event.firstDetection));
+        setElementText('history-last-date', formatDateString(event.lastDetection));
+    } else if (event.persistence && event.persistence.firstDetection) {
         setElementText('history-first-date', formatDateString(event.persistence.firstDetection));
         setElementText('history-last-date', formatDateString(event.persistence.lastDetection));
     } else {
@@ -456,6 +462,15 @@ function renderPersistence(event) {
     let category = "LOW";
     let evidence = "1 observation";
 
+    if (event.persistenceScore !== undefined) {
+        score = event.persistenceScore;
+        category = "EVALUATED";
+        if (score > 80) category = "VERY HIGH";
+        else if (score > 50) category = "HIGH";
+        else if (score > 20) category = "MODERATE";
+        else category = "LOW";
+        evidence = `${event.uniqueDays || 'Multiple'} unique days`;
+    }
     // If Role 5 generated persistenceData during classification
     if (event.persistenceData) {
         score = event.persistenceData.persistenceScore;

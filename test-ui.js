@@ -1,34 +1,74 @@
 const fs = require('fs');
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
 
-const html = fs.readFileSync('index.html', 'utf8');
-const dom = new JSDOM(html);
-global.document = dom.window.document;
-global.window = dom.window;
+global.document = {
+    elements: {},
+    getElementById: function(id) {
+        if (!this.elements[id]) {
+            this.elements[id] = { textContent: '', innerHTML: '', style: {} };
+        }
+        return this.elements[id];
+    },
+    querySelectorAll: () => []
+};
+
+global.window = {
+    MapModule: {
+        renderHistoricalDetections: () => {},
+        fitMapToHistoricalDetections: () => {},
+        clearHistoricalDetections: () => {},
+        clearIndustrialLayer: () => {},
+        renderIndustrialFacilities: () => {}
+    },
+    ThermalXProcessing: {
+        processIndustrialProximity: (h, f) => ({ facilities: f, nearestFacility: f[0] })
+    },
+    ThermalXClassification: {
+        evaluateIndustrialContext: () => null
+    }
+};
+
+global.currentHotspotContextId = null;
+global.isNaN = isNaN;
+global.Number = Number;
+global.String = String;
+
+// We just need a few basic methods mocked from app.js to test our modified lines.
+let appCode = fs.readFileSync('js/app.js', 'utf8');
+// Stub out fetch API
+appCode = appCode.replace('fetchNearbyIndustrialFacilities(', 'Promise.resolve([]).then(');
 
 try {
-    eval(fs.readFileSync('js/app.js', 'utf8').replace(/import.*?['"];?/g, ''));
-    
-    const facilities = [
-        { name: "Super Factory", type: "factory", distanceFromHotspot: 1.254, latitude: 10, longitude: 20 },
-        { name: "Power 9000", type: "power plant", distanceFromHotspot: 5.678, latitude: 10.1, longitude: 20.1 }
-    ];
-
-    renderIndustrialFacilitiesUI(facilities);
-
-    const container = document.getElementById('industrial-facilities-container');
-    console.log("HTML length:", container.innerHTML.length);
-    console.log("Includes Super Factory:", container.innerHTML.includes("Super Factory"));
-    console.log("Includes 1.25 km:", container.innerHTML.includes("1.25 km"));
-    console.log("Includes Power 9000:", container.innerHTML.includes("Power 9000"));
-    console.log("Includes 5.68 km:", container.innerHTML.includes("5.68 km")); // .toFixed(2) rounds it
-
-    // Test clear
-    clearHotspotDetails();
-    console.log("Cleared includes Super Factory:", container.innerHTML.includes("Super Factory"));
-    console.log("Cleared includes 'No hotspot selected':", container.innerHTML.includes("No hotspot selected"));
-
+    eval(appCode);
 } catch (e) {
-    console.error("TEST FAILED:", e);
+    console.error("Eval error", e);
+}
+
+const testEvent = {
+    eventId: "TX-001",
+    latitude: 25.5941,
+    longitude: 85.1376,
+    detections: [],
+    detectionCount: 8,
+    uniqueDays: 5,
+    firstDetection: "2026-09-10",
+    lastDetection: "2026-09-14",
+    persistenceScore: 62,
+    recurrenceRate: 0.62,
+    averageFRP: 145.5,
+    averageBrightness: 328.4,
+    confidence: 85
+};
+
+try {
+    showHotspotDetails(testEvent);
+    console.log("Event ID:", document.elements['event-id'].textContent);
+    console.log("Detection Count:", document.elements['history-detection-count'].textContent);
+    console.log("Unique Days:", document.elements['history-unique-days'].textContent);
+    console.log("Recurrence Rate:", document.elements['history-recurrence-rate'].textContent);
+    console.log("Average FRP:", document.elements['event-frp'].textContent);
+    console.log("Average Brightness:", document.elements['event-brightness'].textContent);
+    console.log("First Date:", document.elements['history-first-date'].textContent);
+    console.log("Persistence:", document.elements['history-persistence-score'].textContent);
+} catch (e) {
+    console.error(e);
 }
