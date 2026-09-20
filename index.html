@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThermalX | Thermal Hotspot Intelligence Platform</title>
+    <title>ThermalX | Geospatial Intelligence Platform</title>
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     
     <!-- Core Styles -->
     <link rel="stylesheet" href="css/style.css">
@@ -13,396 +13,360 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- HEADER -->
-    <header class="tx-header">
-        <div class="tx-header-left">
-            <h1 class="tx-logo">THERMAL<span>X</span></h1>
-            <span class="tx-subtitle">Thermal Hotspot Intelligence Platform</span>
-        </div>
-        <div class="tx-header-right">
-            <div class="tx-live-status">
-                <span class="pulse-indicator"></span>
-                LIVE DATA
-            </div>
-            <button class="tx-mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Menu">
-                ☰
-            </button>
-        </div>
-    </header>
-
-    <!-- NAVIGATION -->
-    <nav class="tx-nav" id="main-nav">
-        <ul>
-            <li><a href="#dashboard" class="active">Dashboard</a></li>
-            <li><a href="#hotspots">Hotspots</a></li>
-            <li><a href="#intelligence">Intelligence</a></li>
-            <li><a href="#about">About</a></li>
-        </ul>
-    </nav>
-
-    <!-- MAIN DASHBOARD -->
-    <main class="tx-dashboard">
+    <div class="tx-app-shell">
         
-        <!-- DAY 1 ROLE 3 TEST SECTION -->
-        <section class="tx-test-section" style="background: #1e212b; padding: 15px; border-radius: 4px; border: 1px solid #333; margin-bottom: 20px;">
-            <h2 style="font-size: 1rem; color: #fff; margin-bottom: 10px;">ThermalX — Data Integration Test</h2>
-            <button id="btn-test-fetch" style="background: var(--tx-accent); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Load Demo FIRMS Data</button>
-            <span id="test-status-message" style="color: #aaa; font-size: 0.9rem;">Ready.</span>
-        </section>
-
-        <!-- STATISTICS CARDS -->
-        <section class="tx-statistics">
-            <div class="tx-stat-card">
-                <h3>TOTAL EVENTS</h3>
-                <div class="tx-stat-value" id="total-events">128</div>
+        <!-- GLOBAL HEADER -->
+        <header class="tx-header">
+            <div class="tx-header-left">
+                <h1 class="tx-logo">Thermal<span>X</span></h1>
+                <span class="tx-subtitle">From Orbit to a Safer Tomorrow</span>
             </div>
-            <div class="tx-stat-card">
-                <h3>PERSISTENT SOURCES</h3>
-                <div class="tx-stat-value" id="persistent-sources">24</div>
-            </div>
-            <div class="tx-stat-card">
-                <h3>INDUSTRIAL SOURCES</h3>
-                <div class="tx-stat-value" id="industrial-sources">17</div>
-            </div>
-            <div class="tx-stat-card tx-stat-card-highlight">
-                <h3>HIGH PRIORITY</h3>
-                <div class="tx-stat-value tx-text-accent" id="high-priority">8</div>
-            </div>
-        </section>
-
-        <!-- MAIN WORKSPACE -->
-        <section class="tx-workspace">
             
-            <!-- MAP CONTAINER -->
+            <div class="tx-search-bar">
+                <span style="color: var(--tx-text-muted);">🔍</span>
+                <input type="text" id="filter-search" placeholder="Search location, facility, event ID... (e.g., Bharuch, Refinery, TX-00421)">
+                <span style="color: var(--tx-text-muted); font-size: 12px; border: 1px solid var(--tx-border); padding: 2px 6px; border-radius: 4px;">⌘K</span>
+            </div>
+
+            <div class="tx-header-right">
+                <div class="tx-live-status">
+                    <span class="pulse-indicator"></span>
+                    LIVE DATA
+                    <span style="color: var(--tx-text-secondary); font-weight: normal; margin-left: 8px;">NASA FIRMS (VIIRS)</span>
+                </div>
+                <div style="display: flex; gap: 16px; align-items: center; border-left: 1px solid var(--tx-border); padding-left: 16px;">
+                    <button>🔔</button>
+                    <button>⚙️</button>
+                    <div style="width: 32px; height: 32px; background: var(--tx-brand-blue); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">NT</div>
+                </div>
+                <button class="tx-mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Menu">☰</button>
+            </div>
+        </header>
+
+        <!-- LEFT NAVIGATION RAIL -->
+        <nav class="tx-nav-rail" id="main-nav">
+            <a href="#home" class="tx-nav-item active">
+                <span class="tx-nav-icon">🏠</span>
+                <span class="tx-nav-label">Home</span>
+            </a>
+            <a href="#map" class="tx-nav-item">
+                <span class="tx-nav-icon">🗺️</span>
+                <span class="tx-nav-label">Live Map</span>
+            </a>
+            <a href="#list" class="tx-nav-item">
+                <span class="tx-nav-icon">📋</span>
+                <span class="tx-nav-label">Hotspots</span>
+            </a>
+            <a href="#analytics" class="tx-nav-item">
+                <span class="tx-nav-icon">📊</span>
+                <span class="tx-nav-label">Analytics</span>
+            </a>
+            <a href="#industrial" class="tx-nav-item">
+                <span class="tx-nav-icon">🏭</span>
+                <span class="tx-nav-label">Sites</span>
+            </a>
+            <a href="#reports" class="tx-nav-item">
+                <span class="tx-nav-icon">📄</span>
+                <span class="tx-nav-label">Reports</span>
+            </a>
+            <div style="flex: 1;"></div>
+            <button id="btn-test-fetch" title="Load Demo Data" style="margin-bottom: 20px; font-size: 20px;">🔄</button>
+            <span id="test-status-message" style="display:none;"></span>
+        </nav>
+
+        <!-- MAIN MAP WORKSPACE -->
+        <main class="tx-main-workspace">
+            
+            <!-- MAP LAYER -->
             <div class="tx-map-container">
-                <div id="map">
-                    <!-- Leaflet map will be injected here by Role 2 -->
-                    <div class="tx-map-placeholder">
-                        <p>Map Module initializing...</p>
+                <div id="map"></div>
+            </div>
+
+            <!-- TOP KPI STRIP -->
+            <div class="tx-kpi-strip">
+                <div class="tx-card tx-kpi-card">
+                    <div class="tx-kpi-icon icon-red">🔥</div>
+                    <div class="tx-kpi-content">
+                        <div class="tx-kpi-value" id="total-events">—</div>
+                        <div class="tx-kpi-label">Active Anomalies</div>
+                    </div>
+                </div>
+                <div class="tx-card tx-kpi-card">
+                    <div class="tx-kpi-icon icon-orange">🏭</div>
+                    <div class="tx-kpi-content">
+                        <div class="tx-kpi-value" id="industrial-sources">—</div>
+                        <div class="tx-kpi-label">High-Risk Industrial</div>
+                    </div>
+                </div>
+                <div class="tx-card tx-kpi-card">
+                    <div class="tx-kpi-icon icon-green">🌳</div>
+                    <div class="tx-kpi-content">
+                        <div class="tx-kpi-value" id="persistent-sources">—</div>
+                        <div class="tx-kpi-label">Wildfires (Mock)</div>
+                    </div>
+                </div>
+                <div class="tx-card tx-kpi-card">
+                    <div class="tx-kpi-icon icon-purple">⚠️</div>
+                    <div class="tx-kpi-content">
+                        <div class="tx-kpi-value" id="high-priority">—</div>
+                        <div class="tx-kpi-label">High Priority</div>
                     </div>
                 </div>
             </div>
 
-            <!-- ==================== THERMAL EVENT PANEL ==================== -->
-            <!-- 
-                What this section does:
-                This sidebar panel displays detailed information about a selected thermal event (a cluster of hotspots over time).
-                It manages multiple UI states: Empty (no selection), Loading (fetching data),
-                Error (something went wrong), and Data Populated (showing hotspot details).
+            <!-- FLOATING LEFT PANEL (LAYERS) -->
+            <div class="tx-floating-panel tx-map-layers-panel">
+                <div class="panel-title">Map Layers</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                    <label><input type="checkbox" checked> Thermal Hotspots (FIRMS)</label>
+                    <label><input type="checkbox" checked> Industrial Sites (OSM)</label>
+                    <label><input type="checkbox"> Land Cover (ESA)</label>
+                    <label><input type="checkbox" checked> Sentinel-2 Imagery</label>
+                    <label><input type="checkbox" checked> State Boundaries</label>
+                </div>
+                <div class="panel-title" style="margin-top: 16px;">Filters (Hidden IDs)</div>
+                <div style="display:none;">
+                    <input type="text" id="filter-date-from">
+                    <input type="text" id="filter-date-to">
+                    <input type="text" id="filter-classification">
+                    <input type="text" id="filter-persistence">
+                    <input type="text" id="filter-confidence">
+                    <button id="btn-reset-filters">Reset</button>
+                </div>
+                <div style="font-size: 12px; color: var(--tx-text-muted);">Filter logic preserved internally.</div>
+            </div>
 
-                Why it is needed:
-                When users or SIH judges click a hotspot marker on the Leaflet map, this panel
-                shows all the vital satellite, thermal, geographic, and classification details in
-                one readable dashboard view.
+            
+            <!-- RECENT HOTSPOTS TABLE (PRIORITY DASHBOARD) -->
+            <div class="tx-floating-panel tx-hotspots-table-panel" id="recent-hotspots-panel">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="panel-title" style="margin: 0;">Recent Hotspots</div>
+                    <a href="#" style="font-size: 12px; font-weight: 600;">View All →</a>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="tx-data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>TIME</th>
+                                <th>LOCATION</th>
+                                <th>FRP (MW)</th>
+                                <th>CONFIDENCE</th>
+                                <th>CLASS</th>
+                                <th>PERSISTENCE</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hotspot-table-body">
+                            <!-- Populated by JS -->
+                            <tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--tx-text-muted);">No hotspots loaded yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                How it connects to the rest of the application:
-                JavaScript functions in js/app.js (like showHotspotDetails and clearHotspotDetails)
-                update the text inside these HTML span elements when markers are clicked on the Leaflet map.
-            -->
-            <aside class="tx-event-panel" id="event-panel" aria-label="Thermal Event Panel">
+            <!-- RIGHT EVENT INSPECTION PANEL -->
+            <div class="tx-inspection-panel" id="event-panel">
                 
-                <!-- Panel Header: Displays the title and a close button to deselect the hotspot -->
-                <div class="tx-panel-header">
-                    <div class="tx-panel-header-title">
-                        <span class="tx-panel-icon">🔥</span>
-                        <h2>THERMAL EVENT</h2>
-                    </div>
-                    <!-- Close button allows the user to dismiss the selection and return to empty state -->
-                    <button class="tx-panel-close-btn" id="btn-close-details" title="Deselect hotspot" aria-label="Close hotspot details">✕</button>
+                <!-- STATE: EMPTY -->
+                <div id="event-state-empty" style="padding: 40px; text-align: center; color: var(--tx-text-muted);">
+                    <div style="font-size: 40px; margin-bottom: 16px;">🔍</div>
+                    <p>Select a thermal event on the map to inspect its intelligence dossier.</p>
                 </div>
 
-                <!-- STATE 1: Empty State (Shown when no hotspot is currently clicked or selected) -->
-                <div id="event-state-empty" class="tx-panel-state active">
-                    <div class="tx-empty-icon">🛰️</div>
-                    <p class="tx-empty-text">Select a thermal event</p>
-                    <p class="tx-empty-subtext">Choose an event from the map to view its history, persistence, and detection details.</p>
+                <!-- STATE: LOADING -->
+                <div id="event-state-loading" style="display: none; padding: 40px; text-align: center;">
+                    <div class="pulse-indicator" style="margin: 0 auto; width: 24px; height: 24px;"></div>
+                    <p style="margin-top: 16px; font-weight: 500;">Analyzing geospatial data...</p>
                 </div>
 
-                <!-- STATE 2: Loading State (Shown while waiting for hotspot data to load) -->
-                <div id="event-state-loading" class="tx-panel-state">
-                    <div class="tx-spinner"></div>
-                    <p class="tx-loading-text">Loading thermal data...</p>
+                <!-- STATE: ERROR -->
+                <div id="event-state-error" style="display: none; padding: 40px; text-align: center; color: var(--tx-critical-red);">
+                    <div style="font-size: 40px; margin-bottom: 16px;">⚠️</div>
+                    <p id="event-error-message">Failed to load data.</p>
                 </div>
 
-                <!-- STATE 3: Error State (Shown if hotspot data fails to display or is corrupted) -->
-                <div id="event-state-error" class="tx-panel-state">
-                    <div class="tx-error-icon">⚠️</div>
-                    <p class="tx-error-text" id="event-error-message">Unable to load hotspot details. Please try again.</p>
-                </div>
-
-                <!-- STATE 4: Data Populated State (Shown when a valid hotspot is selected) -->
-                <div id="event-state-data" class="tx-panel-state">
+                <!-- STATE: DATA -->
+                <div id="event-state-data" style="display: none; flex: 1; flex-direction: column; overflow: hidden;">
                     
-                    <!-- Card 1: Header Summary (Hotspot ID, status badge, priority, and classification) -->
-                    <div class="tx-detail-card tx-summary-card">
-                        <div class="tx-summary-header">
+                    <div class="tx-panel-header">
+                        <div class="tx-panel-header-top">
+                            <div class="tx-event-id-group">
+                                <div class="tx-event-icon">🏭</div>
+                                <div>
+                                    <div class="tx-event-id" id="event-id">TX-00421</div>
+                                    <div style="display: flex; gap: 8px; margin-top: 4px;">
+                                        <span class="tx-badge tx-badge-pending" id="event-classification">Pending</span>
+                                        <span class="tx-badge" style="background: rgba(229,57,53,0.1); color: var(--tx-critical-red);" id="event-priority">Normal</span>
+                                        <span class="tx-badge" style="background: rgba(22,163,106,0.1); color: var(--tx-success-green);" id="event-status">Detected</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="tx-close-btn" id="btn-close-details">✕</button>
+                        </div>
+                    </div>
+
+                    <!-- TABS -->
+                    <div class="tx-tabs">
+                        <div class="tx-tab active" onclick="switchTab('overview')">Overview</div>
+                        <div class="tx-tab" onclick="switchTab('satellite')">Satellite</div>
+                        <div class="tx-tab" onclick="switchTab('context')">Industrial Context</div>
+                        <div class="tx-tab" onclick="switchTab('ai')">AI Analysis</div>
+                    </div>
+
+                    <!-- TAB CONTENT AREA -->
+                    <div class="tx-panel-content">
+                        
+                        <!-- TAB: OVERVIEW -->
+                        <div id="tab-overview" class="tx-tab-content active">
                             <div>
-                                <span class="tx-card-label">EVENT ID</span>
-                                <h3 class="tx-hotspot-id" id="event-id">—</h3>
+                                <div style="display: flex; gap: 8px; color: var(--tx-text-secondary); font-size: 13px; margin-bottom: 4px;">
+                                    <span>📍</span> <span id="event-location">—</span>
+                                </div>
+                                <div style="display: flex; gap: 16px; color: var(--tx-text-muted); font-size: 12px; font-family: var(--tx-font-mono);">
+                                    <span><span id="event-lat">0.0</span>° N</span>
+                                    <span><span id="event-lng">0.0</span>° E</span>
+                                    <span><span id="event-date">—</span> (<span id="event-satellite">—</span>)</span>
+                                </div>
                             </div>
-                            <div class="tx-badge-container">
-                                <span class="tx-badge tx-badge-status" id="event-status">Detected</span>
-                                <span class="tx-badge" id="event-priority">Normal</span>
-                            </div>
-                        </div>
-                        <div class="tx-summary-sub">
-                            <span class="tx-label">Classification:</span>
-                            <span class="tx-badge tx-badge-pending" id="event-classification">Pending</span>
-                        </div>
-                    </div>
 
-                    <!-- Card 2: Thermal Intelligence (Brightness, FRP power, and satellite confidence) -->
-                    <div class="tx-detail-card">
-                        <div class="tx-card-title">
-                            <span class="tx-card-icon">⚡</span>
-                            <h4>THERMAL DATA</h4>
-                        </div>
-                        <div class="tx-data-grid">
-                            <div class="tx-data-item">
-                                <span class="tx-label">Detection Count</span>
-                                <span class="tx-value" id="history-detection-count">—</span>
+                            <div class="tx-metrics-grid">
+                                <div class="tx-metric-box">
+                                    <div class="tx-metric-label">Avg FRP</div>
+                                    <div class="tx-metric-value" id="event-average-frp">—</div>
+                                    <div style="display: none;" id="event-frp"></div>
+                                </div>
+                                <div class="tx-metric-box">
+                                    <div class="tx-metric-label">Detections</div>
+                                    <div class="tx-metric-value" id="history-detection-count">—</div>
+                                </div>
+                                <div class="tx-metric-box">
+                                    <div class="tx-metric-label">Persistence</div>
+                                    <div class="tx-metric-value"><span id="history-unique-days">—</span> Days</div>
+                                    <div style="display: none;" id="history-persistence-score"></div>
+                                    <div style="display: none;" id="history-persistence-category"></div>
+                                </div>
+                                <div class="tx-metric-box">
+                                    <div class="tx-metric-label">Confidence</div>
+                                    <div class="tx-metric-value" id="event-confidence">—</div>
+                                    <div style="display: none;" id="event-quality"></div>
+                                </div>
                             </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Unique Days</span>
-                                <span class="tx-value" id="history-unique-days">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Recurrence Rate</span>
-                                <span class="tx-value" id="history-recurrence-rate">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Average Brightness</span>
-                                <span class="tx-value tx-value-highlight" id="event-brightness">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Average FRP</span>
-                                <span class="tx-value tx-value-highlight" id="event-frp">—</span>
-                                <!-- Hidden mirror for backwards compatibility with Day 1 ID -->
-                                <span id="event-average-frp" style="display: none;">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Confidence</span>
-                                <span class="tx-value" id="event-confidence">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Status</span>
-                                <span class="tx-value" id="event-quality">Active</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Card 3: Location Information (Latitude, Longitude, and proximity) -->
-                    <div class="tx-detail-card">
-                        <div class="tx-card-title">
-                            <span class="tx-card-icon">📍</span>
-                            <h4>LOCATION</h4>
-                        </div>
-                        <div class="tx-data-grid">
-                            <div class="tx-data-item">
-                                <span class="tx-label">Latitude</span>
-                                <span class="tx-value" id="event-lat">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Longitude</span>
-                                <span class="tx-value" id="event-lng">—</span>
-                            </div>
-                        </div>
-                        <div class="tx-data-row tx-mt-xs">
-                            <span class="tx-label">Coordinates</span>
-                            <span class="tx-value" id="event-location">—</span>
-                        </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Industrial Proximity</span>
-                            <span class="tx-value" id="event-facility">Not available</span>
-                        </div>
-                        <div class="tx-data-row">
-                            <span class="tx-label">Nearest Distance</span>
-                            <span class="tx-value" id="event-distance">Not available</span>
-                        </div>
-                    </div>
-
-                    <!-- Card 4: Detection Information (Date, Time, Satellite platform) -->
-                    <div class="tx-detail-card">
-                        <div class="tx-card-title">
-                            <span class="tx-card-icon">🛰️</span>
-                            <h4>CURRENT DETECTION</h4>
-                        </div>
-                        <div class="tx-data-grid">
-                            <div class="tx-data-item">
-                                <span class="tx-label">Date</span>
-                                <span class="tx-value" id="event-date">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Satellite</span>
-                                <span class="tx-value" id="event-satellite">—</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ========================================================== -->
-                    <!-- DAY 3 ROLE 1: EVENT HISTORY PANEL -->
-                    <!-- ========================================================== -->
-                    <!-- 
-                        Event History Panel:
-                        Displays the selected thermal event's first detection, last detection,
-                        detection count, persistence score, and historical timeline.
-                    -->
-                    <div class="tx-detail-card" id="event-history-panel">
-                        <div class="tx-card-title">
-                            <span class="tx-card-icon">⏳</span>
-                            <h4>EVENT HISTORY</h4>
-                        </div>
-                        
-                        <div class="tx-data-grid">
-                            <div class="tx-data-item">
-                                <span class="tx-label">First Detection</span>
-                                <span class="tx-value" id="history-first-date">—</span>
-                            </div>
-                            <div class="tx-data-item">
-                                <span class="tx-label">Last Detection</span>
-                                <span class="tx-value" id="history-last-date">—</span>
+                            <!-- Hidden Elements needed by JS but not displayed cleanly in Overview tab -->
+                            <div style="display:none;">
+                                <span id="history-recurrence-rate"></span>
+                                <span id="event-brightness"></span>
+                                <span id="event-history-panel"></span>
+                                <span id="history-first-date"></span>
+                                <span id="history-last-date"></span>
+                                <span id="history-persistence-evidence"></span>
+                                <span id="history-timeline-content"></span>
                             </div>
                         </div>
 
-                        <!-- 
-                            Persistence Card
-                            Visually displays the recurrence rate of the fire.
-                        -->
-                        <div class="tx-persistence-card">
-                            <h5 style="color: #aaa; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 5px; text-transform: uppercase;">Prototype Persistence</h5>
-                            <div style="font-size: 2rem; font-weight: bold; color: var(--tx-accent);" id="history-persistence-score">—%</div>
-                            <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 5px;" id="history-persistence-category">—</div>
-                            <div style="font-size: 0.85rem; color: #888;" id="history-persistence-evidence">—</div>
+                        <!-- TAB: SATELLITE (Mock Visual) -->
+                        <div id="tab-satellite" class="tx-tab-content">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Satellite Evidence (Sentinel-2 SWIR)</div>
+                            <div style="height: 150px; background: #eee; border-radius: var(--tx-radius-md); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: url('https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=400&auto=format&fit=crop') center/cover;"></div>
+                                <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 50%; background: url('https://images.unsplash.com/photo-1638202993928-7267aad84c31?q=80&w=400&auto=format&fit=crop') center/cover;"></div>
+                                <div style="position: absolute; width: 4px; background: white; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>
+                                <div style="position: absolute; width: 32px; height: 32px; background: white; border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--tx-brand-blue); box-shadow: var(--tx-shadow-sm);">&lt;&gt;</div>
+                                <div style="position: absolute; bottom: 8px; left: 8px; color: white; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px black;">PRE-EVENT</div>
+                                <div style="position: absolute; bottom: 8px; right: 8px; color: white; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px black;">POST-EVENT</div>
+                            </div>
                         </div>
 
-                        <!-- 
-                            Detection Timeline
-                            Shows a chronological list of past detections.
-                        -->
-                        <div class="tx-timeline-container">
-                            <h5 style="color: #aaa; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase;">Detection Timeline</h5>
-                            <div id="history-timeline-content">
-                                <div style="color: #888; font-size: 0.85rem; font-style: italic;">No historical detections available.</div>
+                        <!-- TAB: INDUSTRIAL CONTEXT -->
+                        <div id="tab-context" class="tx-tab-content">
+                            <div id="industrial-context-panel">
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Nearby Infrastructure</div>
+                                
+                                <!-- Closest Facility Highlight -->
+                                <div style="padding: 12px; background: var(--tx-bg-surface-secondary); border: 1px solid var(--tx-border-light); border-radius: var(--tx-radius-md); margin-bottom: 16px;">
+                                    <div style="display: flex; gap: 12px; align-items: center;">
+                                        <div style="width: 32px; height: 32px; background: rgba(22, 163, 106, 0.1); color: var(--tx-success-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">🏭</div>
+                                        <div>
+                                            <div id="event-facility" style="font-size: 13px; font-weight: 600;">—</div>
+                                            <div id="event-distance" style="font-size: 12px; color: var(--tx-text-secondary); font-family: var(--tx-font-mono);">—</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="industrial-facilities-container" style="font-size: 13px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: AI ANALYSIS -->
+                        <div id="tab-ai" class="tx-tab-content">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Why This Classification?</div>
+                            <div id="event-evidence" style="font-size: 13px; color: var(--tx-text-secondary); margin-bottom: 24px; padding-left: 12px; border-left: 2px solid var(--tx-brand-blue);">
+                                Classification pending ML analysis.
+                            </div>
+                            
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Model Assessment</div>
+                            <div style="font-size: 18px; font-weight: bold; color: var(--tx-success-green); margin-bottom: 16px; text-align: center;">
+                                <span id="event-probability">—</span> Confidence
+                            </div>
+                            
+                            <div id="event-probabilities-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Will be populated by JS -->
+                                <div style="text-align: center; font-size: 12px; color: var(--tx-text-muted);">Waiting for prediction...</div>
+                            </div>
+                            
+                            <div style="margin-top: 16px; font-size: 11px; color: var(--tx-text-muted); text-align: center; font-style: italic;">
+                                AI-assisted classification — requires human verification.
                             </div>
                         </div>
                     </div>
 
-                    <!-- ========================================================== -->
-                    <!-- DAY 4 ROLE 1: INDUSTRIAL CONTEXT PANEL -->
-                    <!-- ========================================================== -->
-                    <!-- 
-                        Industrial Context Panel:
-                        Displays nearby industrial facilities for the selected
-                        thermal hotspot to help evaluate if the fire is industrial.
-                    -->
-                    <div class="tx-detail-card" id="industrial-context-panel">
-                        <div class="tx-card-title">
-                            <span class="tx-card-icon">🏭</span>
-                            <h4>INDUSTRIAL CONTEXT</h4>
-                        </div>
-                        
-                        <!-- Explanatory text -->
-                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 15px; font-style: italic; line-height: 1.4; border-left: 2px solid #3b82f6; padding-left: 8px;">
-                            Nearby industrial facilities are shown as contextual evidence. Proximity alone does not prove that a facility caused the thermal event.
-                        </div>
-
-                        <!-- Container for dynamic facility cards -->
-                        <div id="industrial-facilities-container">
-                            <div style="color: #888; font-size: 0.85rem; font-style: italic;">No hotspot selected.</div>
-                        </div>
+                    <div class="tx-panel-footer">
+                        <button class="tx-btn tx-btn-outline">Mark Review</button>
+                        <button class="tx-btn tx-btn-outline">Export</button>
+                        <button class="tx-btn tx-btn-danger">Escalate</button>
                     </div>
-
-                    <!-- Card 5: Classification Details & Evidence (Rule-based heuristics from Role 5) -->
-                    <div class="tx-detail-card">
-                        <div class="tx-card-title">
-                            <span class="tx-card-icon">🔍</span>
-                            <h4>CLASSIFICATION INFO</h4>
-                        </div>
-                        <div class="tx-data-row tx-column">
-                            <span class="tx-label">Evidence / Heuristic Notes</span>
-                            <span class="tx-value tx-evidence-text" id="event-evidence">Classification pending Role 5 analysis.</span>
-                        </div>
-                    </div>
-
                 </div>
-            </aside>
-        </section>
-
-        <!-- FILTERS -->
-        <section class="tx-filters">
-            <div class="tx-filters-header">
-                <h2>FILTER HOTSPOTS</h2>
             </div>
-            <div class="tx-filters-grid">
-                
-                <div class="tx-filter-control">
-                    <label for="filter-search">Search</label>
-                    <input type="text" id="filter-search" placeholder="Search hotspot ID or facility...">
-                </div>
 
-                <div class="tx-filter-control tx-filter-date-group">
-                    <label>Date Range</label>
-                    <div class="tx-date-inputs">
-                        <input type="date" id="filter-date-from" aria-label="From Date">
-                        <span>to</span>
-                        <input type="date" id="filter-date-to" aria-label="To Date">
-                    </div>
+            <!-- BOTTOM TIMELINE DOCK -->
+            <div class="tx-timeline-dock">
+                <div style="font-size: 14px; color: var(--tx-text-secondary);">📅 Timeline</div>
+                <div class="tx-timeline-controls">
+                    <button class="tx-time-btn">24H</button>
+                    <button class="tx-time-btn">7D</button>
+                    <button class="tx-time-btn active">30D</button>
+                    <button class="tx-time-btn">Custom</button>
                 </div>
-
-                <div class="tx-filter-control">
-                    <label for="filter-classification">Classification</label>
-                    <select id="filter-classification">
-                        <option value="all">All Classifications</option>
-                        <option value="industrial">Industrial</option>
-                        <option value="wildfire">Wildfire</option>
-                        <option value="agriculture">Agriculture</option>
-                        <option value="other">Other</option>
-                        <option value="unknown">Unknown</option>
-                    </select>
+                <button style="font-size: 20px; color: var(--tx-brand-blue);">▶</button>
+                <div class="tx-timeline-track">
+                    <div class="tx-timeline-progress"></div>
+                    <div class="tx-timeline-thumb"></div>
                 </div>
-
-                <div class="tx-filter-control">
-                    <label for="filter-persistence">Persistence</label>
-                    <select id="filter-persistence">
-                        <option value="all">All Levels</option>
-                        <option value="high">High (>5 days)</option>
-                        <option value="medium">Medium (2-5 days)</option>
-                        <option value="low">Low (1 day)</option>
-                    </select>
-                </div>
-
-                <div class="tx-filter-control">
-                    <label for="filter-confidence">Confidence</label>
-                    <select id="filter-confidence">
-                        <option value="all">All Levels</option>
-                        <option value="high">High (>80%)</option>
-                        <option value="medium">Medium (50-80%)</option>
-                        <option value="low">Low (<50%)</option>
-                    </select>
-                </div>
-
-                <div class="tx-filter-actions">
-                    <button type="button" class="tx-btn-reset" id="btn-reset-filters">Reset Filters</button>
-                </div>
-
+                <div style="font-size: 12px; font-family: var(--tx-font-mono); color: var(--tx-text-secondary);">24 Nov 2026</div>
             </div>
-        </section>
 
-    </main>
+        </main>
+    </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <!-- Turf.js (GIS/Spatial processing - Added Day 3 Role 4) -->
-    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
-
-    <!-- Core App Logic -->
-    <script src="js/map.js"></script>
-    <script type="module" src="js/app.js"></script>
-    <!-- Future roles will include their scripts below -->
-    <!-- <script src="js/api.js"></script> -->
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/processing.js"></script>
     <script src="js/classification.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Simple script for tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tx-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tx-tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+    </script>
 </body>
 </html>
-

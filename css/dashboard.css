@@ -1,749 +1,325 @@
 /* ==========================================================================
-   ThermalX Dashboard Layout & Components
+   ThermalX Dashboard - App Shell Layout & Overlays
    ========================================================================== */
 
-.tx-dashboard {
-    padding: var(--tx-space-lg) var(--tx-space-xl);
-    display: flex;
-    flex-direction: column;
-    gap: var(--tx-space-lg);
-    max-width: 1600px;
-    margin: 0 auto;
-}
-
-/* ==========================================================================
-   Statistics Cards
-   ========================================================================== */
-
-.tx-statistics {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--tx-space-lg);
-}
-
-.tx-stat-card {
-    background-color: var(--tx-bg-surface);
-    border: 1px solid var(--tx-border);
-    border-radius: 4px;
-    padding: var(--tx-space-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--tx-space-sm);
-    transition: transform var(--tx-transition-fast), border-color var(--tx-transition-fast);
-}
-
-.tx-stat-card:hover {
-    border-color: var(--tx-border-light);
-    transform: translateY(-2px);
-}
-
-.tx-stat-card h3 {
-    font-size: 0.75rem;
-    color: var(--tx-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.tx-stat-value {
-    font-family: var(--tx-font-mono);
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--tx-text-primary);
-}
-
-.tx-stat-card-highlight {
-    border-color: var(--tx-accent-dim);
-    background-color: rgba(229, 57, 53, 0.05);
-}
-
-/* ==========================================================================
-   Main Workspace (Map + Details)
-   ========================================================================== */
-
-.tx-workspace {
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: var(--tx-space-lg);
-    height: 600px; /* Fixed height for dashboard feel */
-}
-
-/* Map Container */
-.tx-map-container {
-    background-color: var(--tx-bg-surface);
-    border: 1px solid var(--tx-border);
-    border-radius: 4px;
+.tx-main-workspace {
+    grid-column: 2;
+    grid-row: 2;
     position: relative;
     overflow: hidden;
+}
+
+/* ==========================================================================
+   Map Container
+   ========================================================================== */
+.tx-map-container {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
 }
 
 #map {
     width: 100%;
     height: 100%;
-    background-color: #12141a; /* Dark map fallback */
-}
-
-.tx-map-placeholder {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: var(--tx-text-muted);
-    font-family: var(--tx-font-mono);
-    font-size: 0.875rem;
-}
-
-/* ============================================================
-   HOTSPOT DETAILS PANEL
-   This section controls the appearance of the selected
-   hotspot information panel.
-   ============================================================ */
-
-/* The main sidebar container for hotspot details */
-.tx-event-panel {
-    background-color: var(--tx-bg-surface);
-    border: 1px solid var(--tx-border);
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Panel Header: sticky top bar with title and close button */
-.tx-panel-header {
-    padding: var(--tx-space-md) var(--tx-space-lg);
-    border-bottom: 1px solid var(--tx-border);
-    background-color: var(--tx-bg-surface-elevated);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* Title container with icon and text */
-.tx-panel-header-title {
-    display: flex;
-    align-items: center;
-    gap: var(--tx-space-sm);
-}
-
-.tx-panel-icon {
-    font-size: 1.1rem;
-}
-
-.tx-panel-header h2 {
-    font-size: 0.875rem;
-    color: var(--tx-text-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: 0;
-}
-
-/* Close/Deselect button on the panel header */
-.tx-panel-close-btn {
-    background: transparent;
-    color: var(--tx-text-secondary);
-    border: 1px solid transparent;
-    border-radius: 4px;
-    font-size: 1rem;
-    line-height: 1;
-    padding: 4px 8px;
-    cursor: pointer;
-    transition: all var(--tx-transition-fast);
-}
-
-.tx-panel-close-btn:hover {
-    color: var(--tx-text-primary);
-    background-color: var(--tx-bg-surface-hover);
-    border-color: var(--tx-border);
-}
-
-/* Panel States container */
-.tx-panel-state {
-    display: none;
-    padding: var(--tx-space-md);
-    flex-grow: 1;
-}
-
-.tx-panel-state.active {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Empty, Loading, and Error States Centering */
-#event-state-empty, 
-#event-state-loading, 
-#event-state-error {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    gap: var(--tx-space-sm);
-    min-height: 280px;
-}
-
-.tx-empty-icon, 
-.tx-error-icon {
-    font-size: 2.2rem;
-    line-height: 1;
-    margin-bottom: var(--tx-space-xs);
-}
-
-.tx-empty-text {
-    color: var(--tx-text-primary);
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.tx-empty-subtext {
-    font-size: 0.825rem;
-    color: var(--tx-text-muted);
-    max-width: 240px;
-    line-height: 1.4;
-}
-
-/* Loading Spinner */
-.tx-spinner {
-    width: 28px;
-    height: 28px;
-    border: 3px solid var(--tx-border-light);
-    border-top-color: var(--tx-accent);
-    border-radius: 50%;
-    animation: spin 0.9s linear infinite;
-    margin-bottom: var(--tx-space-xs);
-}
-
-.tx-loading-text {
-    font-size: 0.85rem;
-    color: var(--tx-text-secondary);
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Error State text */
-.tx-error-text {
-    color: #f87171;
-    font-size: 0.875rem;
-    font-weight: 500;
-    max-width: 240px;
-}
-
-/* Data State Container */
-#event-state-data {
-    display: none;
-    flex-direction: column;
-    gap: var(--tx-space-sm);
-    padding: var(--tx-space-md);
-}
-
-#event-state-data.active {
-    display: flex;
-}
-
-/* ------------------------------------------------------------
-   HOTSPOT DETAIL CARDS
-   Each category of information is housed in a clean card.
-   ------------------------------------------------------------ */
-.tx-detail-card {
-    background-color: var(--tx-bg-surface-elevated);
-    border: 1px solid var(--tx-border);
-    border-radius: 6px;
-    padding: var(--tx-space-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--tx-space-xs);
-    transition: border-color var(--tx-transition-fast);
-}
-
-.tx-detail-card:hover {
-    border-color: var(--tx-border-light);
-}
-
-/* ============================================================
-   DAY 3 ROLE 1: EVENT HISTORY & TIMELINE STYLES
-   ============================================================ */
-
-/* 
- * Persistence Card
- * Highlights the persistence score.
- */
-.tx-persistence-card {
-    background-color: var(--tx-bg-base);
-    border: 1px solid var(--tx-border);
-    border-radius: 4px;
-    padding: var(--tx-space-md);
-    margin-top: var(--tx-space-sm);
-    text-align: center;
-}
-
-/*
- * Detection Timeline
- * A visual chronological list of detections.
- */
-.tx-timeline-container {
-    margin-top: var(--tx-space-sm);
-    padding-top: var(--tx-space-sm);
-    border-top: 1px solid var(--tx-border);
-}
-
-.tx-timeline-item {
-    position: relative;
-    padding-left: 20px;
-    margin-bottom: 15px;
-    font-size: 0.85rem;
-}
-
-.tx-timeline-item:last-child {
-    margin-bottom: 0;
-}
-
-/* The vertical line for the timeline */
-.tx-timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 4px;
-    top: 5px;
-    bottom: -20px;
-    width: 2px;
-    background-color: var(--tx-border);
-}
-
-/* Remove line from the last item */
-.tx-timeline-item:last-child::before {
-    display: none;
-}
-
-/* The timeline dot */
-.tx-timeline-item::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 5px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--tx-accent);
-    border: 2px solid var(--tx-bg-surface-elevated);
-}
-
-.tx-timeline-date {
-    font-weight: bold;
-    color: var(--tx-text-primary);
-}
-
-.tx-timeline-details {
-    color: var(--tx-text-secondary);
-    font-size: 0.75rem;
-    margin-top: 2px;
-}
-
-/* Summary Card Highlight */
-.tx-summary-card {
-    border-left: 3px solid var(--tx-accent);
-    background-color: rgba(26, 29, 36, 0.85);
-}
-
-.tx-summary-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.tx-card-label {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    color: var(--tx-text-secondary);
-    letter-spacing: 0.05em;
-    font-weight: 600;
-}
-
-.tx-hotspot-id {
-    font-size: 1.15rem;
-    font-family: var(--tx-font-mono);
-    color: var(--tx-text-primary);
-    font-weight: 700;
-    margin-top: 2px;
-}
-
-.tx-summary-sub {
-    display: flex;
-    align-items: center;
-    gap: var(--tx-space-sm);
-    margin-top: var(--tx-space-xs);
-    padding-top: var(--tx-space-xs);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Card Titles */
-.tx-card-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border-bottom: 1px solid var(--tx-border);
-    padding-bottom: 6px;
-    margin-bottom: 4px;
-}
-
-.tx-card-icon {
-    font-size: 0.85rem;
-}
-
-.tx-card-title h4 {
-    font-size: 0.72rem;
-    color: var(--tx-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 600;
-    margin: 0;
-}
-
-/* Grid Layout for compact 2-column metrics */
-.tx-data-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--tx-space-sm);
-}
-
-.tx-data-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.tx-data-item .tx-label {
-    font-size: 0.72rem;
-    color: var(--tx-text-secondary);
-}
-
-.tx-data-item .tx-value {
-    font-family: var(--tx-font-mono);
-    font-size: 0.875rem;
-    color: var(--tx-text-primary);
-    font-weight: 600;
-}
-
-/* Key metric highlights (Brightness & FRP) */
-.tx-value-highlight {
-    color: #fbbf24 !important;
-    font-weight: 700 !important;
-}
-
-/* Generic key-value rows */
-.tx-data-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.825rem;
-    padding: 2px 0;
-}
-
-.tx-data-row.tx-column {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--tx-space-xs);
-}
-
-.tx-mt-xs {
-    margin-top: 4px;
-}
-
-.tx-label {
-    color: var(--tx-text-secondary);
-    font-size: 0.78rem;
-}
-
-.tx-value {
-    color: var(--tx-text-primary);
-    font-family: var(--tx-font-mono);
-    font-size: 0.825rem;
-    text-align: right;
-}
-
-.tx-column .tx-value {
-    text-align: left;
-}
-
-/* Evidence / Heuristics text container */
-.tx-evidence-text {
-    font-size: 0.78rem;
-    line-height: 1.45;
-    color: var(--tx-text-secondary);
-    background-color: var(--tx-bg-base);
-    padding: var(--tx-space-sm);
-    border-radius: 4px;
-    border: 1px solid var(--tx-border);
-    word-break: break-word;
-}
-
-/* ------------------------------------------------------------
-   BADGES & STATUS INDICATORS
-   ------------------------------------------------------------ */
-.tx-badge-container {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.tx-badge {
-    background-color: var(--tx-border);
-    color: var(--tx-text-primary);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-/* Status: Detected */
-.tx-badge-status {
-    background-color: rgba(52, 211, 153, 0.15);
-    color: #34d399;
-    border: 1px solid rgba(52, 211, 153, 0.3);
-}
-
-/* Classification: Pending */
-.tx-badge-pending {
-    background-color: rgba(251, 191, 36, 0.15);
-    color: #fbbf24;
-    border: 1px solid rgba(251, 191, 36, 0.3);
-}
-
-/* Classification: Industrial */
-.tx-badge-industrial {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.4);
-}
-
-/* Classification: Wildfire */
-.tx-badge-wildfire {
-    background-color: rgba(249, 115, 22, 0.2);
-    color: #fb923c;
-    border: 1px solid rgba(249, 115, 22, 0.4);
-}
-
-/* Classification: Agricultural */
-.tx-badge-agriculture {
-    background-color: rgba(168, 85, 247, 0.2);
-    color: #c084fc;
-    border: 1px solid rgba(168, 85, 247, 0.4);
-}
-
-/* Priority variations */
-.tx-priority-high {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.4);
-}
-
-.tx-priority-medium,
-.tx-priority-normal {
-    background-color: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.4);
-}
-
-.tx-priority-low {
-    background-color: rgba(148, 163, 184, 0.2);
-    color: #94a3b8;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-}
-
-/* ============================================================
-   LEAFLET MAP POPUP STYLES (DARK THEME)
-   Overrides Leaflet's default white popups to match the dark UI.
-   ============================================================ */
-.leaflet-popup-content-wrapper {
-    background-color: #1a1d24 !important;
-    color: #e2e8f0 !important;
-    border: 1px solid #334155 !important;
-    border-radius: 6px !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
-    padding: 0 !important;
-}
-
-.leaflet-popup-content {
-    margin: 12px 14px !important;
-    line-height: 1.4 !important;
-}
-
-.leaflet-popup-tip {
-    background-color: #1a1d24 !important;
-    border: 1px solid #334155 !important;
-}
-
-.leaflet-popup-close-button {
-    color: #94a3b8 !important;
-    padding: 6px !important;
-}
-
-.leaflet-popup-close-button:hover {
-    color: var(--tx-accent) !important;
+    background-color: #E3E9F1; /* Light map fallback */
 }
 
 /* ==========================================================================
-   Filters
+   Top KPI Strip
    ========================================================================== */
-
-.tx-filters {
-    background-color: var(--tx-bg-surface);
-    border: 1px solid var(--tx-border);
-    border-radius: 4px;
-    padding: var(--tx-space-lg);
+.tx-kpi-strip {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 10;
+    display: flex;
+    gap: 16px;
+    pointer-events: none; /* Let clicks pass through to map where there are no cards */
 }
 
-.tx-filters-header {
-    margin-bottom: var(--tx-space-lg);
+.tx-kpi-card {
+    pointer-events: auto;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    min-width: 0;
 }
 
-.tx-filters-header h2 {
-    font-size: 0.875rem;
+.tx-kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--tx-radius-pill);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.icon-red { background: rgba(229, 57, 53, 0.1); color: var(--tx-critical-red); }
+.icon-orange { background: rgba(255, 107, 53, 0.1); color: var(--tx-thermal-orange); }
+.icon-green { background: rgba(22, 163, 106, 0.1); color: var(--tx-success-green); }
+.icon-blue { background: rgba(23, 105, 224, 0.1); color: var(--tx-brand-blue); }
+.icon-purple { background: rgba(124, 92, 252, 0.1); color: var(--tx-purple); }
+
+.tx-kpi-content { display: flex; flex-direction: column; }
+.tx-kpi-value { font-size: 24px; font-weight: 700; color: var(--tx-text-primary); }
+.tx-kpi-label { font-size: 12px; color: var(--tx-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ==========================================================================
+   Floating Panels (Map Layers & Legend)
+   ========================================================================== */
+.tx-map-layers-panel {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    z-index: 10;
+    width: 280px;
+    pointer-events: auto;
+    padding: 16px;
+}
+
+.tx-legend-panel {
+    position: absolute;
+    bottom: 80px;
+    left: 20px;
+    z-index: 10;
+    width: 320px;
+    pointer-events: auto;
+    padding: 16px;
+}
+
+.panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
     color: var(--tx-text-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
-.tx-filters-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--tx-space-lg);
-    align-items: end;
-}
-
-.tx-filter-control {
+/* ==========================================================================
+   Right Event Inspection Panel
+   ========================================================================== */
+.tx-inspection-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    bottom: 80px;
+    width: 400px;
+    z-index: 20;
+    pointer-events: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--tx-space-sm);
-}
-
-.tx-filter-control label {
-    font-size: 0.75rem;
-    color: var(--tx-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.tx-filter-control input,
-.tx-filter-control select {
-    background-color: var(--tx-bg-base);
+    background: var(--tx-bg-surface);
     border: 1px solid var(--tx-border);
-    color: var(--tx-text-primary);
-    padding: 0.5rem;
-    border-radius: 4px;
-    font-family: var(--tx-font-primary);
-    font-size: 0.875rem;
-    width: 100%;
-}
-
-.tx-filter-control input:focus,
-.tx-filter-control select:focus {
-    outline: none;
-    border-color: var(--tx-accent);
-}
-
-.tx-date-inputs {
-    display: flex;
-    align-items: center;
-    gap: var(--tx-space-sm);
-}
-
-.tx-date-inputs span {
-    color: var(--tx-text-muted);
-    font-size: 0.75rem;
-}
-
-.tx-btn-reset {
-    background-color: transparent;
-    border: 1px solid var(--tx-border);
-    color: var(--tx-text-primary);
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all var(--tx-transition-fast);
-    width: 100%;
-}
-
-.tx-btn-reset:hover {
-    background-color: var(--tx-border);
-    color: var(--tx-text-primary);
-}
-
-
-/* ============================================================
-   DAY 4 ROLE 1: INDUSTRIAL FACILITY CARDS
-   Styles the individual facility information cards shown
-   inside the industrial context panel.
-   ============================================================ */
-.tx-facility-card {
-    background-color: var(--tx-bg-surface);
-    border: 1px solid var(--tx-border);
-    border-radius: var(--tx-radius-sm);
-    padding: 10px;
-    margin-bottom: 10px;
-    transition: background-color 0.2s ease;
-}
-
-.tx-facility-card:hover {
-    background-color: var(--tx-bg-surface-elevated);
-    border-color: #3b82f6; /* Blue highlight on hover */
-}
-
-.tx-facility-card:last-child {
-    margin-bottom: 0;
-}
-
-.tx-facility-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding-bottom: 6px;
-}
-
-.tx-facility-icon {
-    font-size: 1.2rem;
-}
-
-.tx-facility-name {
-    font-weight: 600;
-    color: var(--tx-text-primary);
-    font-size: 0.9rem;
-    white-space: nowrap;
+    border-radius: var(--tx-radius-lg);
+    box-shadow: var(--tx-shadow-lg);
     overflow: hidden;
-    text-overflow: ellipsis;
+    transform: translateX(120%);
+    transition: transform var(--tx-transition-normal);
 }
 
-.tx-facility-body {
+.tx-inspection-panel.active {
+    transform: translateX(0);
+}
+
+.tx-panel-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--tx-border);
+}
+
+.tx-panel-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.tx-event-id-group { display: flex; align-items: center; gap: 12px; }
+.tx-event-icon {
+    width: 40px; height: 40px;
+    background: var(--tx-brand-blue); color: white;
+    border-radius: var(--tx-radius-md);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.tx-event-id { font-size: 18px; font-weight: 700; font-family: var(--tx-font-mono); }
+
+.tx-close-btn { font-size: 20px; color: var(--tx-text-muted); padding: 4px; border-radius: 4px; }
+.tx-close-btn:hover { background: var(--tx-bg-surface-secondary); color: var(--tx-text-primary); }
+
+.tx-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--tx-border);
+    padding: 0 20px;
+}
+.tx-tab {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--tx-text-secondary);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+}
+.tx-tab.active {
+    color: var(--tx-brand-blue);
+    border-bottom-color: var(--tx-brand-blue);
+}
+
+.tx-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Tab contents */
+.tx-tab-content { display: none; }
+.tx-tab-content.active { display: flex; flex-direction: column; gap: 24px; }
+
+/* Metrics Grid */
+.tx-metrics-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    font-size: 0.8rem;
+    gap: 12px;
+}
+.tx-metric-box {
+    padding: 12px;
+    border-radius: var(--tx-radius-sm);
+    background: var(--tx-bg-surface-secondary);
+    border: 1px solid var(--tx-border-light);
+}
+.tx-metric-label { font-size: 11px; color: var(--tx-text-muted); text-transform: uppercase; margin-bottom: 4px; }
+.tx-metric-value { font-size: 18px; font-weight: 600; font-family: var(--tx-font-mono); color: var(--tx-brand-blue); }
+
+/* Badges */
+.tx-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: var(--tx-radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+}
+.tx-badge-industrial { background: rgba(255, 107, 53, 0.1); color: var(--tx-thermal-orange); }
+.tx-badge-wildfire { background: rgba(229, 57, 53, 0.1); color: var(--tx-critical-red); }
+.tx-badge-agricultural { background: rgba(22, 163, 106, 0.1); color: var(--tx-success-green); }
+.tx-badge-mining { background: rgba(124, 92, 252, 0.1); color: var(--tx-purple); }
+.tx-badge-other, .tx-badge-unknown, .tx-badge-pending { background: var(--tx-bg-surface-secondary); color: var(--tx-text-secondary); border: 1px solid var(--tx-border); }
+
+/* ML Probabilities */
+.tx-prob-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 13px; }
+.tx-prob-label { width: 80px; color: var(--tx-text-secondary); }
+.tx-prob-bar-bg { flex: 1; height: 8px; background: var(--tx-bg-surface-secondary); border-radius: 4px; overflow: hidden; }
+.tx-prob-bar-fill { height: 100%; border-radius: 4px; }
+.tx-prob-val { width: 40px; text-align: right; font-family: var(--tx-font-mono); font-weight: 600; }
+
+.fill-industrial { background: var(--tx-thermal-orange); }
+.fill-wildfire { background: var(--tx-critical-red); }
+.fill-agricultural { background: var(--tx-success-green); }
+.fill-mining { background: var(--tx-purple); }
+.fill-other { background: var(--tx-text-muted); }
+
+/* Panel Footer Actions */
+.tx-panel-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--tx-border);
+    display: flex;
+    gap: 12px;
+    background: var(--tx-bg-surface-secondary);
+}
+.tx-panel-footer button { flex: 1; }
+
+/* ==========================================================================
+   Bottom Temporal Timeline
+   ========================================================================== */
+.tx-timeline-dock {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 10;
+    height: 48px;
+    background: var(--tx-bg-surface);
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius-pill);
+    box-shadow: var(--tx-shadow-md);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    pointer-events: auto;
 }
 
-.tx-facility-item {
+.tx-timeline-controls { display: flex; gap: 8px; }
+.tx-time-btn { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; color: var(--tx-text-secondary); }
+.tx-time-btn.active { background: var(--tx-brand-blue); color: white; }
+
+.tx-timeline-track { flex: 1; height: 4px; background: var(--tx-bg-surface-secondary); border-radius: 2px; position: relative; }
+.tx-timeline-progress { position: absolute; left: 0; top: 0; bottom: 0; width: 60%; background: var(--tx-brand-blue); border-radius: 2px; }
+.tx-timeline-thumb { position: absolute; left: 60%; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: white; border: 2px solid var(--tx-brand-blue); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; }
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .tx-inspection-panel { right: 0; top: 0; bottom: 0; border-radius: 0; width: 360px; }
+    .tx-kpi-strip { display: none; }
+}
+
+/* ==========================================================================
+   Recent Hotspots Table
+   ========================================================================== */
+.tx-hotspots-table-panel {
+    position: absolute;
+    bottom: 80px;
+    left: 20px;
+    right: 440px; /* Leave room for the right inspection panel */
+    z-index: 10;
+    pointer-events: auto;
+    padding: 16px;
+    max-height: 250px;
     display: flex;
     flex-direction: column;
 }
 
-.tx-facility-label {
+.tx-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.tx-data-table th {
+    text-align: left;
+    padding: 8px 12px;
     color: var(--tx-text-secondary);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--tx-border);
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
 }
 
-.tx-facility-value {
+.tx-data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--tx-border-light);
     color: var(--tx-text-primary);
-    font-family: var(--tx-font-mono);
+    white-space: nowrap;
 }
 
-.tx-facility-value-highlight {
-    color: #fbbf24; /* Warning/yellow color for distance */
-    font-weight: bold;
+.tx-data-table tbody tr {
+    cursor: pointer;
+    transition: background-color var(--tx-transition-fast);
+}
+
+.tx-data-table tbody tr:hover {
+    background-color: var(--tx-bg-surface-secondary);
+}
+
+.tx-cell-id { font-family: var(--tx-font-mono); font-weight: 600; }
+.tx-cell-action { color: var(--tx-brand-blue); font-size: 16px; text-align: center; }
+
+@media (max-width: 1400px) {
+    .tx-hotspots-table-panel {
+        display: none; /* Hide on smaller screens to keep map visible */
+    }
 }

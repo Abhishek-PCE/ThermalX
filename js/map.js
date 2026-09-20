@@ -192,9 +192,9 @@ window.MapModule = (function() {
                     iconSize: [32, 32],
                     iconAnchor: [16, 16]
                 });
-                marker = L.marker([hotspot.latitude, hotspot.longitude], { icon: eventIcon });
+                marker = L.marker([hotspot.latitude, hotspot.longitude], { icon: eventIcon, hotspotId: hotspot.id });
             } else {
-                marker = L.marker([hotspot.latitude, hotspot.longitude]);
+                marker = L.marker([hotspot.latitude, hotspot.longitude], { hotspotId: hotspot.id });
             }
             
             // ============================================================
@@ -511,3 +511,32 @@ document.addEventListener('DOMContentLoaded', () => {
     window.MapModule.initMap('map');
 });
 
+
+// UI REDESIGN: Add flyToHotspot functionality
+window.MapModule = window.MapModule || {};
+window.MapModule.flyToHotspot = function(id) {
+    if (!map) return;
+    
+    // Find the marker with this ID
+    let targetLayer = null;
+    map.eachLayer(function(layer) {
+        if (layer.options && layer.options.hotspotId === id) {
+            targetLayer = layer;
+        }
+    });
+    
+    if (targetLayer) {
+        const latlng = targetLayer.getLatLng();
+        map.flyTo(latlng, 14, { duration: 1.5 });
+        
+        // Wait for fly animation then open popup and panel
+        setTimeout(() => {
+            targetLayer.openPopup();
+            if (targetLayer.fire) {
+                targetLayer.fire('click');
+            }
+        }, 1500);
+    } else {
+        console.warn("Marker not found for ID:", id);
+    }
+};

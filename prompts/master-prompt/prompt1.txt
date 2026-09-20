@@ -1,0 +1,1347 @@
+You are working on my existing project:
+
+PROJECT NAME:
+ThermalX
+
+SIH PROBLEM STATEMENT:
+SIH26162 — AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM & Satellite Data
+
+IMPORTANT PROJECT STATUS:
+Days 1–5 are ALREADY IMPLEMENTED.
+
+DO NOT rebuild Days 1–5 from scratch.
+
+You must inspect the existing codebase first, understand what is already implemented, and extend the existing system.
+
+The project is now being upgraded from a rule-based classification system to a REAL MACHINE LEARNING classification system.
+
+==================================================
+1. PRIMARY OBJECTIVE
+==================================================
+
+Upgrade ThermalX from:
+
+NASA FIRMS
+→ Data Processing
+→ Persistence / Industrial Proximity
+→ Rule-Based Classification
+
+TO:
+
+NASA FIRMS + OSM
+→ Data Integration
+→ Data Processing
+→ Thermal Event Generation
+→ Feature Engineering
+→ ML Feature Vector
+→ Random Forest Classifier
+→ FastAPI ML Service
+→ JavaScript Frontend
+→ GIS Visualization
+→ Explainable Classification Result
+
+The final system must classify thermal events into:
+
+1. Industrial
+2. Wildfire
+3. Agricultural
+4. Other
+5. Unknown
+
+The ML system must return:
+
+- predicted class
+- class probabilities
+- confidence/probability
+- input features used
+- supporting evidence
+- model information
+- human verification warning
+
+==================================================
+2. CRITICAL RULE — DO NOT DESTROY EXISTING WORK
+==================================================
+
+Before changing anything:
+
+1. Inspect the complete existing project.
+2. Identify the current files.
+3. Identify the current FIRMS integration.
+4. Identify the current OSM/Overpass integration.
+5. Identify the current persistence logic.
+6. Identify the current clustering/event generation.
+7. Identify the current classification logic.
+8. Identify the current Leaflet map.
+9. Identify the current dashboard.
+10. Identify how data currently flows between files.
+
+Preserve all working functionality from Days 1–5.
+
+Do NOT rewrite working modules unnecessarily.
+
+Do NOT change the UI completely.
+
+Do NOT introduce React.
+
+Do NOT introduce Node.js.
+
+Do NOT introduce PostgreSQL/PostGIS.
+
+Do NOT introduce TensorFlow.
+
+Do NOT introduce PyTorch.
+
+Do NOT introduce YOLO.
+
+Do NOT introduce Docker unless absolutely required.
+
+This is an ML UPGRADE ONLY.
+
+==================================================
+3. TARGET TECHNOLOGY STACK
+==================================================
+
+Frontend:
+
+- HTML5
+- CSS3
+- JavaScript ES6+
+- Leaflet.js
+- Turf.js
+
+Data:
+
+- NASA FIRMS
+- OpenStreetMap
+- Overpass API
+
+ML:
+
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- Random Forest Classifier
+- Joblib
+
+ML API:
+
+- FastAPI
+- Uvicorn
+
+Communication:
+
+JavaScript
+        ↓
+HTTP/REST
+        ↓
+FastAPI
+        ↓
+Random Forest model
+        ↓
+Prediction JSON
+        ↓
+JavaScript dashboard
+
+Version control:
+
+- Git
+- GitHub
+
+==================================================
+4. IMPORTANT ML DATA RULE
+==================================================
+
+DO NOT fabricate real-world labels.
+
+A Random Forest model requires labelled training data.
+
+NASA FIRMS does NOT automatically provide reliable source labels such as:
+
+Industrial
+Wildfire
+Agricultural
+Other
+
+OSM proximity is a FEATURE.
+
+Persistence is a FEATURE.
+
+FRP is a FEATURE.
+
+Satellite confidence is a FEATURE.
+
+They are NOT automatically ground-truth labels.
+
+Therefore:
+
+1. Inspect whether an existing labelled dataset already exists.
+2. If a labelled dataset exists, use it.
+3. If no labelled dataset exists, create a clearly documented training-data template.
+4. Do NOT invent real-world labels and present them as genuine observations.
+5. If development requires sample data, create a clearly marked synthetic/demo dataset.
+6. Never claim synthetic/demo training results as real-world model performance.
+7. Clearly document how real labelled samples should be added later.
+
+If the project already contains labelled data, inspect and use the existing data instead of generating another dataset.
+
+==================================================
+5. REQUIRED PROJECT STRUCTURE
+==================================================
+
+Use the existing structure where possible.
+
+Target structure:
+
+ThermalX/
+
+├── index.html
+├── css/
+│   └── style.css
+│
+├── js/
+│   ├── app.js
+│   ├── map.js
+│   ├── api.js
+│   ├── processing.js
+│   └── classification.js
+│
+├── data/
+│   ├── demo-data.json
+│   └── training/
+│       └── thermal_events.csv
+│
+├── ml/
+│   ├── train_model.py
+│   ├── feature_engineering.py
+│   ├── evaluate_model.py
+│   ├── predict.py
+│   ├── model/
+│   │   └── thermal_classifier.joblib
+│   └── requirements.txt
+│
+├── api/
+│   ├── main.py
+│   └── requirements.txt
+│
+├── assets/
+│
+├── .gitignore
+└── README.md
+
+DO NOT blindly create duplicate files.
+
+If equivalent files already exist, modify them appropriately.
+
+==================================================
+6. GLOBAL CODE COMMENTING REQUIREMENT
+==================================================
+
+THIS IS EXTREMELY IMPORTANT.
+
+I am learning this project and need to understand the code later.
+
+Therefore:
+
+COMMENT EVERY NON-EMPTY LINE OF CODE.
+
+Every executable/logical line must have a concise explanatory comment.
+
+Comments must explain:
+
+- what the line does
+- why it is required
+- what data it handles
+- what the output means
+
+Do NOT write meaningless comments such as:
+
+# This is a variable
+# This is a function
+
+Instead write useful comments such as:
+
+# Load the trained Random Forest model from disk so the API can reuse the same model for every prediction.
+model = joblib.load(MODEL_PATH)
+
+For JavaScript:
+
+// Send the engineered thermal-event features to the FastAPI ML service for classification.
+const response = await fetch(ML_API_URL, options);
+
+For Python:
+
+# Separate the target column from the input features before training the classifier.
+X = dataframe.drop(columns=["label"])
+
+For important calculations:
+
+# Calculate the average FRP because persistent high thermal intensity can help distinguish industrial sources from short-lived events.
+average_frp = dataframe["frp"].mean()
+
+COMMENT REQUIREMENT:
+Every non-empty line must be understandable to a beginner.
+
+Do not use huge paragraphs as comments.
+
+Keep comments concise but meaningful.
+
+Also add section-level comments before:
+
+- imports
+- configuration
+- functions
+- classes
+- model loading
+- preprocessing
+- training
+- evaluation
+- API endpoints
+- prediction
+- error handling
+
+==================================================
+7. CODE QUALITY RULES
+==================================================
+
+Use clear variable names.
+
+Avoid unnecessary abstraction.
+
+Avoid overly complex code.
+
+Prefer readable code over clever code.
+
+Do not duplicate logic unnecessarily.
+
+Use functions for repeated operations.
+
+Validate inputs.
+
+Handle errors.
+
+Handle missing values.
+
+Handle invalid coordinates.
+
+Handle API failures.
+
+Handle ML service failures.
+
+Never crash the frontend because the ML API is unavailable.
+
+==================================================
+8. DAY 6 — MACHINE LEARNING PIPELINE
+==================================================
+
+DAY 6 OBJECTIVE:
+
+Replace the rule-based classifier with a real Random Forest ML pipeline.
+
+First inspect the existing classification.js and existing processed event structure.
+
+Determine exactly which fields are already available.
+
+Build the ML feature pipeline.
+
+Required features should include, where available:
+
+1. persistence_score
+2. detection_count
+3. active_days
+4. average_frp
+5. maximum_frp
+6. average_confidence
+7. industrial_distance_km
+8. nearby_industrial_facility_count
+9. cluster_size
+10. temporal characteristics
+11. spatial characteristics
+
+Do NOT blindly add features that do not exist.
+
+Use the existing data wherever possible.
+
+Create:
+
+ml/feature_engineering.py
+
+This module must:
+
+1. Load the training dataset.
+2. Validate required columns.
+3. Handle missing values.
+4. Convert categorical values appropriately if required.
+5. Generate the final feature matrix.
+6. Keep feature ordering consistent between training and prediction.
+7. Save/document the final feature names.
+
+Then create:
+
+ml/train_model.py
+
+The training pipeline must:
+
+1. Load labelled data.
+2. Separate X and y.
+3. Perform preprocessing.
+4. Split data into training and validation/test sets.
+5. Train RandomForestClassifier.
+6. Use reproducible random_state.
+7. Evaluate the model.
+8. Save the trained model using Joblib.
+
+Use scikit-learn.
+
+Preferred initial configuration:
+
+RandomForestClassifier(
+    n_estimators=200,
+    random_state=42,
+    class_weight="balanced"
+)
+
+You may adjust parameters only if there is a technical reason.
+
+DO NOT optimize parameters blindly.
+
+==================================================
+9. DAY 6 — MODEL EVALUATION
+==================================================
+
+Create:
+
+ml/evaluate_model.py
+
+Evaluate using:
+
+- accuracy
+- precision
+- recall
+- F1-score
+- confusion matrix
+- per-class performance
+
+Do NOT only report accuracy.
+
+Especially inspect:
+
+Industrial
+Wildfire
+Agricultural
+Other
+Unknown
+
+Save evaluation results in a readable format.
+
+If the dataset is too small for meaningful evaluation:
+
+STATE THIS CLEARLY.
+
+Do not fabricate performance.
+
+Do not claim:
+
+"95% accurate"
+
+unless the actual evaluation produced that result.
+
+==================================================
+10. FEATURE IMPORTANCE
+==================================================
+
+Random Forest provides feature importance.
+
+Expose the feature importance values.
+
+Example:
+
+Persistence → 0.28
+Industrial Distance → 0.21
+Average FRP → 0.17
+Confidence → 0.14
+Detection Count → 0.10
+etc.
+
+Do NOT hard-code these values.
+
+Calculate them from the trained model.
+
+Use feature importance to explain which features influenced the model.
+
+Important:
+
+Feature importance is not the same as causal influence.
+
+Do not describe it as proof that a feature caused the classification.
+
+==================================================
+11. DAY 7 — FASTAPI ML SERVICE
+==================================================
+
+Create:
+
+api/main.py
+
+The FastAPI service must:
+
+1. Load the trained Joblib model.
+2. Validate incoming JSON.
+3. Validate required features.
+4. Convert the request into the correct feature order.
+5. Run model.predict().
+6. Run model.predict_proba().
+7. Return structured JSON.
+
+Expected request:
+
+{
+    "persistence_score": 82,
+    "detection_count": 14,
+    "active_days": 5,
+    "average_frp": 147.2,
+    "maximum_frp": 312.5,
+    "average_confidence": 91,
+    "industrial_distance_km": 1.2,
+    "nearby_industrial_facility_count": 3,
+    "cluster_size": 5
+}
+
+The exact schema must match the actual trained feature set.
+
+Expected response:
+
+{
+    "prediction": "Industrial",
+    "probability": 0.82,
+    "probabilities": {
+        "Industrial": 0.82,
+        "Wildfire": 0.08,
+        "Agricultural": 0.05,
+        "Other": 0.03,
+        "Unknown": 0.02
+    },
+    "features": {},
+    "model": "Random Forest"
+}
+
+Do not hard-code these example probabilities.
+
+Return actual model outputs.
+
+Add proper HTTP error handling.
+
+==================================================
+12. DAY 7 — API DOCUMENTATION
+==================================================
+
+FastAPI should automatically expose API documentation.
+
+Make sure:
+
+/docs
+
+works correctly.
+
+Document:
+
+- request schema
+- response schema
+- required fields
+- possible errors
+
+==================================================
+13. DAY 7 — FRONTEND ML INTEGRATION
+==================================================
+
+Update:
+
+js/api.js
+
+Add an ML prediction function.
+
+Flow:
+
+Thermal Event
+      ↓
+Feature Extraction
+      ↓
+ML-ready feature object
+      ↓
+POST /predict
+      ↓
+FastAPI
+      ↓
+Random Forest
+      ↓
+Prediction JSON
+      ↓
+Dashboard
+
+Update:
+
+js/classification.js
+
+It should no longer perform the primary classification using the old weighted rule-based scoring.
+
+The Random Forest model must become the PRIMARY classification engine.
+
+If old rule-based functions exist:
+
+1. Do not delete them immediately.
+2. Preserve them only if they are useful for evidence/features.
+3. Clearly separate them from ML classification.
+4. Do not present the old rule score as the ML prediction.
+
+==================================================
+14. DAY 8 — ML RESULT + EXPLAINABILITY
+==================================================
+
+Improve the ThermalX dashboard.
+
+For every thermal event show:
+
+EVENT ID
+
+Classification:
+Industrial
+
+Probability:
+82%
+
+Alternative probabilities:
+
+Industrial — 82%
+Wildfire — 8%
+Agricultural — 5%
+Other — 3%
+Unknown — 2%
+
+Features:
+
+Persistence
+Detection count
+Average FRP
+Maximum FRP
+Satellite confidence
+Industrial distance
+Nearby facilities
+Cluster characteristics
+
+Model:
+
+Random Forest
+
+Evidence:
+
+- repeated detections
+- spatial proximity to infrastructure
+- thermal intensity
+- satellite confidence
+- temporal characteristics
+
+IMPORTANT:
+
+Do NOT claim:
+
+"This is definitely an industrial fire."
+
+Use:
+
+"ML classification: Industrial"
+
+and:
+
+"Requires human verification."
+
+The system is a decision-support system.
+
+==================================================
+15. DAY 8 — FEATURE IMPORTANCE UI
+==================================================
+
+If practical, add a simple feature-importance visualization.
+
+For example:
+
+Feature
+████████████████  Persistence
+████████████      Industrial proximity
+██████████        Average FRP
+████████          Confidence
+
+Use actual model feature importance.
+
+Do not fabricate values.
+
+If the UI becomes unstable, prioritize core prediction functionality over advanced charts.
+
+==================================================
+16. DAY 8 — GIS INTEGRATION
+==================================================
+
+Keep Leaflet.
+
+Do NOT replace Leaflet.
+
+The map must continue to display:
+
+- thermal hotspots
+- thermal events
+- event clusters
+- industrial facilities
+- classification result
+
+Use clear visual categories.
+
+When a hotspot is selected:
+
+Show:
+
+Event ID
+Classification
+Probability
+Persistence
+FRP
+Confidence
+Nearest industrial facility
+Distance
+Detection history
+ML evidence
+
+==================================================
+17. DAY 9 — FULL SYSTEM TESTING
+==================================================
+
+Test the complete pipeline:
+
+NASA FIRMS
+    ↓
+Data Integration
+    ↓
+Data Processing
+    ↓
+Thermal Event Generation
+    ↓
+Feature Engineering
+    ↓
+FastAPI
+    ↓
+Random Forest
+    ↓
+Prediction
+    ↓
+Frontend
+    ↓
+Leaflet
+    ↓
+Dashboard
+
+Test:
+
+1. Valid thermal event.
+2. Missing FRP.
+3. Missing confidence.
+4. Missing industrial facility.
+5. No historical detections.
+6. API unavailable.
+7. Invalid ML request.
+8. Unknown classification.
+9. Empty FIRMS response.
+10. OSM/Overpass failure.
+11. ML model unavailable.
+12. Invalid coordinates.
+
+The frontend must fail gracefully.
+
+==================================================
+18. DAY 9 — DEMO MODE
+==================================================
+
+Keep DEMO MODE.
+
+The application must be able to operate using:
+
+demo-data.json
+
+if live APIs are unavailable.
+
+Create realistic demo thermal events.
+
+IMPORTANT:
+
+If demo data is used for ML:
+
+Clearly identify it as:
+
+DEMO / SYNTHETIC DATA
+
+Do not claim it represents real-world model performance.
+
+The UI should make the distinction clear.
+
+==================================================
+19. DAY 10 — FINAL INTEGRATION
+==================================================
+
+Day 10 is NOT for adding new major technologies.
+
+Day 10 is for:
+
+- integration
+- bug fixing
+- testing
+- UI cleanup
+- ML pipeline verification
+- API verification
+- map verification
+- deployment
+- documentation
+- demo rehearsal
+
+Do NOT introduce:
+
+React
+Node
+PostgreSQL
+PostGIS
+Docker
+TensorFlow
+PyTorch
+YOLO
+
+during Day 10.
+
+==================================================
+20. FINAL THERMALX ARCHITECTURE
+==================================================
+
+The final system should conceptually follow:
+
+NASA FIRMS
+        +
+OpenStreetMap / Overpass
+        ↓
+ROLE 3 — DATA INTEGRATION
+        ↓
+RAW / NORMALIZED DATA
+        ↓
+ROLE 4 — DATA PROCESSING
+        ↓
+THERMAL EVENT GENERATION
+        ↓
+FEATURE ENGINEERING
+        ↓
+┌─────────────────────────────┐
+│ Persistence / Recurrence    │
+│ FRP / Thermal Intensity     │
+│ Satellite Confidence        │
+│ Industrial Proximity        │
+│ Spatial Clustering          │
+│ Temporal Characteristics    │
+└──────────────┬──────────────┘
+               ↓
+        ML FEATURE VECTOR
+               ↓
+       RANDOM FOREST MODEL
+               ↓
+     PREDICTION + PROBABILITY
+               ↓
+       ┌───────┴────────┐
+       ↓                ↓
+ GIS / LEAFLET      DASHBOARD
+       ↓                ↓
+       └───────┬────────┘
+               ↓
+ ROLE 6 — INTEGRATION,
+ TESTING & DEPLOYMENT
+
+==================================================
+21. ROLE RESPONSIBILITIES
+==================================================
+
+ROLE 1 — FRONTEND & UI
+Members:
+Lovely + Jyoti
+
+Responsibilities during Days 6–10:
+
+- ML result UI
+- probability display
+- classification cards
+- evidence panel
+- feature display
+- loading states
+- API error states
+- model status
+- dashboard integration
+
+ROLE 2 — GIS & MAP
+Members:
+Kamran + Narayan + Abhishek
+
+Responsibilities:
+
+- ML classification visualization
+- map category layers
+- event selection
+- facility visualization
+- prediction popup
+- classification-based visualization
+
+ROLE 3 — DATA INTEGRATION
+Members:
+Kamran + Narayan
+
+Responsibilities:
+
+- FIRMS data
+- OSM data
+- normalized event data
+- ML request preparation
+- API data flow
+
+ROLE 4 — DATA PROCESSING
+Members:
+Shreya + Abhishek + Kamran
+
+Responsibilities:
+
+- thermal event generation
+- feature engineering support
+- persistence
+- clustering
+- spatial features
+- temporal features
+- ML-ready event structure
+
+ROLE 5 — ML CLASSIFICATION
+Members:
+Shreya + Abhishek
+
+PRIMARY RESPONSIBILITY:
+
+- training dataset
+- feature engineering
+- Random Forest
+- model training
+- evaluation
+- feature importance
+- Joblib model
+- FastAPI prediction
+
+ROLE 6 — INTEGRATION / TESTING / DEPLOYMENT
+Members:
+Abhishek + Narayan + Kamran
+
+Responsibilities:
+
+- integrate frontend + API + ML
+- test complete pipeline
+- Git/GitHub
+- bug fixing
+- deployment
+- final demo
+- README
+
+==================================================
+22. DAY-BY-DAY EXECUTION
+==================================================
+
+DAY 6:
+REAL ML FOUNDATION
+
+Tasks:
+
+- inspect existing code
+- inspect existing event schema
+- prepare labelled dataset
+- feature engineering
+- train Random Forest
+- evaluate model
+- save model
+- document features
+
+Checkpoint:
+
+A trained Random Forest model exists and can classify a test thermal event.
+
+==================================================
+
+DAY 7:
+FASTAPI + ML INTEGRATION
+
+Tasks:
+
+- create FastAPI service
+- load Joblib model
+- create /predict endpoint
+- validate request
+- return prediction + probabilities
+- connect JavaScript frontend
+- test API using browser/docs or suitable HTTP testing
+
+Checkpoint:
+
+ThermalX JavaScript → FastAPI → Random Forest → prediction works.
+
+==================================================
+
+DAY 8:
+EXPLAINABILITY + UI + GIS
+
+Tasks:
+
+- display prediction
+- display probability
+- display class probabilities
+- display features
+- display evidence
+- display feature importance where practical
+- integrate with Leaflet
+- improve event details panel
+- show human verification message
+
+Checkpoint:
+
+A judge can click a hotspot and understand why the ML system classified it.
+
+==================================================
+
+DAY 9:
+TESTING + DEMO MODE
+
+Tasks:
+
+- end-to-end testing
+- API failure testing
+- invalid data testing
+- missing data testing
+- demo mode
+- real FIRMS mode
+- bug fixing
+- performance cleanup
+
+Checkpoint:
+
+ThermalX can survive the demo even if external APIs temporarily fail.
+
+==================================================
+
+DAY 10:
+FREEZE + DEPLOY + REHEARSE
+
+Tasks:
+
+- final integration
+- fix remaining bugs
+- verify ML model
+- verify API
+- verify frontend
+- verify map
+- deploy
+- update README
+- create setup instructions
+- create ML explanation
+- rehearse complete demo
+
+NO MAJOR NEW FEATURES.
+
+Checkpoint:
+
+ThermalX is demo-ready.
+
+==================================================
+23. REQUIRED README DOCUMENTATION
+==================================================
+
+Update README.md with:
+
+1. Project overview
+2. SIH problem statement
+3. Architecture
+4. Technology stack
+5. Data sources
+6. ML approach
+7. Feature list
+8. Random Forest explanation
+9. Training process
+10. Evaluation metrics
+11. API setup
+12. Frontend setup
+13. How to run ML service
+14. How to run ThermalX
+15. Demo mode
+16. Limitations
+17. Human verification statement
+
+==================================================
+24. ML LIMITATIONS MUST BE DOCUMENTED
+==================================================
+
+Document clearly:
+
+1. FIRMS detects thermal anomalies, not definitive source identities.
+2. Industrial proximity is contextual evidence, not proof.
+3. Persistence is a feature, not proof of industrial activity.
+4. Model quality depends on labelled training data.
+5. Performance metrics depend on dataset quality and representativeness.
+6. Predictions require human verification for operational decisions.
+
+Do not overclaim the system.
+
+==================================================
+25. COMMANDS TO CREATE / DOCUMENT
+==================================================
+
+Provide clear commands for:
+
+Create Python environment:
+
+python -m venv .venv
+
+Activate environment appropriately for the operating system.
+
+Install:
+
+pip install -r ml/requirements.txt
+
+and:
+
+pip install -r api/requirements.txt
+
+Train:
+
+python ml/train_model.py
+
+Evaluate:
+
+python ml/evaluate_model.py
+
+Run API:
+
+uvicorn api.main:app --reload
+
+Document exactly how the frontend is launched.
+
+==================================================
+26. DEPENDENCY REQUIREMENTS
+==================================================
+
+ml/requirements.txt should contain only dependencies actually required.
+
+Expected core dependencies:
+
+pandas
+numpy
+scikit-learn
+joblib
+
+api/requirements.txt should contain:
+
+fastapi
+uvicorn
+pydantic
+joblib
+numpy
+scikit-learn
+
+Add additional packages only when genuinely required.
+
+==================================================
+27. SECURITY / CONFIGURATION
+==================================================
+
+Do NOT expose sensitive API keys in frontend code.
+
+If NASA FIRMS requires a key:
+
+Do not hard-code private credentials into JavaScript.
+
+Use environment variables/server-side configuration where appropriate.
+
+Never commit:
+
+.env
+API keys
+credentials
+private tokens
+
+Update .gitignore accordingly.
+
+==================================================
+28. ANTIGRAVITY EXECUTION METHOD
+==================================================
+
+DO NOT make all changes blindly.
+
+Work in this sequence:
+
+STEP 1:
+Inspect the entire repository.
+
+STEP 2:
+Create a concise implementation plan based on the existing code.
+
+STEP 3:
+Identify files that must change.
+
+STEP 4:
+Implement Day 6.
+
+STEP 5:
+Run/test Day 6.
+
+STEP 6:
+Only after Day 6 works, implement Day 7.
+
+STEP 7:
+Test Day 7.
+
+STEP 8:
+Implement Day 8.
+
+STEP 9:
+Test Day 8.
+
+STEP 10:
+Implement Day 9.
+
+STEP 11:
+Run full system tests.
+
+STEP 12:
+Implement Day 10 finalization.
+
+After every major change:
+
+- check for syntax errors
+- check imports
+- check API endpoints
+- check frontend console errors
+- check Python errors
+- verify data schema
+- verify model feature order
+
+==================================================
+29. DO NOT HIDE ERRORS
+==================================================
+
+If something fails:
+
+DO NOT silently create a fake implementation.
+
+DO NOT silently generate fake ML results.
+
+DO NOT silently replace the Random Forest with a rule-based system.
+
+Explain:
+
+1. What failed.
+2. Why it failed.
+3. Which file caused it.
+4. What you changed.
+5. How it was tested.
+
+==================================================
+30. FINAL ACCEPTANCE TEST
+==================================================
+
+The final ThermalX system must support this flow:
+
+1. User opens ThermalX.
+
+2. Thermal hotspots are loaded.
+
+3. User selects a hotspot.
+
+4. ThermalX identifies its thermal event.
+
+5. Historical detections are processed.
+
+6. Persistence is calculated.
+
+7. Nearby industrial infrastructure is determined.
+
+8. ML features are generated.
+
+9. Features are sent to FastAPI.
+
+10. FastAPI loads the trained Random Forest.
+
+11. Random Forest predicts the source class.
+
+12. Model probability is returned.
+
+13. Class probabilities are displayed.
+
+14. Supporting features are displayed.
+
+15. Evidence is displayed.
+
+16. Event is shown on the Leaflet map.
+
+17. User sees:
+
+   "ML classification: Industrial"
+
+   or another predicted class.
+
+18. User sees:
+
+   "Probability: XX%"
+
+19. User sees:
+
+   "Requires human verification."
+
+20. The system remains usable in Demo Mode if external APIs fail.
+
+==================================================
+31. MOST IMPORTANT FINAL RULE
+==================================================
+
+The objective is NOT to make ThermalX look like it uses ML.
+
+The objective is to actually implement a working ML pipeline that can be explained.
+
+Every ML component must be understandable:
+
+DATA
+↓
+FEATURES
+↓
+TRAINING DATA
+↓
+RANDOM FOREST
+↓
+EVALUATION
+↓
+SAVED MODEL
+↓
+FASTAPI
+↓
+PREDICTION
+↓
+PROBABILITY
+↓
+DASHBOARD
+↓
+HUMAN VERIFICATION
+
+At the end, provide a concise implementation report containing:
+
+1. Files created
+2. Files modified
+3. ML features used
+4. Training dataset used
+5. Number of classes
+6. Random Forest configuration
+7. Evaluation metrics
+8. API endpoint
+9. How to start the ML service
+10. How to run ThermalX
+11. Known limitations
+12. Remaining issues, if any
+
+Do not claim completion of anything that has not actually been tested.

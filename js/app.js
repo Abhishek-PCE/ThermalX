@@ -199,7 +199,7 @@ function formatConfidence(conf) {
  * How it connects to the rest of the application:
  * Role 2's Leaflet marker click handler calls this function passing the clicked hotspot object.
  */
-function showHotspotDetails(hotspot) {
+async function showHotspotDetails(hotspot) {
     // If no hotspot was passed (or passed null), return to empty state
     if (!hotspot) {
         clearHotspotDetails();
@@ -333,7 +333,7 @@ function showHotspotDetails(hotspot) {
             
             // Call Role 3's API function
             fetchNearbyIndustrialFacilities(hotspot.latitude, hotspot.longitude)
-                .then(rawFacilities => {
+                .then(async rawFacilities => {
                     // Abort if the user selected a different hotspot while we were fetching
                     if (currentHotspotContextId !== fetchContextId) {
                         console.log("OSM request completed, but a different hotspot is now selected. Discarding old results.");
@@ -358,51 +358,71 @@ function showHotspotDetails(hotspot) {
                         window.MapModule.renderIndustrialFacilities(processedContext.facilities);
                     }
                     
-                    // ==========================================
-                    // DAY 4 ROLE 5: Industrial Context Scoring
-                    // ==========================================
-                    let finalContextScore = null;
-                    if (window.ThermalXClassification && typeof window.ThermalXClassification.evaluateIndustrialContext === 'function') {
-                        // Convert proximity into an explainable heuristic score
-                        finalContextScore = window.ThermalXClassification.evaluateIndustrialContext(processedContext);
-                    }
-
-                    // Update UI with the nearest facility data and Role 5 evidence
-                    if (finalContextScore) {
-                        if (finalContextScore.nearestFacility) {
-                            const nearest = finalContextScore.nearestFacility;
-                            setElementText('event-facility', `${nearest.name} (${nearest.type})`);
-                            setElementText('event-distance', `${parseFloat(nearest.distanceFromHotspot.toFixed(2))} km`);
-                        } else {
-                            setElementText('event-facility', "No nearby industrial facilities.");
-                            setElementText('event-distance', "—");
-                        }
-                        
-                        // Append Role 5 evidence to the evidence section
-                        const existingEvidence = document.getElementById('event-evidence')?.textContent || "";
-                        if (finalContextScore.evidence && finalContextScore.evidence.length > 0) {
-                            const newEvidence = finalContextScore.evidence[0].description;
-                            if (existingEvidence === "Classification pending Role 5 analysis." || existingEvidence === "—") {
-                                setElementText('event-evidence', newEvidence);
-                            } else {
-                                setElementText('event-evidence', existingEvidence + " | " + newEvidence);
-                            }
-                        }
-                    } else if (processedContext.nearestFacility) {
-                        // Fallback UI update if Role 5 is missing
+                    // Update UI with the nearest facility data
+                    if (processedContext.nearestFacility) {
                         const nearest = processedContext.nearestFacility;
                         const distText = nearest.distanceFromHotspot !== undefined 
                             ? `${nearest.distanceFromHotspot.toFixed(2)} km` 
                             : "Distance unknown";
-                        
                         setElementText('event-facility', `${nearest.name} (${nearest.type})`);
                         setElementText('event-distance', distText);
-                    } else if (processedContext.facilities && processedContext.facilities.length > 0) {
-                        setElementText('event-facility', `${processedContext.facilities.length} nearby facilities found.`);
-                        setElementText('event-distance', "Not available");
                     } else {
                         setElementText('event-facility', "No nearby industrial facilities.");
                         setElementText('event-distance', "—");
+                    }
+
+                    // ==========================================
+                    // DAY 8: MACHINE LEARNING CLASSIFICATION
+                    // ==========================================
+                    if (window.ThermalXClassification && typeof window.ThermalXClassification.runMLClassification === 'function') {
+                        setElementText('event-classification', 'Loading ML...');
+                        document.getElementById('event-classification').className = 'tx-badge tx-badge-pending';
+                        
+                        // Fetch ML prediction
+                        const mlResult = await window.ThermalXClassification.runMLClassification(hotspot, processedContext);
+                        
+                        if (mlResult) {
+                            // Update Classification Badge
+                            updateClassification(mlResult.category, mlResult.probability * 100);
+                            
+                            // Update Probability Texts
+                            setElementText('event-probability', `${(mlResult.probability * 100).toFixed(1)}%`);
+                            
+                            let probsHTML = "";
+                            for (const [cls, prob] of Object.entries(mlResult.probabilities)) {
+                                const percent = (prob * 100).toFixed(1);
+                                const fillClass = 'fill-' + cls.toLowerCase();
+                                probsHTML += `
+                                <div class="tx-prob-row">
+                                    <div class="tx-prob-label">${cls}</div>
+                                    <div class="tx-prob-bar-bg">
+                                        <div class="tx-prob-bar-fill ${fillClass}" style="width: ${percent}%"></div>
+                                    </div>
+                                    <div class="tx-prob-val">${percent}%</div>
+                                </div>`;
+                            }
+                            const probsList = document.getElementById('event-probabilities-list');
+                            if (probsList) probsList.innerHTML = probsHTML;
+                            
+                            // Update Evidence
+                            setElementText('event-evidence', mlResult.evidence);
+                            
+                            // Attach the mlResult to the hotspot object so the map can use it
+                            hotspot.classification = mlResult;
+                            
+                            // Re-render the map popup with the ML classification if the map module supports it
+                            if (window.MapModule && typeof window.MapModule.renderHotspots === 'function') {
+                                // Just visual update of the popup if it's currently open
+                                const popup = document.querySelector('.leaflet-popup-content');
+                                if (popup) {
+                                    const titleEl = popup.querySelector('h4');
+                                    if (titleEl && titleEl.textContent.includes(hotspot.eventId || hotspot.id)) {
+                                       const catEl = popup.querySelector('.popup-category');
+                                       if(catEl) catEl.textContent = mlResult.category;
+                                    }
+                                }
+                            }
+                        }
                     }
                     // ==========================================================
                     // DAY 4 ROLE 1: Render Facility Cards in Dashboard
@@ -763,36 +783,32 @@ function createHotspotPopupHTML(hotspot) {
         : "Pending";
 
     return `
-        <div style="font-family: var(--tx-font-primary, sans-serif); min-width: 220px; padding: 4px 2px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 6px;">
-                <span style="font-weight: 700; color: #f87171; font-size: 0.9rem;">🔥 Thermal Hotspot</span>
-                <span style="font-family: monospace; font-size: 0.75rem; color: #94a3b8;">${id}</span>
+                <div style="font-family: var(--tx-font-primary, sans-serif); min-width: 220px; padding: 4px 2px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #DCE4EF; padding-bottom: 6px;">
+                <span style="font-weight: 700; color: var(--tx-critical-red, #E53935); font-size: 0.9rem;">🔥 Thermal Event</span>
+                <span style="font-family: monospace; font-size: 0.75rem; color: var(--tx-text-secondary, #52627A);">${id}</span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; margin-bottom: 8px;">
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.7rem; display: block;">FRP POWER</span>
-                    <strong style="color: #fbbf24; font-family: monospace;">${frp}</strong>
+                    <span style="color: var(--tx-text-muted, #7A899E); font-size: 0.7rem; display: block;">FRP POWER</span>
+                    <strong style="color: var(--tx-thermal-orange, #FF6B35); font-family: monospace;">${frp}</strong>
                 </div>
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.7rem; display: block;">BRIGHTNESS</span>
-                    <strong style="color: #fbbf24; font-family: monospace;">${brightness}</strong>
+                    <span style="color: var(--tx-text-muted, #7A899E); font-size: 0.7rem; display: block;">BRIGHTNESS</span>
+                    <strong style="color: var(--tx-thermal-orange, #FF6B35); font-family: monospace;">${brightness}</strong>
                 </div>
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.7rem; display: block;">CONFIDENCE</span>
-                    <span style="color: #e2e8f0;">${confidence}</span>
+                    <span style="color: var(--tx-text-muted, #7A899E); font-size: 0.7rem; display: block;">CONFIDENCE</span>
+                    <span style="color: var(--tx-text-primary, #10213A); font-weight: 600;">${confidence}</span>
                 </div>
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.7rem; display: block;">CLASS</span>
-                    <span style="color: #fbbf24;">${classification}</span>
+                    <span style="color: var(--tx-text-muted, #7A899E); font-size: 0.7rem; display: block;">CLASS</span>
+                    <span class="popup-category" style="color: var(--tx-brand-blue, #1769E0); font-weight: 600;">${classification}</span>
                 </div>
             </div>
-            <div style="font-size: 0.75rem; color: #94a3b8; border-top: 1px solid #334155; padding-top: 6px; display: flex; flex-direction: column; gap: 2px;">
-                <div><strong>Location:</strong> <span style="font-family: monospace; color: #e2e8f0;">${lat}, ${lng}</span></div>
-                <div><strong>Detected:</strong> ${date} (${time})</div>
-                <div><strong>Satellite:</strong> ${satellite}</div>
-            </div>
-            <div style="margin-top: 8px; text-align: center; font-size: 0.7rem; color: #64748b; font-style: italic;">
-                Click marker to view complete details in sidebar →
+            <div style="font-size: 0.75rem; color: var(--tx-text-secondary, #52627A); border-top: 1px solid #DCE4EF; padding-top: 6px; display: flex; flex-direction: column; gap: 2px;">
+                <div><strong>Location:</strong> <span style="font-family: monospace; color: var(--tx-text-primary, #10213A);">${lat}, ${lng}</span></div>
+                <div><strong>Detected:</strong> ${date}</div>
             </div>
         </div>
     `;
@@ -959,4 +975,93 @@ if (btnTestFetch) {
     });
     
 // Close the if statement.
+}
+
+// UI REDESIGN OVERRIDE
+const originalSetPanelState = setPanelState;
+setPanelState = function(stateId) {
+    const states = ['event-state-empty', 'event-state-loading', 'event-state-error', 'event-state-data'];
+    states.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === stateId) ? 'flex' : 'none';
+    });
+    
+    // Slide panel in and out
+    const panel = document.getElementById('event-panel');
+    if (panel) {
+        if (stateId === 'event-state-empty') {
+            panel.classList.remove('active');
+        } else {
+            panel.classList.add('active');
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('btn-close-details');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            if (window.clearHotspotDetails) window.clearHotspotDetails();
+        });
+    }
+});
+
+// UI REDESIGN: Populate Recent Hotspots Table
+function renderHotspotsTable(hotspots) {
+    const tbody = document.getElementById('hotspot-table-body');
+    if (!tbody) return;
+    
+    if (!hotspots || hotspots.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--tx-text-muted);">No hotspots loaded.</td></tr>';
+        return;
+    }
+
+    // Sort by recent first (highest ID or latest date)
+    const sorted = [...hotspots].slice(0, 50); // Show top 50
+    
+    let html = '';
+    sorted.forEach(h => {
+        const id = h.id || "TX-UNKNOWN";
+        const date = h.date || h.acq_date || "-";
+        const time = h.time || h.acq_time || "-";
+        const lat = h.latitude ? h.latitude.toFixed(4) : "-";
+        const lng = h.longitude ? h.longitude.toFixed(4) : "-";
+        const frp = h.averageFRP ? h.averageFRP.toFixed(1) : (h.frp || "-");
+        const conf = h.confidence || "-";
+        const pScore = h.persistenceScore !== undefined ? h.persistenceScore + "%" : "-";
+        
+        let clsName = "Pending";
+        let clsColor = "tx-badge-pending";
+        if (h.classification && h.classification.category) {
+            clsName = h.classification.category;
+            clsColor = 'tx-badge-' + clsName.toLowerCase();
+        }
+        
+        // Truncate location if needed, or keep simple
+        const loc = \`\${lat}, \${lng}\`;
+
+        html += \`
+            <tr onclick="if(window.MapModule && window.MapModule.flyToHotspot) window.MapModule.flyToHotspot('\${id}');">
+                <td class="tx-cell-id">\${id}</td>
+                <td>\${date} \${time}</td>
+                <td style="font-family: var(--tx-font-mono);">\${loc}</td>
+                <td style="color: var(--tx-thermal-orange); font-weight: 600;">\${frp}</td>
+                <td>\${conf}</td>
+                <td><span class="tx-badge \${clsColor}" style="font-size: 10px; padding: 2px 6px;">\${clsName}</span></td>
+                <td>\${pScore}</td>
+                <td class="tx-cell-action">➔</td>
+            </tr>
+        \`;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+// Intercept the data load to also render the table
+const originalRenderHotspots = window.MapModule ? window.MapModule.renderHotspots : null;
+if (window.MapModule && originalRenderHotspots) {
+    window.MapModule.renderHotspots = function(hotspots) {
+        originalRenderHotspots.call(window.MapModule, hotspots);
+        renderHotspotsTable(hotspots);
+    };
 }

@@ -623,3 +623,56 @@ export async function getHotspotsForClustering(useDemo = true) {
         return [];
     }
 }
+
+// ============================================================================
+// ML API INTEGRATION (DAY 7/8)
+// ============================================================================
+
+const ML_API_URL = "http://127.0.0.1:8000/predict";
+
+/**
+ * Sends extracted ML features to the FastAPI service and returns the Random Forest classification.
+ * Falls back to a simulated demo response if the ML service is unreachable.
+ * 
+ * @param {Object} eventFeatures The structured feature vector (e.g. average_frp, persistence_score)
+ * @returns {Promise<Object>} The classification prediction, probability, and evidence.
+ */
+async function predictThermalEventClass(eventFeatures) {
+    try {
+        console.log("Sending features to ML API:", eventFeatures);
+        
+        const response = await fetch(ML_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(eventFeatures)
+        });
+
+        if (!response.ok) {
+            throw new Error(`ML API HTTP error! status: ${response.status}`);
+        }
+
+        // Return structured JSON prediction from the FastAPI service
+        return await response.json();
+        
+    } catch (error) {
+        console.warn("ML service is unavailable. Falling back to Demo Classification Mode.", error);
+        
+        // Graceful fallback if the FastAPI server is down during a demo
+        return {
+            prediction: "Unknown (API Offline)",
+            probability: 0.0,
+            probabilities: {
+                "Industrial": 0.0,
+                "Wildfire": 0.0,
+                "Agricultural": 0.0,
+                "Other": 0.0,
+                "Unknown": 1.0
+            },
+            features: {},
+            model: "Demo Fallback",
+            error: true
+        };
+    }
+}
