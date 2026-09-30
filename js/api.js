@@ -21,7 +21,7 @@ const FIRMS_API_CONFIG = {
 };
 
 // Defines an asynchronous function that orchestrates fetching and processing FIRMS data for the initial load.
-export async function fetchFIRMSData(useDemo = true) {
+async function fetchFIRMSData(useDemo = true) {
     // Declares a variable to hold the final URL we will request data from.
     let requestUrl = "";
     
@@ -89,7 +89,7 @@ export async function fetchFIRMSData(useDemo = true) {
 }
 
 // Defines an asynchronous function to fetch historical data around a specific location.
-export async function fetchHistoricalFirmsData(latitude, longitude, referenceDate, useDemo = true) {
+async function fetchHistoricalFirmsData(latitude, longitude, referenceDate, useDemo = true) {
     // Declares a variable to hold the final URL for historical data fetching.
     let requestUrl = "";
     
@@ -390,7 +390,7 @@ const overpassCache = new Map();
  * Returns an array of standardized facility objects.
  * ----------------------------------------------------
  */
-export async function fetchNearbyIndustrialFacilities(latitude, longitude, radius = INDUSTRIAL_SEARCH_RADIUS) {
+async function fetchNearbyIndustrialFacilities(latitude, longitude, radius = INDUSTRIAL_SEARCH_RADIUS) {
     // 1. Validate the input coordinates. If they are missing or invalid, fail safely.
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
@@ -528,7 +528,7 @@ let clusteringDataCache = null;
  * Array of standardized hotspot objects ready for clustering.
  * ------------------------------------------------------------
  */
-export async function getHotspotsForClustering(useDemo = true) {
+async function getHotspotsForClustering(useDemo = true) {
     // 1. Return from memory cache if already fetched and normalized
     if (clusteringDataCache && clusteringDataCache.length > 0) {
         console.log("Role 3: Returning cached hotspot data for clustering.");
@@ -676,3 +676,11 @@ async function predictThermalEventClass(eventFeatures) {
         };
     }
 }
+
+// Expose API functions globally for local file:// usage
+window.ThermalXAPI = {
+    fetchFIRMSData,
+    fetchHistoricalFirmsData,
+    fetchNearbyIndustrialFacilities,
+    getHotspotsForClustering
+};

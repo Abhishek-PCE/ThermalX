@@ -91,6 +91,7 @@
                         <div class="tx-kpi-label">Active Anomalies</div>
                     </div>
                 </div>
+                
                 <div class="tx-card tx-kpi-card">
                     <div class="tx-kpi-icon icon-orange">🏭</div>
                     <div class="tx-kpi-content">
@@ -352,11 +353,12 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-    <script src="js/data.js"></script>
+    <!-- Load order matters for global scripts -->
     <script src="js/api.js"></script>
     <script src="js/processing.js"></script>
     <script src="js/classification.js"></script>
     <script src="js/map.js"></script>
+    <!-- Entry point requires module support for imports -->
     <script src="js/app.js"></script>
     <script>
         // Simple script for tab switching

@@ -25,6 +25,14 @@ window.MapModule = (function() {
 
         // Initialize the map object
         map = L.map(containerId).setView(defaultCenter, defaultZoom);
+        
+        // Ensure map renders properly in flex/grid layouts
+        setTimeout(() => {
+            if (map) map.invalidateSize();
+        }, 100);
+        setTimeout(() => {
+            if (map) map.invalidateSize();
+        }, 1000);
 
         // Define Base Layers
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

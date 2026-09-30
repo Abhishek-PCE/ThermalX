@@ -4,7 +4,7 @@
  */
 
 // Import the fetch functions from our newly created api.js module.
-import { fetchFIRMSData, fetchNearbyIndustrialFacilities, getHotspotsForClustering } from './api.js';
+
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("ThermalX application initialized.");
@@ -332,7 +332,7 @@ async function showHotspotDetails(hotspot) {
             currentHotspotContextId = fetchContextId;
             
             // Call Role 3's API function
-            fetchNearbyIndustrialFacilities(hotspot.latitude, hotspot.longitude)
+            window.ThermalXAPI.fetchNearbyIndustrialFacilities(hotspot.latitude, hotspot.longitude)
                 .then(async rawFacilities => {
                     // Abort if the user selected a different hotspot while we were fetching
                     if (currentHotspotContextId !== fetchContextId) {
@@ -900,6 +900,7 @@ if (btnTestFetch) {
     btnTestFetch.addEventListener('click', async () => {
         
         // Update the status text to tell the user we are loading data.
+        testStatusMessage.style.display = "block";
         testStatusMessage.textContent = "Loading NASA FIRMS data...";
         
         // Change the text color to yellow/orange to indicate a pending state.
@@ -912,7 +913,8 @@ if (btnTestFetch) {
         try {
             
             // Call the imported fetchFIRMSData function (Role 3) and wait for it to finish.
-            // DAY 5 ROLE 3: Use the new clustering integration function\n            const apiHotspots = await getHotspotsForClustering(true); // Fetch and merge data for clustering
+            // DAY 5 ROLE 3: Use the new clustering integration function
+            const apiHotspots = await window.ThermalXAPI.getHotspotsForClustering(true); // Fetch and merge data for clustering
             
             // Pass the API data through Role 4 Data Processing pipeline (Integration)
             let cleanHotspots = [];
